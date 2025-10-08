@@ -1,6 +1,191 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Updated: 2025-10-08T21:04:28.577Z */
+
+/* Updated: 2025-10-08T21:04:10.222Z */
+/* Updated: 2025-10-08T21:04:02.739Z */
+/* Updated: 2025-10-08T20:59:56.459Z */
+/* Updated: 2025-10-08T00:34:05.792Z */
+/* Updated: 2025-09-29T19:46:21.009Z */
+/* Updated: 2025-09-29T19:44:46.844Z */
+/* Updated: 2025-09-29T19:42:35.213Z */
+/* Updated: 2025-09-19T05:30:16.260Z */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Homey Brand Colors */
+  --color-primary-background: #FFFFFF;
+  --color-secondary-background: #F8F9FA;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B7280;
+  --color-brand-orange: #FF5722;
+  --color-success-green: #10B981;
+  --color-info-blue: #3B82F6;
+  --color-error-red: #EF4444;
+  --color-card-shadow: rgba(0, 0, 0, 0.1);
+  --color-border-light: #E5E7EB;
+  
+  /* Design tokens */
+  --color-background: var(--color-primary-background);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-primary-background);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-primary-background);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-brand-orange);
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: var(--color-secondary-background);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-secondary-background);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-accent: var(--color-secondary-background);
+  --color-accent-foreground: var(--color-text-primary);
+  --color-destructive: var(--color-error-red);
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: var(--color-border-light);
+  --color-input: var(--color-border-light);
+  --color-ring: var(--color-brand-orange);
+  
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  
+  /* Border radius */
+  --radius: 16px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  
+  /* Chart colors */
+  --color-chart-1: var(--color-brand-orange);
+  --color-chart-2: var(--color-success-green);
+  --color-chart-3: var(--color-info-blue);
+  --color-chart-4: #8B5CF6;
+  --color-chart-5: #F59E0B;
+}
+
+:root {
+  /* Light mode colors */
+  --background: var(--color-primary-background);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-primary-background);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-primary-background);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-brand-orange);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--color-secondary-background);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-secondary-background);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-secondary-background);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error-red);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--color-border-light);
+  --input: var(--color-border-light);
+  --ring: var(--color-brand-orange);
+}
+
+.dark {
+  --background: #0F0F0F;
+  --foreground: #FAFAFA;
+  --card: #1A1A1A;
+  --card-foreground: #FAFAFA;
+  --popover: #1A1A1A;
+  --popover-foreground: #FAFAFA;
+  --primary: var(--color-brand-orange);
+  --primary-foreground: #FFFFFF;
+  --secondary: #262626;
+  --secondary-foreground: #FAFAFA;
+  --muted: #262626;
+  --muted-foreground: #A3A3A3;
+  --accent: #262626;
+  --accent-foreground: #FAFAFA;
+  --destructive: var(--color-error-red);
+  --destructive-foreground: #FFFFFF;
+  --border: #404040;
+  --input: #404040;
+  --ring: var(--color-brand-orange);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Typography classes for Homey design system */
+  .text-hero {
+    @apply text-6xl lg:text-7xl font-bold leading-tight;
+  }
+  
+  .text-section-heading {
+    @apply text-4xl lg:text-5xl font-bold leading-tight;
+  }
+  
+  .text-subsection-heading {
+    @apply text-2xl lg:text-3xl font-semibold leading-snug;
+  }
+  
+  .text-card-title {
+    @apply text-xl lg:text-2xl font-semibold leading-snug;
+  }
+  
+  .text-body-large {
+    @apply text-lg lg:text-xl leading-relaxed;
+  }
+  
+  .text-body {
+    @apply text-base leading-relaxed;
+  }
+  
+  .text-small {
+    @apply text-sm leading-relaxed;
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground border border-border hover:bg-accent px-6 py-3 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  /* Card styles */
+  .card-shadow {
+    box-shadow: 0 4px 6px var(--color-card-shadow);
+  }
+  
+  .card-shadow-hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Container and layout */
+  .container-homey {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section-padding {
+    @apply py-16 lg:py-24;
+  }
+}
+
+/* Hide Next.js error overlay portal */
+nextjs-portal {
+  display: none !important;
+}@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -259,9 +444,4 @@
       padding-right: 1.5rem; /* 24px */
     }
   }
-}
-
-/* Hide Next.js error overlay portal */
-nextjs-portal {
-  display: none !important;
 }
