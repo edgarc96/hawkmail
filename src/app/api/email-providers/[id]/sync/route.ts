@@ -1,0 +1,395 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/db';
+import { emailProviders, emailSyncLogs, emails, responseMetrics } from '@/db/schema';
+import { eq, and, sql, gte } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
+import { google } from 'googleapis';
+
+// Robust MIME header decoder
+function decodeMimeHeader(text: string): string {
+  if (!text) return "";
+  
+  try {
+    // Pattern for encoded words: =?charset?encoding?encoded-text?=
+    const pattern = /=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g;
+    
+    let decoded = text;
+    let match;
+    
+    // Keep decoding until no more encoded words are found
+    while ((match = pattern.exec(decoded)) !== null) {
+      const fullMatch = match[0];
+      const charset = match[1];
+      const encoding = match[2].toUpperCase();
+      const encodedText = match[3];
+      
+      let decodedPart = '';
+      
+      if (encoding === 'B') {
+        // Base64 decoding
+        try {
+          const buffer = Buffer.from(encodedText, 'base64');
+          decodedPart = buffer.toString('utf-8');
+        } catch (e) {
+          console.error('Base64 decode error:', e);
+          decodedPart = encodedText;
+        }
+      } else if (encoding === 'Q') {
+        // Quoted-Printable decoding
+        try {
+          let qpDecoded = encodedText
+            .replace(/_/g, ' ')
+            .replace(/=([0-9A-F]{2})/gi, (_: string, hex: string) => {
+              return String.fromCharCode(parseInt(hex, 16));
+            });
+          decodedPart = qpDecoded;
+        } catch (e) {
+          console.error('Quoted-printable decode error:', e);
+          decodedPart = encodedText;
+        }
+      }
+      
+      // Replace the encoded part with decoded text
+      decoded = decoded.replace(fullMatch, decodedPart);
+      // Reset regex for next iteration
+      pattern.lastIndex = 0;
+    }
+    
+    return decoded;
+  } catch (error) {
+    console.error('MIME header decode error:', error);
+    return text; // Return original on error
+  }
+}
+
+// Resolve app URL consistently across environments
+const appUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.BETTER_AUTH_URL ||
+  "http://localhost:3000";
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+    const user = session.user;
+
+    const { id } = await params;
+
+    if (!id || isNaN(parseInt(id))) {
+      return NextResponse.json(
+        { error: 'Valid provider ID is required', code: 'INVALID_ID' },
+        { status: 400 }
+      );
+    }
+
+    const providerId = parseInt(id);
+
+    const provider = await db
+      .select()
+      .from(emailProviders)
+      .where(
+        and(
+          eq(emailProviders.id, providerId),
+          eq(emailProviders.userId, user.id)
+        )
+      )
+      .limit(1);
+
+    if (provider.length === 0) {
+      return NextResponse.json(
+        { error: 'Provider not found', code: 'PROVIDER_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    if (!provider[0].isActive) {
+      return NextResponse.json(
+        { error: 'Provider is not active', code: 'PROVIDER_INACTIVE' },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date();
+
+    const syncLog = await db
+      .insert(emailSyncLogs)
+      .values({
+        providerId: providerId,
+        userId: user.id,
+        syncStatus: 'in_progress',
+        startedAt: now,
+        emailsProcessed: 0,
+        createdAt: now,
+      })
+      .returning();
+
+    // Execute sync immediately (not in background) for better UX
+    const result = await syncGmailEmails(provider[0], user.id, syncLog[0].id);
+
+    // ALWAYS calculate metrics after sync (even if no new emails)
+    if (result.success) {
+      try {
+        console.log('[Sync] Calculating metrics...');
+        await calculateMetrics(user.id);
+        console.log('[Sync] Metrics calculated successfully');
+      } catch (error) {
+        console.error('[Sync] Failed to calculate metrics:', error);
+      }
+    }
+
+    return NextResponse.json(
+      {
+        message: result.success ? 'Sync completed' : 'Sync failed',
+        syncLogId: syncLog[0].id,
+        status: result.success ? 'success' : 'failed',
+        emailsProcessed: result.emailsProcessed,
+        provider: provider[0],
+      },
+      { status: result.success ? 200 : 500 }
+    );
+  } catch (error) {
+    console.error('POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error: ' + error },
+      { status: 500 }
+    );
+  }
+}
+
+async function syncGmailEmails(provider: any, userId: string, syncLogId: number): Promise<{ success: boolean; emailsProcessed: number }> {
+  console.log(`[Sync ${syncLogId}] Starting Gmail sync for provider ${provider.id}`);
+  try {
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      `${appUrl}/api/oauth/gmail/callback`
+    );
+
+    oauth2Client.setCredentials({
+      access_token: provider.accessToken,
+      refresh_token: provider.refreshToken,
+    });
+
+    console.log(`[Sync ${syncLogId}] OAuth client configured`);
+    
+    // Handle token refresh
+    oauth2Client.on('tokens', async (tokens) => {
+      if (tokens.access_token) {
+        await db
+          .update(emailProviders)
+          .set({
+            accessToken: tokens.access_token,
+            tokenExpiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : new Date(Date.now() + 3600000),
+          })
+          .where(eq(emailProviders.id, provider.id));
+      }
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    // Get emails from last 7 days (optimized for faster sync)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const query = `after:${Math.floor(sevenDaysAgo.getTime() / 1000)}`;
+
+    console.log(`[Sync ${syncLogId}] Fetching emails with query: ${query}`);
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 50, // Reduced to 50 for faster sync
+    });
+
+    const messages = response.data.messages || [];
+    console.log(`[Sync ${syncLogId}] Found ${messages.length} messages`);
+    let emailsProcessed = 0;
+
+    // Process messages in parallel batches of 10 for faster sync
+    const batchSize = 10;
+    for (let i = 0; i < messages.length; i += batchSize) {
+      const batch = messages.slice(i, i + batchSize);
+      
+      await Promise.all(batch.map(async (message) => {
+        try {
+          const emailData = await gmail.users.messages.get({
+            userId: 'me',
+            id: message.id!,
+            format: 'full',
+          });
+
+        const headers = emailData.data.payload?.headers || [];
+        const subjectRaw = headers.find((h) => h.name === 'Subject')?.value || 'No Subject';
+        const fromRaw = headers.find((h) => h.name === 'From')?.value || 'Unknown';
+        const toRaw = headers.find((h) => h.name === 'To')?.value || provider.email;
+        const dateStr = headers.find((h) => h.name === 'Date')?.value;
+        const receivedAt = dateStr ? new Date(dateStr) : new Date();
+        
+        // Decode MIME encoded headers
+        const subject = decodeMimeHeader(subjectRaw);
+        const from = decodeMimeHeader(fromRaw);
+        const to = decodeMimeHeader(toRaw);
+
+        // Calculate SLA deadline (24 hours by default)
+        const slaDeadline = new Date(receivedAt);
+        slaDeadline.setHours(slaDeadline.getHours() + 24);
+
+        // Check if email already exists
+        const existingEmail = await db
+          .select()
+          .from(emails)
+          .where(and(
+            eq(emails.externalId, message.id!),
+            eq(emails.userId, userId)
+          ))
+          .limit(1);
+
+        if (existingEmail.length === 0) {
+          await db.insert(emails).values({
+            userId,
+            subject,
+            senderEmail: from,
+            recipientEmail: to,
+            receivedAt,
+            slaDeadline,
+            status: 'pending',
+            priority: 'medium',
+            isResolved: false,
+            providerId: provider.id,
+            externalId: message.id!,
+            threadId: emailData.data.threadId || null,
+          });
+          emailsProcessed++;
+        }
+        } catch (emailError) {
+          console.error(`Error processing email ${message.id}:`, emailError);
+        }
+      }));
+    }
+
+    // Update sync log as completed
+    await db
+      .update(emailSyncLogs)
+      .set({
+        syncStatus: 'success',
+        emailsProcessed,
+        completedAt: new Date(),
+      })
+      .where(eq(emailSyncLogs.id, syncLogId));
+
+    // Update provider lastSyncAt
+    await db
+      .update(emailProviders)
+      .set({
+        lastSyncAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(emailProviders.id, provider.id));
+
+    console.log(`Gmail sync completed: ${emailsProcessed} emails processed`);
+    return { success: true, emailsProcessed };
+  } catch (error) {
+    console.error('Gmail sync error:', error);
+    
+    // Update sync log as failed
+    await db
+      .update(emailSyncLogs)
+      .set({
+        syncStatus: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      })
+      .where(eq(emailSyncLogs.id, syncLogId));
+    
+    return { success: false, emailsProcessed: 0 };
+  }
+}
+
+async function calculateMetrics(userId: string) {
+  console.log('[calculateMetrics] Starting for user:', userId);
+  
+  // Get last 30 days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const dailyMetrics = await db
+    .select({
+      date: sql<string>`DATE(${emails.receivedAt})`,
+      avgFirstReplyTimeMinutes: sql<number>`
+        CAST(AVG(
+          CASE 
+            WHEN ${emails.firstReplyAt} IS NOT NULL 
+            THEN (julianday(${emails.firstReplyAt}) - julianday(${emails.receivedAt})) * 24 * 60
+            ELSE NULL
+          END
+        ) AS INTEGER)
+      `,
+      totalEmails: sql<number>`CAST(COUNT(*) AS INTEGER)`,
+      repliedCount: sql<number>`CAST(SUM(CASE WHEN ${emails.firstReplyAt} IS NOT NULL THEN 1 ELSE 0 END) AS INTEGER)`,
+      overdueCount: sql<number>`CAST(SUM(CASE WHEN ${emails.status} = 'overdue' THEN 1 ELSE 0 END) AS INTEGER)`,
+      resolutionRate: sql<number>`
+        CAST(SUM(CASE WHEN ${emails.isResolved} = 1 THEN 1 ELSE 0 END) AS REAL) / NULLIF(COUNT(*), 0) * 100
+      `,
+    })
+    .from(emails)
+    .where(
+      and(
+        eq(emails.userId, userId),
+        gte(emails.receivedAt, thirtyDaysAgo)
+      )
+    )
+    .groupBy(sql`DATE(${emails.receivedAt})`);
+
+  console.log('[calculateMetrics] Found metrics for', dailyMetrics.length, 'days');
+
+  let inserted = 0;
+  let updated = 0;
+
+  for (const metric of dailyMetrics) {
+    const existing = await db
+      .select()
+      .from(responseMetrics)
+      .where(
+        and(
+          eq(responseMetrics.userId, userId),
+          eq(responseMetrics.date, metric.date)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(responseMetrics).values({
+        userId,
+        date: metric.date,
+        avgFirstReplyTimeMinutes: metric.avgFirstReplyTimeMinutes || 0,
+        totalEmails: metric.totalEmails || 0,
+        repliedCount: metric.repliedCount || 0,
+        overdueCount: metric.overdueCount || 0,
+        resolutionRate: metric.resolutionRate || 0,
+      });
+      inserted++;
+    } else {
+      await db
+        .update(responseMetrics)
+        .set({
+          avgFirstReplyTimeMinutes: metric.avgFirstReplyTimeMinutes || 0,
+          totalEmails: metric.totalEmails || 0,
+          repliedCount: metric.repliedCount || 0,
+          overdueCount: metric.overdueCount || 0,
+          resolutionRate: metric.resolutionRate || 0,
+        })
+        .where(eq(responseMetrics.id, existing[0].id));
+      updated++;
+    }
+  }
+
+  console.log('[calculateMetrics] Inserted:', inserted, 'Updated:', updated);
+}

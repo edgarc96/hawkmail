@@ -5,8 +5,57 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1759959689123,
-      "tag": "0000_rapid_talos",
+      "when": 1759967080519,
+      "tag": "0000_worried_marvel_zombies",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1759967314695,
+      "tag": "0001_long_energizer",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1759969907108,
+      "tag": "0002_flaky_vector",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1759971359532,
+      "tag": "0003_dark_secret_warriors",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1759971526224,
+      "tag": "0004_flaky_chameleon",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1759989441237,
+      "tag": "0005_lumpy_sharon_carter",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1759990992642,
+      "tag": "0006_clumsy_alex_wilder",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1760250573799,
+      "tag": "0007_motionless_madripoor",
       "breakpoints": true
     }
   ]

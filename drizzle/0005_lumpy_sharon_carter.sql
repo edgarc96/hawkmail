@@ -1,0 +1,1 @@
+ALTER TABLE `emails` ADD `assigned_to` integer REFERENCES team_members(id);
