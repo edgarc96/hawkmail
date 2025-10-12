@@ -1,123 +1,101 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, User, HelpCircle } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const NavigationHeader = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isMenuOpen]);
+export const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full bg-white transition-shadow duration-300 ${
-        isScrolled ? "shadow-md" : ""
-      }`}
-    >
-      <div className="mx-auto max-w-[1280px] px-6">
-        <div className="flex items-center justify-between h-[88px]">
-          <div className="flex-shrink-0">
-            <Link href="/">
-              <Image
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/abd887e9-f493-4931-b980-ae13dd9c4515-timetoreply-com/assets/svgs/timetoreply-logo-1.svg?"
-                alt="timetoreply"
-                width={180}
-                height={32}
-                className="w-[180px] h-auto"
-                priority
-              />
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="text-2xl font-bold text-primary">HawkMail</div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
+              Features
+            </Link>
+            <Link href="#analytics" className="text-foreground/80 hover:text-foreground transition-colors">
+              Analytics
+            </Link>
+            <Link href="#pricing" className="text-foreground/80 hover:text-foreground transition-colors">
+              Pricing
+            </Link>
+            <Link href="#contact" className="text-foreground/80 hover:text-foreground transition-colors">
+              Contact
             </Link>
           </div>
 
-          <nav className="hidden lg:flex items-center space-x-6">
-            <Link
-              href="/register"
-              className="px-6 py-3 bg-[#4ECDC4] text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-            >
-              Try Free
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link href="/login">
+              <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link
-              href="/login"
-              className="flex items-center space-x-2 text-[#1a202c] font-semibold text-sm hover:opacity-70 transition-opacity"
-            >
-              <User size={18} />
-              <span>LOG IN</span>
+            <Link href="/register">
+              <Button>Start Free Trial</Button>
             </Link>
-          </nav>
-
-          <div className="lg:hidden">
-            <button onClick={() => setIsMenuOpen(true)} aria-label="Open menu">
-              <Menu size={28} className="text-[#1a202c]" />
-            </button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 rounded-md text-foreground hover:bg-accent"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      <div
-        className={`fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        } bg-white`}
-      >
-        <div className="mx-auto max-w-[1280px] px-6">
-          <div className="flex items-center justify-between h-[88px]">
-            <Link href="/" onClick={() => setIsMenuOpen(false)}>
-              <Image
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/abd887e9-f493-4931-b980-ae13dd9c4515-timetoreply-com/assets/svgs/timetoreply-logo-1.svg?"
-                alt="timetoreply"
-                width={180}
-                height={32}
-                className="w-[180px] h-auto"
-                priority
-              />
+      {isOpen && (
+        <div className="md:hidden border-t border-border bg-background">
+          <div className="px-4 py-4 space-y-3">
+            <Link
+              href="#features"
+              className="block py-2 text-foreground/80 hover:text-foreground transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Features
             </Link>
-            <button onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
-              <X size={28} className="text-[#1a202c]" />
-            </button>
+            <Link
+              href="#analytics"
+              className="block py-2 text-foreground/80 hover:text-foreground transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Analytics
+            </Link>
+            <Link
+              href="#pricing"
+              className="block py-2 text-foreground/80 hover:text-foreground transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Pricing
+            </Link>
+            <Link
+              href="#contact"
+              className="block py-2 text-foreground/80 hover:text-foreground transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Contact
+            </Link>
+            <div className="pt-4 space-y-2">
+              <Link href="/login" onClick={() => setIsOpen(false)}>
+                <Button variant="ghost" className="w-full">Sign In</Button>
+              </Link>
+              <Link href="/register" onClick={() => setIsOpen(false)}>
+                <Button className="w-full">Start Free Trial</Button>
+              </Link>
+            </div>
           </div>
-          <nav className="mt-8 flex flex-col items-center space-y-6">
-            <Link
-              href="/register"
-              onClick={() => setIsMenuOpen(false)}
-              className="w-full text-center px-6 py-3 bg-[#4ECDC4] text-white rounded-lg font-semibold text-base"
-            >
-              Try Free
-            </Link>
-            <Link
-              href="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center space-x-2 text-[#1a202c] font-semibold text-base"
-            >
-              <User size={20} />
-              <span>LOG IN</span>
-            </Link>
-          </nav>
         </div>
-      </div>
-    </header>
+      )}
+    </nav>
   );
 };
-
-export default NavigationHeader;
