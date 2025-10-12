@@ -29,6 +29,9 @@ export const auth = betterAuth({
     'http://localhost:3000',
     'http://192.168.7.103:3000',
     'https://hiho.vercel.app',
+    'https://hawkmail.app',
+    'https://www.hawkmail.app',
+    'https://time-to-reply-eddies-projects.vercel.app',
   ],
   advanced: {
     // Use secure cookies in production environments
