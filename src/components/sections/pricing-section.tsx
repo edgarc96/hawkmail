@@ -106,7 +106,7 @@ export function PricingSection() {
             <span className="gradient-text">Simple, Transparent Pricing</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Choose the plan that fits your team size. All plans include a 14-day free trial.
+            Choose the perfect plan for your team. All plans include a 14-day free trial.
           </p>
         </div>
 
