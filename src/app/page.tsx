@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/sections/navigation-header";
+import { PricingSection } from "@/components/sections/pricing-section";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Mail, Clock, BarChart3, Users, Zap, Shield } from "lucide-react";
 import Link from "next/link";
@@ -175,102 +176,7 @@ export default function Page() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              <span className="gradient-text">Simple, Transparent Pricing</span>
-            </h2>
-            <p className="text-xl text-muted-foreground">Choose the plan that fits your team size</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter Plan */}
-            <div className="bg-card p-8 rounded-lg border border-border">
-              <div className="text-lg font-semibold mb-2">Starter</div>
-              <div className="text-4xl font-bold mb-6">
-                $29<span className="text-xl text-muted-foreground">/mo</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Up to 5 users</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Basic analytics</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Email support</span>
-                </li>
-              </ul>
-              <Link href="/register">
-                <Button variant="outline" className="w-full">Start Trial</Button>
-              </Link>
-            </div>
-
-            {/* Professional Plan */}
-            <div className="bg-card p-8 rounded-lg border-2 border-primary relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm">
-                Most Popular
-              </div>
-              <div className="text-lg font-semibold mb-2">Professional</div>
-              <div className="text-4xl font-bold mb-6">
-                $79<span className="text-xl text-muted-foreground">/mo</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Up to 25 users</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Advanced analytics</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Priority support</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Custom reports</span>
-                </li>
-              </ul>
-              <Link href="/register">
-                <Button className="w-full">Start Trial</Button>
-              </Link>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-card p-8 rounded-lg border border-border">
-              <div className="text-lg font-semibold mb-2">Enterprise</div>
-              <div className="text-4xl font-bold mb-6">Custom</div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Unlimited users</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Custom integration</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>Dedicated support</span>
-                </li>
-                <li className="flex items-center">
-                  <ArrowRight className="text-primary mr-2" size={16} />
-                  <span>SLA guarantee</span>
-                </li>
-              </ul>
-              <Link href="/login">
-                <Button variant="outline" className="w-full">Contact Sales</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
