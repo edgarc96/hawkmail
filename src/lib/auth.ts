@@ -36,9 +36,8 @@ export const auth = betterAuth({
       'http://127.0.0.1:3001',
       'http://192.168.7.103:3000',
       'http://192.168.7.103:3001',
-      'https://hiho.vercel.app',
-      'https://hawkmail.app',
-      'https://www.hawkmail.app',
+      'https://hawkly.app',
+      'https://www.hawkly.app',
       'https://time-to-reply-eddies-projects.vercel.app',
     ];
     
