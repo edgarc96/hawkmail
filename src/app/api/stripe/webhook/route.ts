@@ -92,19 +92,20 @@ export async function POST(req: NextRequest) {
           const planType = getPlanTypeFromPriceId(subscription.items.data[0].price.id);
           
           // Create or update subscription
+          const sub = subscription as any;
           await createOrUpdateSubscription({
             userId: userData.id,
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            status: subscription.status,
-            priceId: subscription.items.data[0].price.id,
+            stripeSubscriptionId: sub.id,
+            stripeCustomerId: sub.customer as string,
+            status: sub.status,
+            priceId: sub.items.data[0].price.id,
             planType,
-            currentPeriodStart: new Date(subscription.current_period_start! * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end! * 1000),
-            trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
-            trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
-            canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodStart: new Date(sub.current_period_start * 1000),
+            currentPeriodEnd: new Date(sub.current_period_end * 1000),
+            trialStart: sub.trial_start ? new Date(sub.trial_start * 1000) : undefined,
+            trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
+            canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : undefined,
+            cancelAtPeriodEnd: sub.cancel_at_period_end,
           });
         } catch (error) {
           console.error('Error handling subscription creation:', error);
@@ -130,19 +131,20 @@ export async function POST(req: NextRequest) {
           const planType = getPlanTypeFromPriceId(subscription.items.data[0].price.id);
           
           // Update subscription
+          const sub = subscription as any;
           await createOrUpdateSubscription({
             userId: userData.id,
-            stripeSubscriptionId: subscription.id,
-            stripeCustomerId: subscription.customer as string,
-            status: subscription.status,
-            priceId: subscription.items.data[0].price.id,
+            stripeSubscriptionId: sub.id,
+            stripeCustomerId: sub.customer as string,
+            status: sub.status,
+            priceId: sub.items.data[0].price.id,
             planType,
-            currentPeriodStart: new Date(subscription.current_period_start! * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end! * 1000),
-            trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
-            trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
-            canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodStart: new Date(sub.current_period_start * 1000),
+            currentPeriodEnd: new Date(sub.current_period_end * 1000),
+            trialStart: sub.trial_start ? new Date(sub.trial_start * 1000) : undefined,
+            trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
+            canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : undefined,
+            cancelAtPeriodEnd: sub.cancel_at_period_end,
           });
         } catch (error) {
           console.error('Error handling subscription update:', error);
