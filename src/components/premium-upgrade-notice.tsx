@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Crown, ArrowRight, Check } from 'lucide-react';
 import Link from 'next/link';
 
-export function PremiumUpgradeNotice() {
+function PremiumUpgradeContent() {
   const searchParams = useSearchParams();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
@@ -83,5 +83,13 @@ export function PremiumUpgradeNotice() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export function PremiumUpgradeNotice() {
+  return (
+    <Suspense fallback={null}>
+      <PremiumUpgradeContent />
+    </Suspense>
   );
 }
