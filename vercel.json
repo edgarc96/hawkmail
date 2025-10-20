@@ -5,13 +5,13 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_APP_URL": "https://hawkly.app",
-    "NEXT_PUBLIC_SITE_URL": "https://hawkly.app"
+    "NEXT_PUBLIC_APP_URL": "https://hawkmail.app",
+    "NEXT_PUBLIC_SITE_URL": "https://hawkmail.app"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_APP_URL": "https://hawkly.app",
-      "NEXT_PUBLIC_SITE_URL": "https://hawkly.app"
+      "NEXT_PUBLIC_APP_URL": "https://hawkmail.app",
+      "NEXT_PUBLIC_SITE_URL": "https://hawkmail.app"
     }
   }
 }
