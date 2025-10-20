@@ -11,6 +11,7 @@ const appUrl =
   'http://localhost:3000';
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET || 'fallback-secret-key-for-development-only',
   baseURL: appUrl,
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -19,12 +20,12 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false, // Disable for development
   },
-  socialProviders: {
+  socialProviders: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     },
-  },
+  } : {},
   trustedOrigins: async (request) => {
     const origin = request.headers.get('origin') || '';
     const baseOrigins = [
@@ -46,6 +47,11 @@ export const auth = betterAuth({
       if (origin.match(/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+):\d+$/)) {
         return [...baseOrigins, origin];
       }
+    }
+    
+    // In production, allow Vercel preview deployments
+    if (origin.match(/^https:\/\/time-to-reply-.*\.vercel\.app$/)) {
+      return [...baseOrigins, origin];
     }
     
     return baseOrigins;
