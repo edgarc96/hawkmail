@@ -44,9 +44,7 @@ export async function GET(request: NextRequest) {
   );
 }
 
-// Export for use in other API routes
-export { sendToUser, removeConnection };
-
+// Note: sendToUser and removeConnection are defined but not exported
 // In a real implementation, you'd set up a WebSocket server
 // This would typically be in a separate server file or using
 // a WebSocket service like Pusher, Socket.io, etc.
