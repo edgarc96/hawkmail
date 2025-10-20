@@ -17,6 +17,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false, // Disable for development
   },
   socialProviders: {
     google: {
@@ -24,19 +25,47 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  trustedOrigins: [
-    appUrl,
-    'http://localhost:3000',
-    'http://192.168.7.103:3000',
-    'https://hiho.vercel.app',
-    'https://hawkmail.app',
-    'https://www.hawkmail.app',
-    'https://time-to-reply-eddies-projects.vercel.app',
-  ],
+  trustedOrigins: async (request) => {
+    const origin = request.headers.get('origin') || '';
+    const baseOrigins = [
+      appUrl,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://192.168.7.103:3000',
+      'http://192.168.7.103:3001',
+      'https://hiho.vercel.app',
+      'https://hawkmail.app',
+      'https://www.hawkmail.app',
+      'https://time-to-reply-eddies-projects.vercel.app',
+    ];
+    
+    // In development, allow any localhost, 127.0.0.1, or local network origin
+    if (process.env.NODE_ENV === 'development') {
+      if (origin.match(/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+):\d+$/)) {
+        return [...baseOrigins, origin];
+      }
+    }
+    
+    return baseOrigins;
+  },
   advanced: {
     // Use secure cookies in production environments
     useSecureCookies: process.env.NODE_ENV === 'production' ? true : false,
     cookiePrefix: 'better-auth',
+    // Cross-subdomain cookies
+    crossSubDomainCookies: {
+      enabled: false,
+    },
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
   },
 });
 

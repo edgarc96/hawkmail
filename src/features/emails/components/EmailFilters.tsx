@@ -27,22 +27,22 @@ export function EmailFilters({
   onApplyFilters,
 }: EmailFiltersProps) {
   return (
-    <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4">
-      <div className="flex flex-col md:flex-row gap-4">
+    <div className="rounded-lg border border-primary/20 bg-background p-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <div className="flex-1">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 transform text-muted-foreground" size={20} />
             <Input
               type="text"
               placeholder="Search emails by subject, sender, or recipient..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+              className="pl-10"
             />
           </div>
         </div>
         <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-full md:w-40 bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+          <SelectTrigger className="w-full md:w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -53,7 +53,7 @@ export function EmailFilters({
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={onPriorityChange}>
-          <SelectTrigger className="w-full md:w-40 bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+          <SelectTrigger className="w-full md:w-40">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
@@ -66,16 +66,16 @@ export function EmailFilters({
         <Button
           variant="outline"
           onClick={onClearFilters}
-          className="bg-[#1a0f2e]/40 border-purple-500/30 text-purple-300 hover:bg-purple-600/20"
+          className="gap-2"
         >
-          <X size={16} className="mr-2" />
+          <X size={16} />
           Clear
         </Button>
         <Button
           onClick={onApplyFilters}
-          className="bg-purple-600 hover:bg-purple-700 text-white"
+          className="gap-2"
         >
-          <Filter size={16} className="mr-2" />
+          <Filter size={16} />
           Apply
         </Button>
       </div>

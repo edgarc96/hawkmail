@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
+import { getCurrentUser } from '@/lib/get-current-user';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +11,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'lookup_key is required' },
         { status: 400 }
+      );
+    }
+
+    // Get current user
+    const user = await getCurrentUser(req);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not authenticated' },
+        { status: 401 }
       );
     }
 
@@ -40,6 +50,10 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       success_url: `${appUrl}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/stripe/cancel`,
+      metadata: {
+        userId: user.id,
+      },
+      customer_email: user.email,
     });
 
     return NextResponse.json({ url: session.url });

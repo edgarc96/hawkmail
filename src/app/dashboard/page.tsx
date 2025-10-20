@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth-client";
 import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, Bell, LogOut, BarChart3, Settings, Home, XCircle, Search, Send, Filter, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Zap, Shuffle, Database, Download, FileSpreadsheet, Info, Sparkles, ChevronRight, ChevronDown, Sliders, User, CreditCard, BellRing, Palette, FileText, Timer, Webhook, Calendar, Crown, Server, Target } from "lucide-react";
@@ -8,11 +8,13 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EnhancedMetricsCard } from "@/features/analytics/components/EnhancedMetricsCard";
-import { EmailList } from "@/features/emails/components/EmailList";
-import { EmailFilters } from "@/features/emails/components/EmailFilters";
+import { OptimizedDashboard } from "@/features/dashboard/components/OptimizedDashboard";
 import { AlertsList } from "@/features/alerts/components/AlertsList";
 import { Leaderboard } from "@/features/team/components/Leaderboard";
+import { PerformanceTrendChart } from "@/features/analytics/components/PerformanceTrendChart";
+import { EmailDistributionChart } from "@/features/analytics/components/EmailDistributionChart";
+import { TeamPerformanceHeatmap } from "@/features/analytics/components/TeamPerformanceHeatmap";
+import { NotificationDropdown } from "@/features/notifications/components/NotificationDropdown";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -1348,22 +1350,24 @@ export default function DashboardPage() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="min-h-screen bg-gradient-to-br from-[#1a0f2e] via-[#2d1b4e] to-[#1a0f2e] flex">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex">
         {/* Left Navbar Vertical - Main Icons Only */}
-        <div className="w-20 bg-[#0f0820] border-r border-purple-500/30 flex flex-col items-center py-8 gap-4 sticky top-0 h-screen">
+        <div className="w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center gap-4 py-8 sticky top-0 h-screen backdrop-blur-sm">
           <button
             onClick={() => {
               setActiveSection('dashboard');
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-              activeSection === 'dashboard' ? 'bg-purple-600/40' : 'bg-purple-600/20 hover:bg-purple-600/40'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+              activeSection === 'dashboard'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Dashboard"
           >
-            <Home className="text-purple-300 group-hover:text-purple-100" size={24} />
-            <span className="text-[10px] text-purple-300 group-hover:text-purple-100 font-medium">Home</span>
+            <Home className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Home</span>
           </button>
 
           <button
@@ -1372,13 +1376,15 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-              activeSection === 'analytics' ? 'bg-purple-600/40' : 'hover:bg-purple-600/20'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+              activeSection === 'analytics'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Analytics"
           >
-            <BarChart3 className="text-purple-400 group-hover:text-purple-200" size={24} />
-            <span className="text-[10px] text-purple-400 group-hover:text-purple-200 font-medium">Analytics</span>
+            <BarChart3 className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Analytics</span>
           </button>
 
           <button
@@ -1387,15 +1393,17 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
-              activeSection === 'alerts' ? 'bg-purple-600/40' : 'hover:bg-purple-600/20'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
+              activeSection === 'alerts'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Alerts"
           >
-            <Bell className="text-purple-400 group-hover:text-purple-200" size={24} />
-            <span className="text-[10px] text-purple-400 group-hover:text-purple-200 font-medium">Alerts</span>
+            <Bell className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Alerts</span>
             {alerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold shadow-lg">
                 {alerts.length}
               </span>
             )}
@@ -1407,13 +1415,15 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-              activeSection === 'team' ? 'bg-purple-600/40' : 'hover:bg-purple-600/20'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+              activeSection === 'team'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Team"
           >
-            <Users className="text-purple-400 group-hover:text-purple-200" size={24} />
-            <span className="text-[10px] text-purple-400 group-hover:text-purple-200 font-medium">Team</span>
+            <Users className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Team</span>
           </button>
 
           {/* Configuration with Submenu */}
@@ -1425,15 +1435,17 @@ export default function DashboardPage() {
                 setActiveSection('configuration');
               }
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
-              activeSection === 'configuration' ? 'bg-blue-600/40' : 'hover:bg-blue-600/20'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
+              activeSection === 'configuration'
+                ? 'bg-accent/40 text-foreground'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Configuration"
           >
-            <Sliders className="text-blue-400 group-hover:text-blue-200" size={24} />
-            <span className="text-[10px] text-blue-400 group-hover:text-blue-200 font-medium">Config</span>
+            <Sliders className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Config</span>
             <ChevronRight 
-              className={`absolute -right-1 top-1/2 -translate-y-1/2 text-blue-400 transition-transform ${
+              className={`absolute -right-1 top-1/2 -translate-y-1/2 transition-transform ${
                 isConfigMenuOpen ? 'rotate-90' : ''
               }`} 
               size={12} 
@@ -1449,15 +1461,17 @@ export default function DashboardPage() {
                 setActiveSection('settings');
               }
             }}
-            className={`group flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
-              activeSection === 'settings' ? 'bg-purple-600/40' : 'hover:bg-purple-600/20'
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
+              activeSection === 'settings'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Settings"
           >
-            <Settings className="text-purple-400 group-hover:text-purple-200" size={24} />
-            <span className="text-[10px] text-purple-400 group-hover:text-purple-200 font-medium">Settings</span>
+            <Settings className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Settings</span>
             <ChevronRight 
-              className={`absolute -right-1 top-1/2 -translate-y-1/2 text-purple-400 transition-transform ${
+              className={`absolute -right-1 top-1/2 -translate-y-1/2 transition-transform ${
                 isSettingsMenuOpen ? 'rotate-90' : ''
               }`} 
               size={12} 
@@ -1468,105 +1482,105 @@ export default function DashboardPage() {
 
           <button
             onClick={handleSignOut}
-            className="group flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-red-600/20 transition-all"
+            className="group flex flex-col items-center gap-2 rounded-xl p-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             title="Sign Out"
           >
-            <LogOut className="text-red-400 group-hover:text-red-200" size={24} />
-            <span className="text-[10px] text-red-400 group-hover:text-red-200 font-medium">Exit</span>
+            <LogOut className="transition-colors" size={24} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">Exit</span>
           </button>
         </div>
 
         {/* Configuration Submenu */}
         {isConfigMenuOpen && (
-          <div className="w-64 bg-[#0f0820]/95 backdrop-blur-md border-r border-blue-500/30 sticky top-0 h-screen overflow-y-auto">
+          <div className="w-64 bg-sidebar/90 backdrop-blur-md border-r border-sidebar-border sticky top-0 h-screen overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-lg font-bold text-blue-400 mb-6 flex items-center gap-2">
-                <Sliders size={20} />
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground/90">
+                <Sliders size={20} className="text-primary" />
                 Configuration
               </h2>
               <div className="space-y-2">
                 <button
                   onClick={() => setActiveConfigSection('templates')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'templates' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <FileText size={18} />
-                  <span className="text-sm font-medium">Templates</span>
+                  <FileText size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Templates</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('sla')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'sla' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Timer size={18} />
-                  <span className="text-sm font-medium">SLA Settings</span>
+                  <Timer size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">SLA Settings</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('webhooks')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'webhooks' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Webhook size={18} />
-                  <span className="text-sm font-medium">Webhooks</span>
+                  <Webhook size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Webhooks</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('business-hours')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'business-hours' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Calendar size={18} />
-                  <span className="text-sm font-medium">Business Hours</span>
+                  <Calendar size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Business Hours</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('customer-tiers')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'customer-tiers' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Crown size={18} />
-                  <span className="text-sm font-medium">Customer Tiers</span>
+                  <Crown size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Customer Tiers</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('email-providers')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'email-providers' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Server size={18} />
-                  <span className="text-sm font-medium">Email Providers</span>
+                  <Server size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Email Providers</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveConfigSection('performance-goals')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeConfigSection === 'performance-goals' 
-                      ? 'bg-blue-600/30 text-white' 
-                      : 'text-blue-300 hover:bg-blue-600/10'
+                      ? 'bg-accent/40 text-foreground' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Target size={18} />
-                  <span className="text-sm font-medium">Performance Goals</span>
+                  <Target size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Performance Goals</span>
                 </button>
               </div>
             </div>
@@ -1575,59 +1589,59 @@ export default function DashboardPage() {
 
         {/* Settings Submenu */}
         {isSettingsMenuOpen && (
-          <div className="w-64 bg-[#0f0820]/95 backdrop-blur-md border-r border-purple-500/30 sticky top-0 h-screen overflow-y-auto">
+          <div className="w-64 bg-sidebar/90 backdrop-blur-md border-r border-sidebar-border sticky top-0 h-screen overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-lg font-bold text-purple-400 mb-6 flex items-center gap-2">
-                <Settings size={20} />
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground/90">
+                <Settings size={20} className="text-primary" />
                 Settings
               </h2>
               <div className="space-y-2">
                 <button
                   onClick={() => setActiveSettingsSection('profile')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeSettingsSection === 'profile' 
-                      ? 'bg-purple-600/30 text-white' 
-                      : 'text-purple-300 hover:bg-purple-600/10'
+                      ? 'bg-primary/15 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <User size={18} />
-                  <span className="text-sm font-medium">Profile</span>
+                  <User size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Profile</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveSettingsSection('billing')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeSettingsSection === 'billing' 
-                      ? 'bg-purple-600/30 text-white' 
-                      : 'text-purple-300 hover:bg-purple-600/10'
+                      ? 'bg-primary/15 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <CreditCard size={18} />
-                  <span className="text-sm font-medium">Billing & Payments</span>
+                  <CreditCard size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Billing & Payments</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveSettingsSection('notifications')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeSettingsSection === 'notifications' 
-                      ? 'bg-purple-600/30 text-white' 
-                      : 'text-purple-300 hover:bg-purple-600/10'
+                      ? 'bg-primary/15 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <BellRing size={18} />
-                  <span className="text-sm font-medium">Notifications</span>
+                  <BellRing size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Notifications</span>
                 </button>
                 
                 <button
                   onClick={() => setActiveSettingsSection('preferences')}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
                     activeSettingsSection === 'preferences' 
-                      ? 'bg-purple-600/30 text-white' 
-                      : 'text-purple-300 hover:bg-purple-600/10'
+                      ? 'bg-primary/15 text-primary' 
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <Palette size={18} />
-                  <span className="text-sm font-medium">Preferences</span>
+                  <Palette size={18} className="transition-colors" />
+                  <span className="text-sm font-medium transition-colors">Preferences</span>
                 </button>
               </div>
             </div>
@@ -1637,201 +1651,117 @@ export default function DashboardPage() {
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
         {/* Header with welcome message */}
-        <div className="bg-[#2a1f3d]/80 backdrop-blur-sm border-b border-purple-500/20 sticky top-0 z-10">
+        <div className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-3xl font-semibold text-foreground">
                   {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
                 </h1>
-                <p className="text-purple-300 mt-1">Welcome back, {session.user.name || session.user.email}</p>
+                <p className="mt-1 text-muted-foreground">Welcome back, {session.user.name || session.user.email}</p>
               </div>
-              <ThemeToggle />
+              <div className="flex items-center gap-3">
+                <NotificationDropdown />
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Content based on active section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {activeSection === 'dashboard' && dashboardData && (
-            <div className="space-y-8">
-              {/* Stats Grid - Enhanced with animations */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <EnhancedMetricsCard
-                  title="Total Emails"
-                  value={dashboardData.totalEmails}
-                  icon={Mail}
-                  gradient="from-purple-500 to-pink-500"
-                  delay={0}
-                />
-                <EnhancedMetricsCard
-                  title="Pending"
-                  value={dashboardData.pendingEmails}
-                  icon={Clock}
-                  gradient="from-yellow-500 to-amber-500"
-                  delay={0.1}
-                />
-                <EnhancedMetricsCard
-                  title="Replied"
-                  value={dashboardData.repliedEmails}
-                  icon={CheckCircle}
-                  gradient="from-green-500 to-emerald-500"
-                  delay={0.2}
-                />
-                <EnhancedMetricsCard
-                  title="Overdue"
-                  value={dashboardData.overdueEmails}
-                  icon={AlertCircle}
-                  gradient="from-red-500 to-orange-500"
-                  delay={0.3}
-                />
-              </div>
-
-              {/* Search and Filters - Using new component */}
-              <EmailFilters
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                priorityFilter={priorityFilter}
-                onSearchChange={setSearchTerm}
-                onStatusChange={setStatusFilter}
-                onPriorityChange={setPriorityFilter}
-                onClearFilters={handleClearFilters}
-                onApplyFilters={() => fetchDashboardData(true)}
-              />
-
-              {/* Auto-Assignment Actions */}
-              {teamMembers.length > 0 && (
-                <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Zap className="text-yellow-400" size={24} />
-                        Smart Auto-Assignment
-                      </h3>
-                      <p className="text-purple-300 text-sm mt-1">
-                        {emails.filter(e => !e.assignedTo && e.status === 'pending').length} unassigned emails
-                      </p>
-                    </div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={handleBulkAutoAssign}
-                          disabled={isAutoAssigning || emails.filter(e => !e.assignedTo && e.status === 'pending').length === 0}
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg"
-                        >
-                          {isAutoAssigning ? (
-                            <>
-                              <RefreshCw size={18} className="mr-2 animate-spin" />
-                              Auto-Assigning...
-                            </>
-                          ) : (
-                            <>
-                              <Zap size={18} className="mr-2" />
-                              Auto-Assign All Unassigned
-                            </>
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="bg-purple-900 text-white border-purple-500">
-                        <p>Automatically distributes all unassigned emails to team members using Round-Robin strategy</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              )}
-
-              {/* Recent Emails - Using new component */}
-              <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white">Recent Emails</h2>
-                  {teamMembers.length > 0 && (
-                    <span className="text-sm text-purple-400">💡 Tip: Click on email to auto-assign</span>
-                  )}
-                </div>
-                <EmailList
-                  emails={filteredEmails}
-                  teamMembers={teamMembers}
-                  onViewEmail={handleViewEmail}
-                  onReplyEmail={handleOpenReply}
-                  onMarkResolved={handleMarkResolved}
-                  onAssignEmail={handleAssignEmail}
-                  onAutoAssign={handleAutoAssignEmail}
-                  isAutoAssigning={isAutoAssigning}
-                />
-              </div>
-            </div>
+          {activeSection === 'dashboard' && (
+            <OptimizedDashboard
+              emails={emails}
+              teamMembers={teamMembers}
+              searchTerm={searchTerm}
+              statusFilter={statusFilter}
+              priorityFilter={priorityFilter}
+              onSearchChange={setSearchTerm}
+              onStatusChange={setStatusFilter}
+              onPriorityChange={setPriorityFilter}
+              onClearFilters={handleClearFilters}
+              onApplyFilters={() => fetchDashboardData(true)}
+              onViewEmail={handleViewEmail}
+              onReplyEmail={handleOpenReply}
+              onMarkResolved={handleMarkResolved}
+              onAssignEmail={handleAssignEmail}
+              onAutoAssign={handleAutoAssignEmail}
+              onBulkAutoAssign={handleBulkAutoAssign}
+              isAutoAssigning={isAutoAssigning}
+            />
           )}
 
           {activeSection === 'analytics' && dashboardData && (
             <div className="space-y-8">
               {/* BI Tools Integration Section */}
-              <div className="bg-gradient-to-br from-orange-900/30 to-yellow-800/10 backdrop-blur-sm border border-orange-500/30 rounded-xl p-6 shadow-lg">
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <div className="mb-4">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Database className="text-orange-400" size={24} />
+                  <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+                    <Database className="text-primary" size={24} />
                     BI Tools Integration
                   </h3>
-                  <p className="text-orange-300 text-sm mt-1">Connect with PowerBI, Tableau, Looker and more</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Connect with PowerBI, Tableau, Looker and more</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* PowerBI */}
-                  <Button
+                  <button
                     onClick={() => window.open('/api/v1/analytics/export?format=powerbi&dateRange=last_30_days&metrics=all', '_blank')}
-                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-semibold h-auto py-4 flex-col items-start shadow-lg"
+                    className="rounded-lg border border-primary/20 bg-background p-4 text-left transition-colors hover:border-primary/40"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <BarChart3 size={20} />
-                      <span className="font-bold">PowerBI</span>
+                    <div className="mb-1 flex items-center gap-2 text-foreground">
+                      <BarChart3 size={20} className="text-primary" />
+                      <span className="font-semibold">PowerBI</span>
                     </div>
-                    <span className="text-xs opacity-80">Export for PowerBI</span>
-                  </Button>
+                    <span className="text-xs text-muted-foreground">Export for PowerBI</span>
+                  </button>
 
                   {/* Tableau */}
-                  <Button
+                  <button
                     onClick={() => window.open('/api/v1/analytics/export?format=json&dateRange=last_30_days&metrics=all', '_blank')}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold h-auto py-4 flex-col items-start shadow-lg"
+                    className="rounded-lg border border-primary/20 bg-background p-4 text-left transition-colors hover:border-primary/40"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Database size={20} />
-                      <span className="font-bold">Tableau</span>
+                    <div className="mb-1 flex items-center gap-2 text-foreground">
+                      <Database size={20} className="text-primary" />
+                      <span className="font-semibold">Tableau</span>
                     </div>
-                    <span className="text-xs opacity-80">Export for Tableau</span>
-                  </Button>
+                    <span className="text-xs text-muted-foreground">Export for Tableau</span>
+                  </button>
 
                   {/* Looker */}
-                  <Button
+                  <button
                     onClick={() => window.open('/api/v1/analytics/export?format=json&dateRange=last_30_days&metrics=all', '_blank')}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold h-auto py-4 flex-col items-start shadow-lg"
+                    className="rounded-lg border border-primary/20 bg-background p-4 text-left transition-colors hover:border-primary/40"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp size={20} />
-                      <span className="font-bold">Looker</span>
+                    <div className="mb-1 flex items-center gap-2 text-foreground">
+                      <TrendingUp size={20} className="text-primary" />
+                      <span className="font-semibold">Looker</span>
                     </div>
-                    <span className="text-xs opacity-80">Export for Looker</span>
-                  </Button>
+                    <span className="text-xs text-muted-foreground">Export for Looker</span>
+                  </button>
 
                   {/* CSV/Excel */}
-                  <Button
+                  <button
                     onClick={() => window.open('/api/v1/analytics/export?format=csv&dateRange=last_30_days&metrics=all', '_blank')}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold h-auto py-4 flex-col items-start shadow-lg"
+                    className="rounded-lg border border-primary/20 bg-background p-4 text-left transition-colors hover:border-primary/40"
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <FileSpreadsheet size={20} />
-                      <span className="font-bold">CSV / Excel</span>
+                    <div className="mb-1 flex items-center gap-2 text-foreground">
+                      <FileSpreadsheet size={20} className="text-primary" />
+                      <span className="font-semibold">CSV / Excel</span>
                     </div>
-                    <span className="text-xs opacity-80">Download CSV</span>
-                  </Button>
+                    <span className="text-xs text-muted-foreground">Download CSV</span>
+                  </button>
                 </div>
 
                 {/* Additional Export Options */}
-                <div className="mt-4 pt-4 border-t border-orange-500/20">
-                  <p className="text-xs text-orange-400 mb-2">📊 Quick Exports (Last 7 days):</p>
-                  <div className="flex gap-2 flex-wrap">
+                <div className="mt-4 border-t border-border pt-4">
+                  <p className="mb-2 text-xs text-muted-foreground">📊 Quick Exports (Last 7 days):</p>
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       onClick={() => window.open('/api/reports/export?type=emails', '_blank')}
                       size="sm"
-                      className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30"
+                      variant="outline"
                     >
                       <Mail size={14} className="mr-1" />
                       Emails
@@ -1839,7 +1769,7 @@ export default function DashboardPage() {
                     <Button
                       onClick={() => window.open('/api/reports/export?type=metrics', '_blank')}
                       size="sm"
-                      className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30"
+                      variant="outline"
                     >
                       <BarChart3 size={14} className="mr-1" />
                       Metrics
@@ -1847,7 +1777,7 @@ export default function DashboardPage() {
                     <Button
                       onClick={() => window.open('/api/reports/export?type=team', '_blank')}
                       size="sm"
-                      className="bg-green-600/20 hover:bg-green-600/40 text-green-300 border border-green-500/30"
+                      variant="outline"
                     >
                       <Users size={14} className="mr-1" />
                       Team
@@ -1856,40 +1786,143 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-600/20 rounded-lg">
-                      <TrendingUp className="text-blue-400" size={24} />
-                    </div>
-                    <div>
-                      <p className="text-purple-300 text-sm">Avg Reply Time</p>
-                      <p className="text-white text-2xl font-bold">{formatTime(dashboardData.avgReplyTimeMinutes)}</p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Avg Reply Time</p>
+                  <p className="text-3xl font-bold text-primary">{formatTime(dashboardData.avgReplyTimeMinutes)}</p>
+                </div>
+
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Resolution Rate</p>
+                  <p className="text-3xl font-bold text-primary">{dashboardData.avgResolutionRate.toFixed(1)}%</p>
+                </div>
+
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">High Priority</p>
+                  <p className="text-3xl font-bold text-primary">{dashboardData.highPriorityEmails}</p>
+                </div>
+              </div>
+
+              {/* Performance Goals Tracking - LIVE - MOVED UP */}
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <h2 className="flex items-center gap-3 text-xl font-semibold text-foreground">
+                    <TrendingUp size={24} className="text-primary" />
+                    Performance Goals vs Actual
+                    <span className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-primary">
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
+                      <span className="text-xs font-semibold">LIVE</span>
+                    </span>
+                  </h2>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Last update</p>
+                    <p className="font-mono text-sm text-foreground">{lastUpdate.toLocaleTimeString()}</p>
                   </div>
                 </div>
 
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-green-600/20 rounded-lg">
-                      <CheckCircle className="text-green-400" size={24} />
-                    </div>
+                {/* Big Number Metrics */}
+                <div className="mb-6 grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">First Reply Time</p>
+                    <p className="text-4xl font-bold text-primary">
+                      {formatTime(dashboardData.recentMetrics.length > 0 
+                        ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
+                        : 0)}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Overall Reply Time</p>
+                    <p className="text-4xl font-bold text-primary">
+                      {formatTime(dashboardData.avgReplyTimeMinutes || 0)}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Time to Close</p>
+                    <p className="text-4xl font-bold text-primary">
+                      {formatTime((dashboardData.avgReplyTimeMinutes * 1.5) || 0)}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880)}
+                    </p>
+                  </div>
+                </div>
+                {/* Progress Bars */}
+                <div className="mb-6 rounded-lg border border-primary/20 bg-muted/30 p-5">
+                  <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-foreground">Progress Tracking</h3>
+                  <div className="space-y-6">
+                    {/* First Reply Bar */}
                     <div>
-                      <p className="text-purple-300 text-sm">Resolution Rate</p>
-                      <p className="text-white text-2xl font-bold">{dashboardData.avgResolutionRate.toFixed(1)}%</p>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">First Reply</span>
+                        <span className="font-mono text-sm font-semibold text-foreground">
+                          {formatTime(dashboardData.recentMetrics.length > 0 
+                            ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
+                            : 0)}
+                        </span>
+                      </div>
+                      <div className="relative h-3 overflow-hidden rounded-full bg-muted">
+                        <div 
+                          className="absolute h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ 
+                            width: `${Math.min(100, ((dashboardData.recentMetrics.length > 0 
+                              ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
+                              : 0) / (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)) * 100)}%` 
+                          }}
+                        ></div>
+                      </div>
+                      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                        <span>0h</span>
+                        <span className="text-foreground font-medium">Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)}</span>
+                      </div>
+                    </div>
+
+                    {/* Overall Reply Bar */}
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">Overall Reply</span>
+                        <span className="font-mono text-sm font-semibold text-foreground">
+                          {formatTime(dashboardData.avgReplyTimeMinutes || 0)}
+                        </span>
+                      </div>
+                      <div className="relative h-3 overflow-hidden rounded-full bg-muted">
+                        <div 
+                          className="absolute h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ 
+                            width: `${Math.min(100, ((dashboardData.avgReplyTimeMinutes || 0) / (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)) * 100)}%` 
+                          }}
+                        ></div>
+                      </div>
+                      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                        <span>0h</span>
+                        <span className="text-foreground font-medium">Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-purple-600/20 rounded-lg">
-                      <AlertCircle className="text-purple-400" size={24} />
-                    </div>
-                    <div>
-                      <p className="text-purple-300 text-sm">High Priority</p>
-                      <p className="text-white text-2xl font-bold">{dashboardData.highPriorityEmails}</p>
-                    </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3 text-center">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">First Reply Status</p>
+                    <p className="text-lg font-bold text-primary">
+                      {(dashboardData.recentMetrics.length > 0 ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length : 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60) ? '✓ On Track' : '✗ Behind'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3 text-center">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Overall Reply Status</p>
+                    <p className="text-lg font-bold text-primary">
+                      {(dashboardData.avgReplyTimeMinutes || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480) ? '✓ On Track' : '✗ Behind'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3 text-center">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Time to Close Status</p>
+                    <p className="text-lg font-bold text-primary">
+                      {(dashboardData.avgReplyTimeMinutes * 1.5 || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880) ? '✓ On Track' : '✗ Behind'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1897,8 +1930,8 @@ export default function DashboardPage() {
               {/* Recent Metrics Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Reply Time Trend */}
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-6">Average Reply Time Trend</h2>
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <h2 className="mb-6 text-xl font-semibold text-foreground">Average Reply Time Trend</h2>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={dashboardData.recentMetrics}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
@@ -1909,12 +1942,18 @@ export default function DashboardPage() {
                       />
                       <YAxis stroke="#a78bfa" />
                       <ChartTooltip 
-                        contentStyle={{ backgroundColor: '#1a0f2e', border: '1px solid #9333ea', borderRadius: '8px' }}
-                        labelStyle={{ color: '#a78bfa' }}
-                        itemStyle={{ color: '#fff' }}
+                        contentStyle={{
+                          backgroundColor: 'var(--card)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '12px',
+                          boxShadow: '0 20px 40px -30px rgba(15, 23, 42, 0.35)',
+                          color: 'var(--foreground)',
+                        }}
+                        labelStyle={{ color: 'var(--muted-foreground)' }}
+                        itemStyle={{ color: 'var(--foreground)' }}
                         formatter={(value: number) => [formatTime(value), 'Reply Time']}
                       />
-                      <Legend wrapperStyle={{ color: '#a78bfa' }} />
+                      <Legend wrapperStyle={{ color: 'var(--muted-foreground)' }} />
                       <Line 
                         type="monotone" 
                         dataKey="avgFirstReplyTimeMinutes" 
@@ -1927,8 +1966,8 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Resolution Rate Trend */}
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-6">Resolution Rate Trend</h2>
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <h2 className="mb-6 text-xl font-semibold text-foreground">Resolution Rate Trend</h2>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={dashboardData.recentMetrics}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
@@ -1939,12 +1978,18 @@ export default function DashboardPage() {
                       />
                       <YAxis stroke="#a78bfa" />
                       <ChartTooltip 
-                        contentStyle={{ backgroundColor: '#1a0f2e', border: '1px solid #9333ea', borderRadius: '8px' }}
-                        labelStyle={{ color: '#a78bfa' }}
-                        itemStyle={{ color: '#fff' }}
+                        contentStyle={{
+                          backgroundColor: 'var(--card)',
+                          border: '1px solid var(--border)',
+                          borderRadius: '12px',
+                          boxShadow: '0 20px 40px -30px rgba(15, 23, 42, 0.35)',
+                          color: 'var(--foreground)',
+                        }}
+                        labelStyle={{ color: 'var(--muted-foreground)' }}
+                        itemStyle={{ color: 'var(--foreground)' }}
                         formatter={(value: number) => [`${value.toFixed(1)}%`, 'Resolution Rate']}
                       />
-                      <Legend wrapperStyle={{ color: '#a78bfa' }} />
+                      <Legend wrapperStyle={{ color: 'var(--muted-foreground)' }} />
                       <Bar 
                         dataKey="resolutionRate" 
                         fill="#10b981" 
@@ -1952,133 +1997,6 @@ export default function DashboardPage() {
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Performance Goals Tracking - LIVE */}
-              <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/10 backdrop-blur-sm border border-amber-500/30 rounded-xl p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                    <TrendingUp size={24} className="text-amber-400" />
-                    Performance Goals vs Actual
-                    <span className="flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-500/50 rounded-full">
-                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                      <span className="text-xs font-bold text-red-400">LIVE</span>
-                    </span>
-                  </h2>
-                  <div className="text-right">
-                    <p className="text-xs text-amber-400/60">Last update</p>
-                    <p className="text-sm text-amber-300 font-mono">{lastUpdate.toLocaleTimeString()}</p>
-                  </div>
-                </div>
-
-                {/* Big Number Metrics - Like the image */}
-                <div className="grid grid-cols-3 gap-6 mb-6">
-                  <div className="text-center">
-                    <p className="text-xs text-amber-400/60 mb-1">First Reply Time</p>
-                    <p className="text-4xl font-bold text-white">
-                      {formatTime(dashboardData.recentMetrics.length > 0 
-                        ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
-                        : 0)}
-                    </p>
-                    <p className="text-xs text-amber-400 mt-1">
-                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-amber-400/60 mb-1">Overall Reply Time</p>
-                    <p className="text-4xl font-bold text-white">
-                      {formatTime(dashboardData.avgReplyTimeMinutes || 0)}
-                    </p>
-                    <p className="text-xs text-amber-400 mt-1">
-                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-amber-400/60 mb-1">Time to Close</p>
-                    <p className="text-4xl font-bold text-white">
-                      {formatTime((dashboardData.avgReplyTimeMinutes * 1.5) || 0)}
-                    </p>
-                    <p className="text-xs text-amber-400 mt-1">
-                      Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880)}
-                    </p>
-                  </div>
-                </div>
-                {/* Horizontal Bar Chart - Like your image */}
-                <div className="bg-[#1a0f2e]/40 rounded-lg p-6 mb-6">
-                  <h3 className="text-white font-semibold mb-4">IGNORING BUSINESS HOURS</h3>
-                  <div className="space-y-6">
-                    {/* First Reply Bar */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-amber-400">First Reply</span>
-                        <span className="text-sm text-white font-mono">
-                          {formatTime(dashboardData.recentMetrics.length > 0 
-                            ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
-                            : 0)}
-                        </span>
-                      </div>
-                      <div className="relative h-8 bg-gray-800/50 rounded-full overflow-hidden">
-                        <div 
-                          className="absolute h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500"
-                          style={{ 
-                            width: `${Math.min(100, ((dashboardData.recentMetrics.length > 0 
-                              ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
-                              : 0) / (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)) * 100)}%` 
-                          }}
-                        ></div>
-                        {/* Goal marker */}
-                        <div className="absolute top-0 h-full w-1 bg-amber-500" style={{ left: '100%', transform: 'translateX(-50%)' }}></div>
-                      </div>
-                      <div className="flex justify-between mt-1 text-xs text-gray-400">
-                        <span>0h</span>
-                        <span className="text-amber-400">Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)}</span>
-                      </div>
-                    </div>
-
-                    {/* Overall Reply Bar */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-amber-400">Overall</span>
-                        <span className="text-sm text-white font-mono">
-                          {formatTime(dashboardData.avgReplyTimeMinutes || 0)}
-                        </span>
-                      </div>
-                      <div className="relative h-8 bg-gray-800/50 rounded-full overflow-hidden">
-                        <div 
-                          className="absolute h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500"
-                          style={{ 
-                            width: `${Math.min(100, ((dashboardData.avgReplyTimeMinutes || 0) / (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)) * 100)}%` 
-                          }}
-                        ></div>
-                        <div className="absolute top-0 h-full w-1 bg-amber-500" style={{ left: '100%', transform: 'translateX(-50%)' }}></div>
-                      </div>
-                      <div className="flex justify-between mt-1 text-xs text-gray-400">
-                        <span>0h</span>
-                        <span className="text-amber-400">Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-[#1a0f2e]/40 rounded-lg p-3">
-                    <p className="text-xs text-amber-400">First Reply Status</p>
-                    <p className={`text-lg font-bold ${(dashboardData.recentMetrics.length > 0 ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length : 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60) ? 'text-green-400' : 'text-red-400'}`}>
-                      {(dashboardData.recentMetrics.length > 0 ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length : 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60) ? '✓ On Track' : '✗ Behind'}
-                    </p>
-                  </div>
-                  <div className="bg-[#1a0f2e]/40 rounded-lg p-3">
-                    <p className="text-xs text-amber-400">Overall Reply Status</p>
-                    <p className={`text-lg font-bold ${(dashboardData.avgReplyTimeMinutes || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480) ? 'text-green-400' : 'text-red-400'}`}>
-                      {(dashboardData.avgReplyTimeMinutes || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480) ? '✓ On Track' : '✗ Behind'}
-                    </p>
-                  </div>
-                  <div className="bg-[#1a0f2e]/40 rounded-lg p-3">
-                    <p className="text-xs text-amber-400">Time to Close Status</p>
-                    <p className={`text-lg font-bold ${(dashboardData.avgReplyTimeMinutes * 1.5 || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880) ? 'text-green-400' : 'text-red-400'}`}>
-                      {(dashboardData.avgReplyTimeMinutes * 1.5 || 0) <= (performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880) ? '✓ On Track' : '✗ Behind'}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -2102,67 +2020,41 @@ export default function DashboardPage() {
                 <Leaderboard teamPerformance={teamPerformance} type="workload" />
               </div>
               {/* Team Summary Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <Users className="text-purple-400" size={40} />
-                    <div>
-                      <p className="text-sm text-purple-300">Total Members</p>
-                      <p className="text-2xl font-bold text-white">{teamMembers.length}</p>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Total Members</p>
+                  <p className="text-3xl font-bold text-primary">{teamMembers.length}</p>
                 </div>
-                
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <CheckCircle className="text-green-400" size={40} />
-                    <div>
-                      <p className="text-sm text-purple-300">Active Members</p>
-                      <p className="text-2xl font-bold text-white">
-                        {teamMembers.filter(m => m.isActive).length}
-                      </p>
-                    </div>
-                  </div>
+
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Active Members</p>
+                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.isActive).length}</p>
                 </div>
-                
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <Mail className="text-blue-400" size={40} />
-                    <div>
-                      <p className="text-sm text-purple-300">Agents</p>
-                      <p className="text-2xl font-bold text-white">
-                        {teamMembers.filter(m => m.role === 'agent').length}
-                      </p>
-                    </div>
-                  </div>
+
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Agents</p>
+                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'agent').length}</p>
                 </div>
-                
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <div className="flex items-center gap-4">
-                    <TrendingUp className="text-yellow-400" size={40} />
-                    <div>
-                      <p className="text-sm text-purple-300">Managers</p>
-                      <p className="text-2xl font-bold text-white">
-                        {teamMembers.filter(m => m.role === 'manager').length}
-                      </p>
-                    </div>
-                  </div>
+
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Managers</p>
+                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'manager').length}</p>
                 </div>
               </div>
 
               {/* Add Team Member Form */}
-              <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Plus size={24} />
+              <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
+                <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+                  <Plus size={24} className="text-primary" />
                   Add Team Member
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                   <Input
                     placeholder="Name"
                     value={newMemberName}
                     onChange={(e) => setNewMemberName(e.target.value)}
-                    className="bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-400"
+                    className="text-foreground"
                   />
                   
                   <Input
@@ -2170,11 +2062,11 @@ export default function DashboardPage() {
                     placeholder="Email"
                     value={newMemberEmail}
                     onChange={(e) => setNewMemberEmail(e.target.value)}
-                    className="bg-purple-900/20 border-purple-500/30 text-white placeholder:text-purple-400"
+                    className="text-foreground"
                   />
                   
                   <Select value={newMemberRole} onValueChange={setNewMemberRole}>
-                    <SelectTrigger className="bg-purple-900/20 border-purple-500/30 text-white">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2185,7 +2077,7 @@ export default function DashboardPage() {
                   
                   <Button
                     onClick={handleAddTeamMember}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="justify-center"
                   >
                     <Plus size={16} className="mr-2" />
                     Add Member
@@ -2195,36 +2087,37 @@ export default function DashboardPage() {
 
               {/* Team Workload Overview */}
               {teamWorkload.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 backdrop-blur-sm border border-blue-500/30 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Users className="text-blue-400" size={24} />
+                      <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                        <Users className="text-primary" size={24} />
                         Team Workload Distribution
                       </h3>
-                      <p className="text-blue-300 text-sm mt-1">Current capacity and load per agent</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Current capacity and load per agent</p>
                     </div>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           onClick={handleRebalanceWorkload}
                           disabled={isRebalancing}
-                          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold shadow-lg"
+                          variant="outline"
+                          className="gap-2"
                         >
                           {isRebalancing ? (
                             <>
-                              <RefreshCw size={18} className="mr-2 animate-spin" />
+                              <RefreshCw size={18} className="animate-spin" />
                               Rebalancing...
                             </>
                           ) : (
                             <>
-                              <Shuffle size={18} className="mr-2" />
+                              <Shuffle size={18} />
                               Rebalance Workload
                             </>
                           )}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom" className="bg-blue-900 text-white border-blue-500">
+                      <TooltipContent side="bottom" className="border border-border bg-card text-foreground shadow-lg">
                         <p>Redistributes emails from overloaded agents (&gt;80%) to underloaded agents (&lt;50%)</p>
                       </TooltipContent>
                     </Tooltip>
@@ -2232,25 +2125,25 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {teamWorkload.map((agent) => (
-                      <div key={agent.id} className="bg-[#1a0f2e]/60 border border-blue-500/20 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
+                      <div key={agent.id} className="rounded-xl border border-border bg-muted/50 p-4">
+                        <div className="mb-3 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 font-semibold text-primary">
                               {agent.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-white font-semibold">{agent.name}</p>
-                              <p className="text-xs text-blue-400">{agent.role}</p>
+                              <p className="font-semibold text-foreground">{agent.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{agent.role}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-white">{agent.currentLoad}</p>
-                            <p className="text-xs text-blue-400">/{agent.capacity}</p>
+                            <p className="text-2xl font-semibold text-foreground">{agent.currentLoad}</p>
+                            <p className="text-xs text-muted-foreground">/{agent.capacity}</p>
                           </div>
                         </div>
 
                         {/* Workload bar */}
-                        <div className="relative h-3 bg-gray-800/50 rounded-full overflow-hidden mb-2">
+                        <div className="relative mb-2 h-3 overflow-hidden rounded-full bg-background/60">
                           <div 
                             className={`absolute h-full rounded-full transition-all duration-500 ${
                               agent.currentLoad / agent.capacity > 0.8 
@@ -2263,14 +2156,14 @@ export default function DashboardPage() {
                           ></div>
                         </div>
 
-                        <div className="flex justify-between text-xs">
-                          <span className="text-blue-300">Capacity: {Math.round((agent.currentLoad / agent.capacity) * 100)}%</span>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Capacity: {Math.round((agent.currentLoad / agent.capacity) * 100)}%</span>
                           <span className={`font-semibold ${
                             agent.currentLoad / agent.capacity > 0.8 
-                              ? 'text-red-400' 
+                              ? 'text-rose-500' 
                               : agent.currentLoad / agent.capacity > 0.5
-                                ? 'text-yellow-400'
-                                : 'text-green-400'
+                                ? 'text-amber-500'
+                                : 'text-emerald-500'
                           }`}>
                             {agent.currentLoad / agent.capacity > 0.8 
                               ? 'Overloaded' 
@@ -2281,14 +2174,14 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Performance metrics */}
-                        <div className="mt-3 pt-3 border-t border-blue-500/20 grid grid-cols-2 gap-2 text-xs">
+                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
                           <div>
-                            <p className="text-blue-400">Avg Reply</p>
-                            <p className="text-white font-semibold">{agent.avgReplyTimeMinutes > 0 ? `${Math.round(agent.avgReplyTimeMinutes / 60)}h` : 'N/A'}</p>
+                            <p>Avg Reply</p>
+                            <p className="font-semibold text-foreground">{agent.avgReplyTimeMinutes > 0 ? `${Math.round(agent.avgReplyTimeMinutes / 60)}h` : 'N/A'}</p>
                           </div>
                           <div>
-                            <p className="text-blue-400">Resolution</p>
-                            <p className="text-white font-semibold">{agent.resolutionRate}%</p>
+                            <p>Resolution</p>
+                            <p className="font-semibold text-foreground">{agent.resolutionRate}%</p>
                           </div>
                         </div>
                       </div>
@@ -2298,14 +2191,14 @@ export default function DashboardPage() {
               )}
 
               {/* Team Members Performance */}
-              <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Team Performance & KPIs</h2>
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-4">Team Performance & KPIs</h2>
                 
                 {teamPerformance.length === 0 ? (
                   <div className="text-center py-8">
-                    <Users className="mx-auto text-purple-400 mb-4" size={64} />
-                    <p className="text-purple-300 text-lg">No team members yet</p>
-                    <p className="text-purple-400 text-sm mt-2">Add your first team member above to get started</p>
+                    <Users className="mx-auto text-primary mb-4" size={64} />
+                    <p className="text-foreground text-lg">No team members yet</p>
+                    <p className="text-muted-foreground text-sm mt-2">Add your first team member above to get started</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -2314,26 +2207,18 @@ export default function DashboardPage() {
                         {/* Member Header */}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                            <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary font-bold text-xl">
                               {member.name.charAt(0).toUpperCase()}
                             </div>
                             
                             <div>
-                              <p className="font-bold text-white text-xl">{member.name}</p>
-                              <p className="text-sm text-purple-300">{member.email}</p>
+                              <p className="font-bold text-foreground text-xl">{member.name}</p>
+                              <p className="text-sm text-muted-foreground">{member.email}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  member.role === 'manager' 
-                                    ? 'bg-yellow-500/20 text-yellow-400' 
-                                    : 'bg-blue-500/20 text-blue-400'
-                                }`}>
+                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
                                   {member.role === 'manager' ? '👔 Manager' : '👤 Agent'}
                                 </span>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  member.isActive 
-                                    ? 'bg-green-500/20 text-green-400' 
-                                    : 'bg-gray-500/20 text-gray-400'
-                                }`}>
+                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
                                   {member.isActive ? '✓ Active' : '✕ Inactive'}
                                 </span>
                               </div>
@@ -2347,7 +2232,7 @@ export default function DashboardPage() {
                                 setIsTeamMemberModalOpen(true);
                               }}
                               size="sm"
-                              className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400"
+                              className="bg-primary/20 hover:bg-primary/30 text-primary"
                             >
                               <Eye size={16} className="mr-2" />
                               View KPIs
@@ -2356,7 +2241,6 @@ export default function DashboardPage() {
                               onClick={() => openDeleteConfirmation('team', member.id, member.name)}
                               variant="destructive"
                               size="sm"
-                              className="bg-red-600/20 hover:bg-red-600/40 text-red-400"
                             >
                               <Trash2 size={16} />
                             </Button>
@@ -2365,49 +2249,49 @@ export default function DashboardPage() {
                         
                         {/* KPIs Grid */}
                         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Total Assigned</p>
-                            <p className="text-2xl font-bold text-white">{member.metrics.totalAssigned}</p>
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Total Assigned</p>
+                            <p className="text-2xl font-bold text-primary">{member.metrics.totalAssigned}</p>
                           </div>
                           
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Replied</p>
-                            <p className="text-2xl font-bold text-green-400">{member.metrics.replied}</p>
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Replied</p>
+                            <p className="text-2xl font-bold text-primary">{member.metrics.replied}</p>
                           </div>
                           
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Pending</p>
-                            <p className="text-2xl font-bold text-yellow-400">{member.metrics.pending}</p>
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Pending</p>
+                            <p className="text-2xl font-bold text-primary">{member.metrics.pending}</p>
                           </div>
                           
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Overdue</p>
-                            <p className="text-2xl font-bold text-red-400">{member.metrics.overdue}</p>
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Overdue</p>
+                            <p className="text-2xl font-bold text-primary">{member.metrics.overdue}</p>
                           </div>
                           
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Avg Reply Time</p>
-                            <p className="text-2xl font-bold text-blue-400">
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Avg Reply Time</p>
+                            <p className="text-2xl font-bold text-primary">
                               {member.metrics.avgReplyTimeMinutes > 0 
                                 ? `${Math.round(member.metrics.avgReplyTimeMinutes / 60)}h ${member.metrics.avgReplyTimeMinutes % 60}m`
                                 : 'N/A'}
                             </p>
                           </div>
                           
-                          <div className="bg-[#1a0f2e]/40 p-4 rounded-lg border border-purple-500/10">
-                            <p className="text-xs text-purple-400 mb-1">Resolution Rate</p>
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Resolution Rate</p>
                             <div className="flex items-center gap-2">
-                              <p className="text-2xl font-bold text-purple-400">{member.metrics.resolutionRate}%</p>
-                              {member.metrics.resolutionRate >= 90 && <span className="text-green-400">✓</span>}
+                              <p className="text-2xl font-bold text-primary">{member.metrics.resolutionRate}%</p>
+                              {member.metrics.resolutionRate >= 90 && <span className="text-primary">✓</span>}
                             </div>
                           </div>
                         </div>
                         
                         {/* Alerts for this member */}
                         {member.metrics.overdue > 0 && (
-                          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2">
-                            <AlertCircle className="text-red-400" size={20} />
-                            <span className="text-red-400 text-sm font-semibold">
+                          <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2">
+                            <AlertCircle className="text-primary" size={20} />
+                            <span className="text-primary text-sm font-semibold">
                               ⚠️ {member.metrics.overdue} overdue emails - Needs attention!
                             </span>
                           </div>
@@ -2433,10 +2317,10 @@ export default function DashboardPage() {
           {activeSection === 'configuration' && (
             <div className="space-y-8">
               {/* Breadcrumb */}
-              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-blue-300 text-sm flex items-center gap-2">
-                  <Sliders size={16} />
-                  Configuration → <span className="text-white font-semibold">{activeConfigSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+              <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                <p className="text-foreground text-sm flex items-center gap-2">
+                  <Sliders size={16} className="text-primary" />
+                  Configuration → <span className="text-foreground font-semibold">{activeConfigSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
                 </p>
               </div>
 
@@ -2444,16 +2328,16 @@ export default function DashboardPage() {
               {activeConfigSection === 'email-providers' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider">📧 Email & Integration</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📧 Email & Integration</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
               
               {/* Email Provider Integration */}
-              <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/10 backdrop-blur-sm border border-blue-500/30 rounded-xl p-6 shadow-lg">
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Mail size={24} className="text-blue-400" />
+                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <Mail size={24} className="text-primary" />
                     Email Provider Integration
                   </h2>
                   <div className="flex gap-2">
@@ -2477,7 +2361,7 @@ export default function DashboardPage() {
                 {emailProviders.length > 0 ? (
                   <div className="space-y-3">
                     {emailProviders.map((provider) => (
-                      <div key={provider.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                      <div key={provider.id} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
@@ -2486,25 +2370,24 @@ export default function DashboardPage() {
                               <Mail className={provider.provider === 'gmail' ? 'text-red-400' : 'text-blue-400'} size={24} />
                             </div>
                             <div>
-                              <h3 className="text-white font-semibold capitalize">{provider.provider}</h3>
-                              <p className="text-purple-300 text-sm">{provider.email}</p>
+                              <h3 className="text-foreground font-semibold capitalize">{provider.provider}</h3>
+                              <p className="text-muted-foreground text-sm">{provider.email}</p>
                               {provider.lastSyncAt && (
-                                <p className="text-purple-400 text-xs mt-1">
+                                <p className="text-muted-foreground text-xs mt-1">
                                   Last synced: {new Date(provider.lastSyncAt).toLocaleString()}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              provider.isActive ? 'bg-green-600/20 text-green-400' : 'bg-gray-600/20 text-gray-400'
-                            }`}>
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary">
                               {provider.isActive ? 'Active' : 'Inactive'}
                             </span>
                             <Button
                               size="sm"
                               onClick={() => handleViewProviderStatus(provider)}
-                              className="bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-600/40"
+                              variant="outline"
+                              className="bg-primary/10 text-primary hover:bg-primary/20"
                             >
                               <Eye size={14} className="mr-2" />
                               Status
@@ -2513,7 +2396,7 @@ export default function DashboardPage() {
                               size="sm"
                               onClick={() => handleSyncProvider(provider.id)}
                               disabled={isSyncing || !provider.isActive}
-                              className={`${isSyncing ? 'bg-green-600/40 border-green-500/50' : 'bg-blue-600/20 border-blue-500/30'} text-white hover:bg-blue-600/40`}
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground"
                             >
                               <RefreshCw size={14} className={`mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
                               {isSyncing ? 'Scanning emails...' : 'Sync Now'}
@@ -2522,7 +2405,6 @@ export default function DashboardPage() {
                               size="sm"
                               variant="destructive"
                               onClick={() => handleDisconnectProvider(provider.id)}
-                              className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40"
                             >
                               <Trash2 size={14} />
                             </Button>
@@ -2533,22 +2415,22 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Mail className="text-purple-400 mx-auto mb-4" size={48} />
-                    <p className="text-purple-300 mb-4">No email providers connected yet</p>
-                    <p className="text-purple-400 text-sm">Connect Gmail or Outlook to sync your emails automatically</p>
+                    <Mail className="text-primary mx-auto mb-4" size={48} />
+                    <p className="text-foreground mb-4">No email providers connected yet</p>
+                    <p className="text-muted-foreground text-sm">Connect Gmail or Outlook to sync your emails automatically</p>
                   </div>
                 )}
               </div>
 
               {/* Sync Logs */}
               {syncLogs.length > 0 && (
-                <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">
+                <div className="rounded-lg border border-primary/20 bg-background p-5">
+                  <h2 className="text-xl font-bold text-foreground mb-4">
                     {selectedProvider ? `Sync History - ${selectedProvider.email}` : 'Recent Sync History'}
                   </h2>
                   <div className="space-y-3">
                     {syncLogs.map((log) => (
-                      <div key={log.id} className={`bg-[#1a0f2e]/40 border rounded-lg p-4 ${
+                      <div key={log.id} className={`rounded-lg border border-primary/20 bg-muted/30 p-4 ${
                         log.syncStatus === 'success' ? 'border-green-500/30' :
                         log.syncStatus === 'failed' ? 'border-red-500/30' :
                         'border-yellow-500/30'
@@ -2569,8 +2451,8 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <div>
-                              <p className="text-white font-semibold capitalize">{log.syncStatus}</p>
-                              <p className="text-purple-300 text-sm">
+                              <p className="text-foreground font-semibold capitalize">{log.syncStatus}</p>
+                              <p className="text-muted-foreground text-sm">
                                 {log.emailsProcessed} emails processed
                               </p>
                               {log.errorMessage && (
@@ -2579,11 +2461,11 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-purple-400 text-sm">
+                            <p className="text-muted-foreground text-sm">
                               {new Date(log.startedAt).toLocaleString()}
                             </p>
                             {log.completedAt && (
-                              <p className="text-purple-500 text-xs">
+                              <p className="text-muted-foreground text-xs">
                                 Duration: {Math.round((new Date(log.completedAt).getTime() - new Date(log.startedAt).getTime()) / 1000)}s
                               </p>
                             )}
@@ -2596,16 +2478,16 @@ export default function DashboardPage() {
               )}
 
               {/* Account Information */}
-              <div className="bg-[#2a1f3d]/60 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                <h2 className="text-xl font-bold text-white mb-6">Account Information</h2>
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6">Account Information</h2>
                 <div className="space-y-3">
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
-                    <p className="text-purple-400 text-sm">Name</p>
-                    <p className="text-white font-medium">{session.user.name || 'Not set'}</p>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                    <p className="text-muted-foreground text-sm">Name</p>
+                    <p className="text-foreground font-medium">{session.user.name || 'Not set'}</p>
                   </div>
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
-                    <p className="text-purple-400 text-sm">Email</p>
-                    <p className="text-white font-medium">{session.user.email}</p>
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                    <p className="text-muted-foreground text-sm">Email</p>
+                    <p className="text-foreground font-medium">{session.user.email}</p>
                   </div>
                 </div>
               </div>
@@ -2616,37 +2498,37 @@ export default function DashboardPage() {
               {activeConfigSection === 'sla' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-rose-400 uppercase tracking-wider">⏰ SLA & Compliance</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">⏰ SLA & Compliance</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
               {/* SLA Settings */}
-              <div className="bg-gradient-to-br from-rose-900/30 to-rose-800/10 backdrop-blur-sm border border-rose-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Clock size={24} className="text-rose-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Clock size={24} className="text-primary" />
                   SLA Configuration
                 </h2>
                 
                 {/* Create New SLA */}
-                <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4 mb-6">
-                  <h3 className="text-white font-semibold mb-4">Create New SLA Setting</h3>
+                <div className="rounded-lg border border-primary/20 bg-muted/30 p-4 mb-6">
+                  <h3 className="text-foreground font-semibold mb-4">Create New SLA Setting</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Input
                       placeholder="SLA Name (e.g., VIP Support)"
                       value={newSlaName}
                       onChange={(e) => setNewSlaName(e.target.value)}
-                      className="bg-[#0f0820] border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Input
                       type="number"
                       placeholder="Target Time (minutes)"
                       value={newSlaTime}
                       onChange={(e) => setNewSlaTime(e.target.value)}
-                      className="bg-[#0f0820] border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Select value={newSlaPriority} onValueChange={setNewSlaPriority}>
-                      <SelectTrigger className="bg-[#0f0820] border-purple-500/30 text-white">
+                      <SelectTrigger className="bg-background border-primary/20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2655,7 +2537,7 @@ export default function DashboardPage() {
                         <SelectItem value="low">Low Priority</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button onClick={handleCreateSLA} className="bg-purple-600 hover:bg-purple-700">
+                    <Button onClick={handleCreateSLA} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       <CheckCircle size={16} className="mr-2" />
                       Create SLA
                     </Button>
@@ -2664,19 +2546,19 @@ export default function DashboardPage() {
 
                 {/* Existing SLA Settings */}
                 <div className="space-y-3">
-                  <h3 className="text-white font-semibold mb-3">Existing SLA Settings</h3>
+                  <h3 className="text-foreground font-semibold mb-3">Existing SLA Settings</h3>
                   {slaSettings.length > 0 ? (
                     slaSettings.map((sla) => (
-                      <div key={sla.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                      <div key={sla.id} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="text-white font-semibold">{sla.name}</h4>
-                            <div className="flex gap-4 mt-2 text-sm text-purple-300">
+                            <h4 className="text-foreground font-semibold">{sla.name}</h4>
+                            <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
                               <span>Target: {formatTime(sla.targetReplyTimeMinutes)}</span>
                               <span className={`px-2 py-1 rounded ${getPriorityColor(sla.priorityLevel)}`}>
                                 {sla.priorityLevel}
                               </span>
-                              <span className={sla.isActive ? "text-green-400" : "text-gray-400"}>
+                              <span className="text-primary">
                                 {sla.isActive ? "Active" : "Inactive"}
                               </span>
                             </div>
@@ -2685,7 +2567,6 @@ export default function DashboardPage() {
                             size="sm"
                             variant="destructive"
                             onClick={() => handleDeleteSLA(sla.id, sla.name)}
-                            className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40"
                           >
                             <XCircle size={16} />
                           </Button>
@@ -2693,7 +2574,7 @@ export default function DashboardPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-purple-300 text-center py-8">No SLA settings configured yet. Create your first one above!</p>
+                    <p className="text-muted-foreground text-center py-8">No SLA settings configured yet. Create your first one above!</p>
                   )}
                 </div>
               </div>
@@ -2704,43 +2585,43 @@ export default function DashboardPage() {
               {activeConfigSection === 'templates' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">📝 Templates & Automation</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📝 Templates & Automation</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
               {/* Reply Templates */}
-              <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/10 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Send size={24} className="text-emerald-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Send size={24} className="text-primary" />
                   Reply Templates
                 </h2>
                 
                 {/* Create Template Form */}
-                <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4 mb-6">
-                  <h3 className="text-white font-semibold mb-4">Create New Template</h3>
+                <div className="rounded-lg border border-primary/20 bg-muted/30 p-4 mb-6">
+                  <h3 className="text-foreground font-semibold mb-4">Create New Template</h3>
                   <div className="space-y-3">
                     <Input
                       placeholder="Template Name (e.g., Welcome Email)"
                       value={newTemplateName}
                       onChange={(e) => setNewTemplateName(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Input
                       placeholder="Subject (optional)"
                       value={newTemplateSubject}
                       onChange={(e) => setNewTemplateSubject(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Textarea
                       placeholder="Template Content..."
                       value={newTemplateContent}
                       onChange={(e) => setNewTemplateContent(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400 min-h-[100px]"
+                      className="bg-background border-primary/20 min-h-[100px]"
                     />
                     <div className="flex gap-3">
                       <Select value={newTemplateCategory} onValueChange={setNewTemplateCategory}>
-                        <SelectTrigger className="w-40 bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                        <SelectTrigger className="w-40 bg-background border-primary/20">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -2752,7 +2633,7 @@ export default function DashboardPage() {
                       </Select>
                       <Button
                         onClick={handleCreateTemplate}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         <Plus size={16} className="mr-2" />
                         Create Template
@@ -2765,28 +2646,28 @@ export default function DashboardPage() {
                 {replyTemplates.length > 0 ? (
                   <div className="space-y-3">
                     {replyTemplates.map((template) => (
-                      <div key={template.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                      <div key={template.id} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-white font-semibold">{template.name}</h3>
-                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-600/20 text-purple-300">
+                              <h3 className="text-foreground font-semibold">{template.name}</h3>
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary">
                                 {template.category}
                               </span>
-                              <span className="text-purple-400 text-xs">
+                              <span className="text-muted-foreground text-xs">
                                 Used {template.usageCount} times
                               </span>
                             </div>
                             {template.subject && (
-                              <p className="text-purple-300 text-sm mb-2">Subject: {template.subject}</p>
+                              <p className="text-foreground text-sm mb-2">Subject: {template.subject}</p>
                             )}
-                            <p className="text-purple-400 text-sm line-clamp-2">{template.content}</p>
+                            <p className="text-muted-foreground text-sm line-clamp-2">{template.content}</p>
                           </div>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => openDeleteConfirmation('template', template.id, template.name)}
-                            className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40 ml-4"
+                            className="ml-4"
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -2796,9 +2677,9 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Send className="text-purple-400 mx-auto mb-4" size={48} />
-                    <p className="text-purple-300 mb-2">No templates created yet</p>
-                    <p className="text-purple-400 text-sm">Create templates to respond to emails faster</p>
+                    <Send className="text-primary mx-auto mb-4" size={48} />
+                    <p className="text-foreground mb-2">No templates created yet</p>
+                    <p className="text-muted-foreground text-sm">Create templates to respond to emails faster</p>
                   </div>
                 )}
               </div>
@@ -2809,23 +2690,23 @@ export default function DashboardPage() {
               {activeConfigSection === 'performance-goals' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider">📊 Performance & Analytics</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📊 Performance & Analytics</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
               {/* Performance Goals */}
-              <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/10 backdrop-blur-sm border border-amber-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <TrendingUp size={24} className="text-amber-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <TrendingUp size={24} className="text-primary" />
                   Performance Goals
                 </h2>
                 
                 {/* Channel Selector */}
                 <div className="mb-6">
-                  <label className="text-purple-300 text-sm mb-2 block">Channel</label>
+                  <label className="text-foreground text-sm mb-2 block font-medium">Channel</label>
                   <Select value={selectedChannel} onValueChange={setSelectedChannel}>
-                    <SelectTrigger className="w-48 bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                    <SelectTrigger className="w-48 bg-background border-primary/20">
                       <SelectValue placeholder="Select channel" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2840,95 +2721,95 @@ export default function DashboardPage() {
                 {/* Goals Configuration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   {/* First Reply Time Goal */}
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
-                    <h3 className="text-white font-semibold mb-3">First Reply Time Goal</h3>
+                  <div className="rounded-lg border-2 border-primary/30 bg-muted/30 p-5">
+                    <h3 className="text-foreground font-semibold mb-3">First Reply Time Goal</h3>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         min="0"
                         value={firstReplyGoalHours}
                         onChange={(e) => setFirstReplyGoalHours(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
-                      <span className="text-purple-300">:</span>
+                      <span className="text-muted-foreground">:</span>
                       <Input
                         type="number"
                         min="0"
                         max="59"
                         value={firstReplyGoalMinutes}
                         onChange={(e) => setFirstReplyGoalMinutes(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
                     </div>
-                    <p className="text-purple-400 text-xs mt-2">Hours : Minutes</p>
+                    <p className="text-muted-foreground text-xs mt-2">Hours : Minutes</p>
                   </div>
 
                   {/* Overall Reply Time Goal */}
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
-                    <h3 className="text-white font-semibold mb-3">Overall Reply Time Goal</h3>
+                  <div className="rounded-lg border-2 border-primary/30 bg-muted/30 p-5">
+                    <h3 className="text-foreground font-semibold mb-3">Overall Reply Time Goal</h3>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         min="0"
                         value={overallReplyGoalHours}
                         onChange={(e) => setOverallReplyGoalHours(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
-                      <span className="text-purple-300">:</span>
+                      <span className="text-muted-foreground">:</span>
                       <Input
                         type="number"
                         min="0"
                         max="59"
                         value={overallReplyGoalMinutes}
                         onChange={(e) => setOverallReplyGoalMinutes(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
                     </div>
-                    <p className="text-purple-400 text-xs mt-2">Hours : Minutes</p>
+                    <p className="text-muted-foreground text-xs mt-2">Hours : Minutes</p>
                   </div>
 
                   {/* Time To Close Goal */}
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
-                    <h3 className="text-white font-semibold mb-3">Time To Close Goal</h3>
+                  <div className="rounded-lg border-2 border-primary/30 bg-muted/30 p-5">
+                    <h3 className="text-foreground font-semibold mb-3">Time To Close Goal</h3>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         min="0"
                         value={timeToCloseGoalHours}
                         onChange={(e) => setTimeToCloseGoalHours(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
-                      <span className="text-purple-300">:</span>
+                      <span className="text-muted-foreground">:</span>
                       <Input
                         type="number"
                         min="0"
                         max="59"
                         value={timeToCloseGoalMinutes}
                         onChange={(e) => setTimeToCloseGoalMinutes(e.target.value)}
-                        className="w-20 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center"
+                        className="w-20 bg-background border-primary/30 text-center font-semibold text-lg"
                         placeholder="00"
                       />
                     </div>
-                    <p className="text-purple-400 text-xs mt-2">Hours : Minutes</p>
+                    <p className="text-muted-foreground text-xs mt-2">Hours : Minutes</p>
                   </div>
                 </div>
 
                 <Button
                   onClick={handleSavePerformanceGoals}
-                  className="bg-purple-600 hover:bg-purple-700 text-white mb-6"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground mb-6"
                 >
                   💾 Save Goals
                 </Button>
 
                 {/* Time Bands Section */}
-                <div className="border-t border-purple-500/20 pt-6 mt-6">
-                  <h3 className="text-white font-semibold mb-4">Time Bands</h3>
-                  <p className="text-purple-400 text-sm mb-4">
+                <div className="border-t border-primary/20 pt-6 mt-6">
+                  <h3 className="text-foreground font-semibold mb-4">Time Bands</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
                     In addition to reply time goals, you can optionally also set reply time "bands". If they aren't set, we will use sensible defaults for your reporting.
                   </p>
 
@@ -2936,18 +2817,17 @@ export default function DashboardPage() {
                   {performanceGoals.bands.length > 0 && (
                     <div className="space-y-2 mb-4">
                       {performanceGoals.bands.map((band: any) => (
-                        <div key={band.id} className="flex items-center justify-between bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-3">
+                        <div key={band.id} className="flex items-center justify-between rounded-lg border border-primary/20 bg-muted/30 p-3">
                           <div className="flex items-center gap-3">
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-600/20 text-purple-300">
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary">
                               {band.bandType === 'first_reply' ? 'First Reply' : band.bandType === 'overall_reply' ? 'Overall Reply' : 'Time to Close'}
                             </span>
-                            <span className="text-white">{band.label}</span>
+                            <span className="text-foreground">{band.label}</span>
                           </div>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => handleDeleteTimeBand(band.id)}
-                            className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40"
                           >
                             <X size={14} />
                           </Button>
@@ -2957,12 +2837,12 @@ export default function DashboardPage() {
                   )}
 
                   {/* Add New Time Band */}
-                  <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                       <div>
-                        <label className="text-purple-300 text-xs mb-1 block">Band Type</label>
+                        <label className="text-foreground text-xs mb-1 block font-medium">Band Type</label>
                         <Select value={newBandType} onValueChange={setNewBandType}>
-                          <SelectTrigger className="bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                          <SelectTrigger className="bg-background border-primary/20">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -2973,54 +2853,54 @@ export default function DashboardPage() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-purple-300 text-xs mb-1 block">Min Time (HH:MM)</label>
+                        <label className="text-foreground text-xs mb-1 block font-medium">Min Time (HH:MM)</label>
                         <div className="flex items-center gap-1">
                           <Input
                             type="number"
                             min="0"
                             value={newBandMinHours}
                             onChange={(e) => setNewBandMinHours(e.target.value)}
-                            className="w-16 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center text-sm"
+                            className="w-16 bg-background border-primary/30 text-center font-semibold text-base"
                             placeholder="00"
                           />
-                          <span className="text-purple-300 text-sm">:</span>
+                          <span className="text-muted-foreground text-sm">:</span>
                           <Input
                             type="number"
                             min="0"
                             max="59"
                             value={newBandMinMinutes}
                             onChange={(e) => setNewBandMinMinutes(e.target.value)}
-                            className="w-16 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center text-sm"
+                            className="w-16 bg-background border-primary/30 text-center font-semibold text-base"
                             placeholder="00"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="text-purple-300 text-xs mb-1 block">Max Time (HH:MM)</label>
+                        <label className="text-foreground text-xs mb-1 block font-medium">Max Time (HH:MM)</label>
                         <div className="flex items-center gap-1">
                           <Input
                             type="number"
                             min="0"
                             value={newBandMaxHours}
                             onChange={(e) => setNewBandMaxHours(e.target.value)}
-                            className="w-16 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center text-sm"
+                            className="w-16 bg-background border-primary/30 text-center font-semibold text-base"
                             placeholder="00"
                           />
-                          <span className="text-purple-300 text-sm">:</span>
+                          <span className="text-muted-foreground text-sm">:</span>
                           <Input
                             type="number"
                             min="0"
                             max="59"
                             value={newBandMaxMinutes}
                             onChange={(e) => setNewBandMaxMinutes(e.target.value)}
-                            className="w-16 bg-[#1a0f2e]/40 border-purple-500/30 text-white text-center text-sm"
+                            className="w-16 bg-background border-primary/30 text-center font-semibold text-base"
                             placeholder="00"
                           />
                         </div>
                       </div>
                       <Button
                         onClick={handleAddTimeBand}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         Add
                       </Button>
@@ -3035,33 +2915,33 @@ export default function DashboardPage() {
               {activeConfigSection === 'webhooks' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">🔗 Webhooks & Integrations</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">🔗 Webhooks & Integrations</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
               {/* Webhooks */}
-              <div className="bg-gradient-to-br from-cyan-900/30 to-cyan-800/10 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Database size={24} className="text-cyan-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Database size={24} className="text-primary" />
                   Outgoing Webhooks
                 </h2>
                 
                 {/* Create Webhook */}
-                <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4 mb-6">
-                  <h3 className="text-white font-semibold mb-4">Create New Webhook</h3>
+                <div className="rounded-lg border border-primary/20 bg-muted/30 p-4 mb-6">
+                  <h3 className="text-foreground font-semibold mb-4">Create New Webhook</h3>
                   <div className="space-y-3">
                     <Input
                       placeholder="Webhook URL (e.g., https://your-app.com/webhook)"
                       value={newWebhookUrl}
                       onChange={(e) => setNewWebhookUrl(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <div>
-                      <p className="text-purple-300 text-sm mb-2">Select Events:</p>
+                      <p className="text-foreground text-sm mb-2 font-medium">Select Events:</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {['email.received', 'email.replied', 'email.assigned', 'email.resolved', 'sla.warning', 'sla.breached'].map((event) => (
-                          <label key={event} className="flex items-center gap-2 bg-[#0f0820]/40 p-2 rounded cursor-pointer hover:bg-[#0f0820]/60">
+                          <label key={event} className="flex items-center gap-2 rounded-lg border border-primary/20 bg-muted/20 p-3 cursor-pointer hover:bg-muted/40 transition-colors">
                             <input
                               type="checkbox"
                               checked={selectedWebhookEvents.includes(event)}
@@ -3074,7 +2954,7 @@ export default function DashboardPage() {
                               }}
                               className="w-4 h-4"
                             />
-                            <span className="text-purple-300 text-sm">{event}</span>
+                            <span className="text-foreground text-sm">{event}</span>
                           </label>
                         ))}
                       </div>
@@ -3082,7 +2962,7 @@ export default function DashboardPage() {
                     <Button
                       onClick={handleCreateWebhook}
                       disabled={isCreatingWebhook}
-                      className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {isCreatingWebhook ? (
                         <>
@@ -3102,12 +2982,12 @@ export default function DashboardPage() {
                 {/* Webhooks List */}
                 {webhooks.length > 0 ? (
                   <div className="space-y-3">
-                    <h3 className="text-white font-semibold mb-3">Active Webhooks</h3>
+                    <h3 className="text-foreground font-semibold mb-3">Active Webhooks</h3>
                     {webhooks.map((webhook) => (
-                      <div key={webhook.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                      <div key={webhook.id} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="text-white font-semibold mb-1">{webhook.url}</p>
+                            <p className="text-foreground font-semibold mb-1">{webhook.url}</p>
                             <div className="flex flex-wrap gap-1 mb-2">
                               {(() => {
                                 try {
@@ -3115,7 +2995,7 @@ export default function DashboardPage() {
                                     ? JSON.parse(webhook.events) 
                                     : webhook.events;
                                   return events.map((event: string) => (
-                                    <span key={event} className="px-2 py-1 rounded-full text-xs font-semibold bg-cyan-600/20 text-cyan-300">
+                                    <span key={event} className="px-2 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary">
                                       {event}
                                     </span>
                                   ));
@@ -3124,8 +3004,8 @@ export default function DashboardPage() {
                                 }
                               })()}
                             </div>
-                            <div className="flex gap-4 text-xs text-purple-400">
-                              <span>Status: <span className={webhook.isActive ? 'text-green-400' : 'text-gray-400'}>{webhook.isActive ? 'Active' : 'Inactive'}</span></span>
+                            <div className="flex gap-4 text-xs text-muted-foreground">
+                              <span>Status: <span className="text-primary">{webhook.isActive ? 'Active' : 'Inactive'}</span></span>
                               {webhook.lastTriggeredAt && (
                                 <span>Last triggered: {new Date(webhook.lastTriggeredAt).toLocaleString()}</span>
                               )}
@@ -3135,7 +3015,7 @@ export default function DashboardPage() {
                             size="sm"
                             variant="destructive"
                             onClick={() => openDeleteConfirmation('webhook', webhook.id, webhook.url)}
-                            className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40 ml-4"
+                            className="ml-4"
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -3145,9 +3025,9 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Database className="text-cyan-400 mx-auto mb-4" size={48} />
-                    <p className="text-purple-300 mb-2">No webhooks configured</p>
-                    <p className="text-purple-400 text-sm">Create a webhook to receive real-time notifications</p>
+                    <Database className="text-primary mx-auto mb-4" size={48} />
+                    <p className="text-foreground mb-2">No webhooks configured</p>
+                    <p className="text-muted-foreground text-sm">Create a webhook to receive real-time notifications</p>
                   </div>
                 )}
               </div>
@@ -3158,20 +3038,20 @@ export default function DashboardPage() {
               {activeConfigSection === 'business-hours' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-indigo-400 uppercase tracking-wider">⏰ Business Hours & Holidays</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">⏰ Business Hours & Holidays</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
-              <div className="bg-gradient-to-br from-indigo-900/30 to-indigo-800/10 backdrop-blur-sm border border-indigo-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Clock size={24} className="text-indigo-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Clock size={24} className="text-primary" />
                   Business Hours Configuration
                 </h2>
                 
                 <div className="space-y-3 mb-6">
                   {Object.entries(businessHours).map(([day, hours]) => (
-                    <div key={day} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                    <div key={day} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
                           <input
@@ -3183,7 +3063,7 @@ export default function DashboardPage() {
                             })}
                             className="w-5 h-5"
                           />
-                          <span className="text-white font-semibold capitalize w-24">{day}</span>
+                          <span className="text-foreground font-semibold capitalize w-24">{day}</span>
                           {hours.enabled && (
                             <div className="flex gap-3 items-center">
                               <Input
@@ -3193,9 +3073,9 @@ export default function DashboardPage() {
                                   ...businessHours,
                                   [day]: { ...hours, start: e.target.value }
                                 })}
-                                className="w-32 bg-[#0f0820]/40 border-purple-500/30 text-white"
+                                className="w-32 bg-background border-primary/20"
                               />
-                              <span className="text-purple-400">to</span>
+                              <span className="text-muted-foreground">to</span>
                               <Input
                                 type="time"
                                 value={hours.end}
@@ -3203,7 +3083,7 @@ export default function DashboardPage() {
                                   ...businessHours,
                                   [day]: { ...hours, end: e.target.value }
                                 })}
-                                className="w-32 bg-[#0f0820]/40 border-purple-500/30 text-white"
+                                className="w-32 bg-background border-primary/20"
                               />
                             </div>
                           )}
@@ -3213,18 +3093,18 @@ export default function DashboardPage() {
                   ))}
                 </div>
 
-                <div className="border-t border-indigo-500/20 pt-6">
-                  <h3 className="text-white font-semibold mb-4">Holidays</h3>
+                <div className="border-t border-primary/20 pt-6">
+                  <h3 className="text-foreground font-semibold mb-4">Holidays</h3>
                   <div className="flex gap-3 mb-4">
                     <Input
                       type="date"
                       value={newHoliday}
                       onChange={(e) => setNewHoliday(e.target.value)}
-                      className="flex-1 bg-[#1a0f2e]/40 border-purple-500/30 text-white"
+                      className="flex-1 bg-background border-primary/20"
                     />
                     <Button
                       onClick={handleAddHoliday}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       <Plus size={16} className="mr-2" />
                       Add Holiday
@@ -3233,11 +3113,11 @@ export default function DashboardPage() {
                   {holidays.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {holidays.map((date) => (
-                        <div key={date} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg px-3 py-2 flex items-center gap-2">
-                          <span className="text-purple-300 text-sm">{new Date(date).toLocaleDateString()}</span>
+                        <div key={date} className="rounded-lg border border-primary/20 bg-muted/30 px-3 py-2 flex items-center gap-2">
+                          <span className="text-foreground text-sm">{new Date(date).toLocaleDateString()}</span>
                           <button
                             onClick={() => handleRemoveHoliday(date)}
-                            className="text-red-400 hover:text-red-300"
+                            className="text-primary hover:text-primary/80"
                           >
                             <X size={14} />
                           </button>
@@ -3254,28 +3134,28 @@ export default function DashboardPage() {
               {activeConfigSection === 'customer-tiers' && (
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pink-500/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-pink-400 uppercase tracking-wider">👥 Customer Tiers</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pink-500/50 to-transparent"></div>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">👥 Customer Tiers</h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                 </div>
 
-              <div className="bg-gradient-to-br from-pink-900/30 to-pink-800/10 backdrop-blur-sm border border-pink-500/30 rounded-xl p-6 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Users size={24} className="text-pink-400" />
+              <div className="rounded-lg border border-primary/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Users size={24} className="text-primary" />
                   Customer Tier Management
                 </h2>
                 
-                <div className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4 mb-6">
-                  <h3 className="text-white font-semibold mb-4">Add Customer to Tier</h3>
+                <div className="rounded-lg border border-primary/20 bg-muted/30 p-4 mb-6">
+                  <h3 className="text-foreground font-semibold mb-4">Add Customer to Tier</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <Input
                       placeholder="Customer Email"
                       value={newTierEmail}
                       onChange={(e) => setNewTierEmail(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Select value={newTierLevel} onValueChange={(value: any) => setNewTierLevel(value)}>
-                      <SelectTrigger className="bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                      <SelectTrigger className="bg-background border-primary/20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -3289,11 +3169,11 @@ export default function DashboardPage() {
                       placeholder="SLA (minutes)"
                       value={newTierSlaMinutes}
                       onChange={(e) => setNewTierSlaMinutes(e.target.value)}
-                      className="bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+                      className="bg-background border-primary/20"
                     />
                     <Button
                       onClick={handleAddCustomerTier}
-                      className="bg-pink-600 hover:bg-pink-700 text-white"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       <Plus size={16} className="mr-2" />
                       Add
@@ -3303,28 +3183,23 @@ export default function DashboardPage() {
 
                 {customerTiers.length > 0 ? (
                   <div className="space-y-3">
-                    <h3 className="text-white font-semibold mb-3">Customer Tiers</h3>
+                    <h3 className="text-foreground font-semibold mb-3">Customer Tiers</h3>
                     {customerTiers.map((tier) => (
-                      <div key={tier.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4">
+                      <div key={tier.id} className="rounded-lg border border-primary/20 bg-muted/30 p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-white font-semibold">{tier.email}</p>
+                            <p className="text-foreground font-semibold">{tier.email}</p>
                             <div className="flex gap-3 mt-2 text-sm">
-                              <span className={`px-3 py-1 rounded-full font-semibold ${
-                                tier.tier === 'vip' ? 'bg-yellow-600/20 text-yellow-400' :
-                                tier.tier === 'enterprise' ? 'bg-blue-600/20 text-blue-400' :
-                                'bg-gray-600/20 text-gray-400'
-                              }`}>
+                              <span className="px-3 py-1 rounded-full font-semibold bg-primary/20 text-primary">
                                 {tier.tier.toUpperCase()}
                               </span>
-                              <span className="text-purple-300">SLA: {formatTime(tier.slaMinutes)}</span>
+                              <span className="text-muted-foreground">SLA: {formatTime(tier.slaMinutes)}</span>
                             </div>
                           </div>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => openDeleteConfirmation('tier', tier.id, tier.email)}
-                            className="bg-red-600/20 border-red-500/30 text-red-300 hover:bg-red-600/40"
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -3334,9 +3209,9 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Users className="text-pink-400 mx-auto mb-4" size={48} />
-                    <p className="text-purple-300 mb-2">No customer tiers configured</p>
-                    <p className="text-purple-400 text-sm">Add customers to tiers for priority SLA handling</p>
+                    <Users className="text-primary mx-auto mb-4" size={48} />
+                    <p className="text-foreground mb-2">No customer tiers configured</p>
+                    <p className="text-muted-foreground text-sm">Add customers to tiers for priority SLA handling</p>
                   </div>
                 )}
               </div>
@@ -3349,10 +3224,10 @@ export default function DashboardPage() {
           {activeSection === 'settings' && (
             <div className="space-y-8">
               {/* Breadcrumb */}
-              <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                <p className="text-purple-300 text-sm flex items-center gap-2">
-                  <Settings size={16} />
-                  Settings → <span className="text-white font-semibold">{activeSettingsSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+              <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                <p className="text-foreground text-sm flex items-center gap-2">
+                  <Settings size={16} className="text-primary" />
+                  Settings → <span className="text-foreground font-semibold">{activeSettingsSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
                 </p>
               </div>
 
@@ -3360,28 +3235,28 @@ export default function DashboardPage() {
 
               {/* Profile Settings */}
               {activeSettingsSection === 'profile' && (
-                <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <User size={28} className="text-purple-400" />
+                <div className="rounded-lg border border-primary/20 bg-background p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
+                    <User size={28} className="text-primary" />
                     Profile Settings
                   </h2>
                   <div className="space-y-6">
                     <div>
-                      <label className="text-purple-300 text-sm font-medium">Full Name</label>
+                      <label className="text-foreground text-sm font-medium">Full Name</label>
                       <Input 
                         defaultValue={session.user.name || ''} 
-                        className="mt-2 bg-[#1a0f2e]/40 border-purple-500/30 text-white"
+                        className="mt-2 bg-background border-primary/20"
                       />
                     </div>
                     <div>
-                      <label className="text-purple-300 text-sm font-medium">Email</label>
+                      <label className="text-foreground text-sm font-medium">Email</label>
                       <Input 
                         defaultValue={session.user.email || ''} 
                         disabled
-                        className="mt-2 bg-[#1a0f2e]/40 border-purple-500/30 text-gray-400"
+                        className="mt-2 bg-background border-primary/20 opacity-60"
                       />
                     </div>
-                    <Button className="bg-purple-600 hover:bg-purple-700">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       Save Changes
                     </Button>
                   </div>
@@ -3390,38 +3265,38 @@ export default function DashboardPage() {
 
               {/* Billing Settings */}
               {activeSettingsSection === 'billing' && (
-                <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <CreditCard size={28} className="text-purple-400" />
+                <div className="rounded-lg border border-primary/20 bg-background p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
+                    <CreditCard size={28} className="text-primary" />
                     Billing & Payments
                   </h2>
                   <div className="text-center py-12">
-                    <CreditCard className="mx-auto mb-4 text-purple-400" size={64} />
-                    <h3 className="text-white text-lg font-semibold mb-2">Coming Soon</h3>
-                    <p className="text-purple-300">Billing and payment management will be available soon</p>
+                    <CreditCard className="mx-auto mb-4 text-primary" size={64} />
+                    <h3 className="text-foreground text-lg font-semibold mb-2">Coming Soon</h3>
+                    <p className="text-muted-foreground">Billing and payment management will be available soon</p>
                   </div>
                 </div>
               )}
 
               {/* Notification Settings */}
               {activeSettingsSection === 'notifications' && (
-                <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <BellRing size={28} className="text-purple-400" />
+                <div className="rounded-lg border border-primary/20 bg-background p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
+                    <BellRing size={28} className="text-primary" />
                     Notification Preferences
                   </h2>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg">
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-primary/20 bg-muted/30">
                       <div>
-                        <h3 className="text-white font-semibold">Email Notifications</h3>
-                        <p className="text-purple-300 text-sm">Receive email alerts</p>
+                        <h3 className="text-foreground font-semibold">Email Notifications</h3>
+                        <p className="text-muted-foreground text-sm">Receive email alerts</p>
                       </div>
                       <input type="checkbox" defaultChecked className="w-5 h-5" />
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg">
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-primary/20 bg-muted/30">
                       <div>
-                        <h3 className="text-white font-semibold">Desktop Notifications</h3>
-                        <p className="text-purple-300 text-sm">Show desktop alerts</p>
+                        <h3 className="text-foreground font-semibold">Desktop Notifications</h3>
+                        <p className="text-muted-foreground text-sm">Show desktop alerts</p>
                       </div>
                       <input type="checkbox" defaultChecked className="w-5 h-5" />
                     </div>
@@ -3431,20 +3306,20 @@ export default function DashboardPage() {
 
               {/* Preferences */}
               {activeSettingsSection === 'preferences' && (
-                <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <Palette size={28} className="text-purple-400" />
+                <div className="rounded-lg border border-primary/20 bg-background p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
+                    <Palette size={28} className="text-primary" />
                     Preferences
                   </h2>
                   <div className="space-y-6">
                     <div>
-                      <label className="text-purple-300 text-sm font-medium mb-2 block">Theme</label>
+                      <label className="text-foreground text-sm font-medium mb-2 block">Theme</label>
                       <ThemeToggle />
                     </div>
                     <div>
-                      <label className="text-purple-300 text-sm font-medium mb-2 block">Language</label>
+                      <label className="text-foreground text-sm font-medium mb-2 block">Language</label>
                       <Select>
-                        <SelectTrigger className="bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                        <SelectTrigger className="bg-background border-primary/20">
                           <SelectValue placeholder="Select language" />
                         </SelectTrigger>
                         <SelectContent>
@@ -3656,8 +3531,8 @@ export default function DashboardPage() {
                     <p className="text-xs text-green-400 mb-1">Replied</p>
                     <p className="text-3xl font-bold text-white">{selectedTeamMember.metrics.replied}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/10 p-4 rounded-lg border border-amber-500/30">
-                    <p className="text-xs text-amber-400 mb-1">Avg Reply Time</p>
+                  <div className="bg-gradient-to-br frombg-primary/10 text-primary/10 p-4 rounded-lg border border-amber-500/30">
+                    <p className="text-xs text-primary mb-1">Avg Reply Time</p>
                     <p className="text-2xl font-bold text-white">{formatTime(selectedTeamMember.metrics.avgReplyTimeMinutes)}</p>
                   </div>
                   <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 p-4 rounded-lg border border-purple-500/30">

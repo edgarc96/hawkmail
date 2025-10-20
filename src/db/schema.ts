@@ -13,6 +13,17 @@ export const user = sqliteTable("user", {
   image: text("image"),
   role: text("role").notNull().default("admin"), // admin, agent, manager
   organizationId: text("organization_id"), // Para multi-tenant
+  stripeCustomerId: text("stripe_customer_id"), // Stripe customer ID for subscriptions
+  onboardingCompleted: integer("onboarding_completed", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  companyName: text("company_name"),
+  teamSize: text("team_size"),
+  emailProvider: text("email_provider"),
+  targetResponseTime: integer("target_response_time"), // in minutes
+  businessHoursStart: text("business_hours_start"),
+  businessHoursEnd: text("business_hours_end"),
+  timezone: text("timezone").default("UTC"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
@@ -240,4 +251,23 @@ export const webhookLogs = sqliteTable('webhook_logs', {
   attempts: integer('attempts').default(1),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
   completedAt: integer('completed_at', { mode: 'timestamp' }),
+});
+
+// Subscriptions table for managing user subscriptions
+export const subscriptions = sqliteTable('subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  status: text('status').notNull(), // active, canceled, past_due, trialing, incomplete
+  priceId: text('price_id').notNull(),
+  planType: text('plan_type').notNull(), // basic, pro, enterprise
+  currentPeriodStart: integer('current_period_start', { mode: 'timestamp' }).notNull(),
+  currentPeriodEnd: integer('current_period_end', { mode: 'timestamp' }).notNull(),
+  trialStart: integer('trial_start', { mode: 'timestamp' }),
+  trialEnd: integer('trial_end', { mode: 'timestamp' }),
+  canceledAt: integer('canceled_at', { mode: 'timestamp' }),
+  cancelAtPeriodEnd: integer('cancel_at_period_end', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
 });

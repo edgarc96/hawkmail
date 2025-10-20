@@ -64,7 +64,7 @@ export default function Page() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Clock className="text-primary" size={24} />
               </div>
@@ -74,7 +74,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="text-primary" size={24} />
               </div>
@@ -84,7 +84,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Users className="text-primary" size={24} />
               </div>
@@ -94,7 +94,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Mail className="text-primary" size={24} />
               </div>
@@ -104,7 +104,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Zap className="text-primary" size={24} />
               </div>
@@ -114,7 +114,7 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-lg border border-border hover:shadow-lg transition-shadow">
+            <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="text-primary" size={24} />
               </div>
@@ -133,7 +133,7 @@ export default function Page() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold mb-6">
-                <span className="text-brackets gradient-text">Analytics That Matter</span>
+                <span className="gradient-text">Analytics That Matter</span>
               </h2>
               <p className="text-xl text-muted-foreground mb-6">
                 Get actionable insights from your email data. Track response times, workload distribution, and team performance in real-time.
@@ -168,8 +168,52 @@ export default function Page() {
                 </li>
               </ul>
             </div>
-            <div className="bg-muted/30 rounded-lg p-8 h-96 flex items-center justify-center border border-border">
-              <div className="text-muted-foreground">Analytics Dashboard Preview</div>
+            <div className="bg-card rounded-lg p-6 border border-border">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-border">
+                  <h3 className="text-lg font-semibold">Analytics Overview</h3>
+                  <div className="text-sm text-muted-foreground">Last 7 days</div>
+                </div>
+                
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-primary/5 p-4 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Avg Response Time</div>
+                    <div className="text-2xl font-bold text-primary">2.3h</div>
+                    <div className="text-xs text-green-500 mt-1">↓ 15% vs last week</div>
+                  </div>
+                  <div className="bg-primary/5 p-4 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Emails Processed</div>
+                    <div className="text-2xl font-bold">1,247</div>
+                    <div className="text-xs text-green-500 mt-1">↑ 23% vs last week</div>
+                  </div>
+                  <div className="bg-primary/5 p-4 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">SLA Compliance</div>
+                    <div className="text-2xl font-bold text-primary">94%</div>
+                    <div className="text-xs text-green-500 mt-1">↑ 3% vs last week</div>
+                  </div>
+                  <div className="bg-primary/5 p-4 rounded-lg">
+                    <div className="text-xs text-muted-foreground mb-1">Team Performance</div>
+                    <div className="text-2xl font-bold">8.7/10</div>
+                    <div className="text-xs text-green-500 mt-1">↑ 0.5 vs last week</div>
+                  </div>
+                </div>
+                
+                {/* Chart Placeholder */}
+                <div className="bg-muted/30 rounded-lg p-6 h-32 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-end justify-around px-4 pb-4 gap-2">
+                    <div className="bg-primary/30 w-full rounded-t-sm" style={{height: '40%'}}></div>
+                    <div className="bg-primary/50 w-full rounded-t-sm" style={{height: '65%'}}></div>
+                    <div className="bg-primary/40 w-full rounded-t-sm" style={{height: '50%'}}></div>
+                    <div className="bg-primary/70 w-full rounded-t-sm" style={{height: '85%'}}></div>
+                    <div className="bg-primary/60 w-full rounded-t-sm" style={{height: '70%'}}></div>
+                    <div className="bg-primary w-full rounded-t-sm" style={{height: '95%'}}></div>
+                    <div className="bg-primary/80 w-full rounded-t-sm" style={{height: '88%'}}></div>
+                  </div>
+                </div>
+                <div className="text-xs text-center text-muted-foreground">Response Time Trends</div>
+              </div>
             </div>
           </div>
         </div>

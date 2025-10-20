@@ -31,42 +31,49 @@ export function EmailList({
   return (
     <div className="space-y-3">
       {emails.map((email) => (
-        <div key={email.id} className="bg-[#1a0f2e]/40 border border-purple-500/10 rounded-lg p-4 hover:border-purple-500/30 transition-all">
+        <div
+          key={email.id}
+          className="rounded-lg border border-primary/20 bg-background p-4 transition-all duration-200 hover:border-primary/40"
+        >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-semibold truncate">{email.subject}</h3>
-              <p className="text-purple-300 text-sm mt-1">From: {email.senderEmail}</p>
+              <h3 className="truncate text-base font-semibold text-foreground">{email.subject}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">From: {email.senderEmail}</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(email.priority)}`}>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${getPriorityColor(email.priority)}`}
+              >
                 {email.priority}
               </span>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(email.status)}`}>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusColor(email.status)}`}
+              >
                 {email.status}
               </span>
               {email.isResolved && (
-                <span className="px-3 py-1 rounded-full text-xs font-semibold text-green-600 bg-green-50">
-                  <CheckCheck size={14} className="inline mr-1" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500">
+                  <CheckCheck size={14} />
                   Resolved
                 </span>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4 mt-3 text-sm">
-            <span className="text-purple-400">
-              <Clock size={14} className="inline mr-1" />
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              <Clock size={14} className="text-primary" />
               {getTimeRemaining(email.slaDeadline)}
             </span>
-            <span className="text-purple-400">
+            <span>
               Received: {new Date(email.receivedAt).toLocaleString()}
             </span>
           </div>
-          <div className="flex gap-2 mt-3 flex-wrap">
+          <div className="mt-3 flex flex-wrap gap-2">
             <Select 
               value={email.assignedTo?.toString() || "0"}
               onValueChange={(value) => onAssignEmail(email.id, parseInt(value))}
             >
-              <SelectTrigger className="w-[160px] h-8 bg-purple-900/20 border-purple-500/30 text-white text-xs">
+              <SelectTrigger className="h-9 w-[160px] text-xs">
                 <SelectValue placeholder="Assign to..." />
               </SelectTrigger>
               <SelectContent>
@@ -84,28 +91,29 @@ export function EmailList({
                 size="sm"
                 onClick={() => onAutoAssign(email.id)}
                 disabled={isAutoAssigning}
-                className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white border-0"
+                variant="outline"
+                className="gap-1"
               >
-                <Zap size={14} className="mr-1" />
+                <Zap size={14} />
                 Auto
               </Button>
             )}
             
             <Button
               size="sm"
-              variant="outline"
               onClick={() => onViewEmail(email.id)}
-              className="bg-purple-600/20 border-purple-500/30 text-purple-300 hover:bg-purple-600/40"
+              variant="outline"
+              className="gap-2"
             >
-              <Eye size={14} className="mr-2" />
+              <Eye size={14} />
               View Details
             </Button>
             <Button
               size="sm"
               onClick={() => onReplyEmail(email)}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="gap-2"
             >
-              <Reply size={14} className="mr-2" />
+              <Reply size={14} />
               Reply
             </Button>
             {!email.isResolved && (
@@ -113,9 +121,9 @@ export function EmailList({
                 size="sm"
                 variant="outline"
                 onClick={() => onMarkResolved(email.id)}
-                className="bg-green-600/20 border-green-500/30 text-green-300 hover:bg-green-600/40"
+                className="gap-2"
               >
-                <CheckCheck size={14} className="mr-2" />
+                <CheckCheck size={14} />
                 Mark Resolved
               </Button>
             )}

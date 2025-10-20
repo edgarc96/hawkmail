@@ -6,21 +6,11 @@ export const formatTime = (minutes: number): string => {
 };
 
 export const getPriorityColor = (priority: string): string => {
-  switch (priority) {
-    case "high": return "text-red-600 bg-red-50";
-    case "medium": return "text-yellow-600 bg-yellow-50";
-    case "low": return "text-green-600 bg-green-50";
-    default: return "text-gray-600 bg-gray-50";
-  }
+  return "bg-primary/10 text-primary border border-primary/20";
 };
 
 export const getStatusColor = (status: string): string => {
-  switch (status) {
-    case "replied": return "text-green-600 bg-green-50";
-    case "pending": return "text-yellow-600 bg-yellow-50";
-    case "overdue": return "text-red-600 bg-red-50";
-    default: return "text-gray-600 bg-gray-50";
-  }
+  return "bg-primary/10 text-primary border border-primary/20";
 };
 
 export const getTimeRemaining = (deadline: string): string => {

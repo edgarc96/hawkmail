@@ -202,10 +202,41 @@
     --sidebar-ring: var(--color-sidebar-ring);
   }
 
+  html {
+    scroll-behavior: auto;
+    overflow-x: hidden;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Performance optimizations */
+  section {
+    contain: layout style;
+  }
+  
+  /* GPU acceleration for smooth scrolling */
+  .bg-card,
+  .bg-muted\/30,
+  .bg-primary\/10 {
+    transform: translateZ(0);
+    will-change: auto;
+  }
+  
+  /* Reduce expensive operations */
+  img, picture, video {
+    transform: translateZ(0);
+  }
+  
+  /* Optimize rendering layers */
+  .grid {
+    transform: translateZ(0);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -341,25 +372,12 @@ nextjs-portal {
   .gradient-text {
     background: linear-gradient(135deg, 
       oklch(0.20 0.03 45) 0%, 
-      oklch(0.55 0.19 45) 25%,
-      oklch(0.70 0.15 55) 50%,
-      oklch(0.55 0.19 45) 75%,
-      oklch(0.20 0.03 45) 100%
+      oklch(0.55 0.19 45) 50%,
+      oklch(0.70 0.15 55) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-size: 200% auto;
-    animation: gradient-shift 8s ease infinite;
-  }
-  
-  @keyframes gradient-shift {
-    0%, 100% {
-      background-position: 0% center;
-    }
-    50% {
-      background-position: 100% center;
-    }
   }
   
   /* Geometric shape accent */
@@ -382,12 +400,6 @@ nextjs-portal {
       oklch(0.65 0.18 45)
     );
     border-radius: 2px;
-    animation: rotate-shape 4s linear infinite;
-  }
-  
-  @keyframes rotate-shape {
-    0% { transform: translateY(-50%) rotate(45deg); }
-    100% { transform: translateY(-50%) rotate(405deg); }
   }
   
   /* Corner brackets */

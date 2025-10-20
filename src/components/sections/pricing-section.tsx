@@ -114,7 +114,7 @@ export function PricingSection() {
           {plans.map((plan) => (
             <div
               key={plan.lookupKey}
-              className={`bg-card p-8 rounded-lg relative transition-all hover:shadow-xl ${
+              className={`bg-card p-8 rounded-lg relative transition-shadow hover:shadow-xl ${
                 plan.popular
                   ? 'border-2 border-primary shadow-lg'
                   : 'border border-border'

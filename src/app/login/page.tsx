@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -16,6 +17,14 @@ export default function LoginPage() {
     password: "",
     rememberMe: false,
   });
+
+  // Show success message if user just registered
+  useEffect(() => {
+    const registered = searchParams.get('registered');
+    if (registered === 'true') {
+      toast.success('Account created successfully! Please sign in to continue.');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +50,14 @@ export default function LoginPage() {
 
       if (data) {
         console.log("Login successful, redirecting to dashboard");
+        console.log("Session data:", data);
         toast.success("Login successful!");
-        // Use window.location for a full page reload to ensure session is established
-        window.location.href = "/dashboard";
+        
+        // Wait a moment for session to be established
+        setTimeout(() => {
+          // Use window.location for a full page reload to ensure session is established
+          window.location.href = "/dashboard";
+        }, 1000);
       } else {
         console.error("No data returned from login");
         toast.error("Login failed. Please try again.");

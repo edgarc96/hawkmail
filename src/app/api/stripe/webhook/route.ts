@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
+import {
+  createOrUpdateSubscription,
+  cancelSubscription,
+  findUserByStripeCustomerId,
+  updateUserStripeCustomerId,
+  getPlanTypeFromPriceId
+} from '@/lib/subscription-helpers';
+import { db } from '@/db/index';
+import { user } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -42,8 +52,9 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         console.log(`Subscription trial will end: ${subscription.id}`);
         console.log(`Status: ${subscription.status}`);
-        // TODO: Implement your logic here
-        // Example: Send email notification to the customer
+        
+        // Send notification to user about trial ending
+        // TODO: Implement email notification service
         break;
       }
 
@@ -51,8 +62,15 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         console.log(`Subscription deleted: ${subscription.id}`);
         console.log(`Status: ${subscription.status}`);
-        // TODO: Implement your logic here
-        // Example: Update user's subscription status in database
+        
+        try {
+          await cancelSubscription(
+            subscription.id,
+            subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined
+          );
+        } catch (error) {
+          console.error('Error handling subscription deletion:', error);
+        }
         break;
       }
 
@@ -60,8 +78,37 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         console.log(`Subscription created: ${subscription.id}`);
         console.log(`Status: ${subscription.status}`);
-        // TODO: Implement your logic here
-        // Example: Update user's subscription status in database
+        
+        try {
+          // Find user by Stripe customer ID
+          const userData = await findUserByStripeCustomerId(subscription.customer as string);
+          
+          if (!userData) {
+            console.error(`No user found for Stripe customer ID: ${subscription.customer}`);
+            break;
+          }
+          
+          // Get plan type from price ID
+          const planType = getPlanTypeFromPriceId(subscription.items.data[0].price.id);
+          
+          // Create or update subscription
+          await createOrUpdateSubscription({
+            userId: userData.id,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            status: subscription.status,
+            priceId: subscription.items.data[0].price.id,
+            planType,
+            currentPeriodStart: new Date(subscription.current_period_start! * 1000),
+            currentPeriodEnd: new Date(subscription.current_period_end! * 1000),
+            trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
+            trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+            canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          });
+        } catch (error) {
+          console.error('Error handling subscription creation:', error);
+        }
         break;
       }
 
@@ -69,31 +116,75 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         console.log(`Subscription updated: ${subscription.id}`);
         console.log(`Status: ${subscription.status}`);
-        // TODO: Implement your logic here
-        // Example: Update user's subscription status in database
+        
+        try {
+          // Find user by Stripe customer ID
+          const userData = await findUserByStripeCustomerId(subscription.customer as string);
+          
+          if (!userData) {
+            console.error(`No user found for Stripe customer ID: ${subscription.customer}`);
+            break;
+          }
+          
+          // Get plan type from price ID
+          const planType = getPlanTypeFromPriceId(subscription.items.data[0].price.id);
+          
+          // Update subscription
+          await createOrUpdateSubscription({
+            userId: userData.id,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: subscription.customer as string,
+            status: subscription.status,
+            priceId: subscription.items.data[0].price.id,
+            planType,
+            currentPeriodStart: new Date(subscription.current_period_start! * 1000),
+            currentPeriodEnd: new Date(subscription.current_period_end! * 1000),
+            trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : undefined,
+            trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : undefined,
+            canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          });
+        } catch (error) {
+          console.error('Error handling subscription update:', error);
+        }
         break;
       }
 
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         console.log(`Checkout session completed: ${session.id}`);
-        // TODO: Implement your logic here
-        // Example: Fulfill the purchase, grant access to product
+        
+        try {
+          if (session.customer && session.metadata?.userId) {
+            // Update user with Stripe customer ID
+            await updateUserStripeCustomerId(
+              session.metadata.userId,
+              session.customer as string
+            );
+            
+            console.log(`User ${session.metadata.userId} linked to Stripe customer ${session.customer}`);
+          }
+        } catch (error) {
+          console.error('Error handling checkout completion:', error);
+        }
         break;
       }
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`Invoice payment succeeded: ${invoice.id}`);
-        // TODO: Implement your logic here
+        
+        // If this is a subscription invoice, the subscription will be updated
+        // by the customer.subscription.updated event
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`Invoice payment failed: ${invoice.id}`);
-        // TODO: Implement your logic here
-        // Example: Send payment failed notification
+        
+        // TODO: Implement payment failed notification
+        // This could update the subscription status or send notifications
         break;
       }
 
