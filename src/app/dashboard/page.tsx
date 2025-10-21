@@ -1353,20 +1353,22 @@ export default function DashboardPage() {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex">
-        {/* Left Navbar Vertical - Main Icons Only */}
-        <div className="w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center gap-4 py-8 sticky top-0 h-screen backdrop-blur-sm">
+        {/* Left Navbar Vertical - Main Icons Only - STICKY */}
+        <nav className="w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center gap-4 py-8 fixed top-0 left-0 h-screen backdrop-blur-sm z-40 lg:flex hidden" role="navigation" aria-label="Main navigation">
           <button
             onClick={() => {
               setActiveSection('dashboard');
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'dashboard'
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Dashboard"
+            aria-label="Dashboard"
+            aria-current={activeSection === 'dashboard' ? 'page' : undefined}
           >
             <Home className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Home</span>
@@ -1378,12 +1380,14 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'analytics'
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Analytics"
+            aria-label="Analytics"
+            aria-current={activeSection === 'analytics' ? 'page' : undefined}
           >
             <BarChart3 className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Analytics</span>
@@ -1395,17 +1399,19 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'alerts'
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Alerts"
+            aria-label="Alerts"
+            aria-current={activeSection === 'alerts' ? 'page' : undefined}
           >
             <Bell className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Alerts</span>
             {alerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold shadow-lg">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold shadow-lg" aria-label={`${alerts.length} unread alerts`}>
                 {alerts.length}
               </span>
             )}
@@ -1417,12 +1423,14 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'team'
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Team"
+            aria-label="Team"
+            aria-current={activeSection === 'team' ? 'page' : undefined}
           >
             <Users className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Team</span>
@@ -1437,20 +1445,23 @@ export default function DashboardPage() {
                 setActiveSection('configuration');
               }
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'configuration'
                 ? 'bg-accent/40 text-foreground'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Configuration"
+            aria-label="Configuration"
+            aria-expanded={isConfigMenuOpen}
+            aria-current={activeSection === 'configuration' ? 'page' : undefined}
           >
             <Sliders className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Config</span>
-            <ChevronRight 
+            <ChevronRight
               className={`absolute -right-1 top-1/2 -translate-y-1/2 transition-transform ${
                 isConfigMenuOpen ? 'rotate-90' : ''
-              }`} 
-              size={12} 
+              }`}
+              size={12}
             />
           </button>
 
@@ -1461,12 +1472,14 @@ export default function DashboardPage() {
               setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
+            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
               activeSection === 'settings'
                 ? 'bg-primary/15 text-primary'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             }`}
             title="Settings"
+            aria-label="Settings"
+            aria-current={activeSection === 'settings' ? 'page' : undefined}
           >
             <Settings className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Settings</span>
@@ -1476,17 +1489,18 @@ export default function DashboardPage() {
 
           <button
             onClick={handleSignOut}
-            className="group flex flex-col items-center gap-2 rounded-xl p-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            className="group flex flex-col items-center gap-2 rounded-xl p-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-destructive"
             title="Sign Out"
+            aria-label="Sign Out"
           >
             <LogOut className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Exit</span>
           </button>
-        </div>
+        </nav>
 
-        {/* Configuration Submenu */}
+        {/* Configuration Submenu - STICKY */}
         {isConfigMenuOpen && (
-          <div className="w-64 bg-sidebar/90 backdrop-blur-md border-r border-sidebar-border sticky top-0 h-screen overflow-y-auto">
+          <nav className="w-64 bg-sidebar/90 backdrop-blur-md border-r border-sidebar-border fixed top-0 left-20 h-screen overflow-y-auto z-30 lg:block hidden" role="navigation" aria-label="Configuration submenu">
             <div className="p-6">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground/90">
                 <Sliders size={20} className="text-primary" />
@@ -1495,11 +1509,13 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => setActiveConfigSection('templates')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'templates' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'templates'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Templates"
+                  aria-current={activeConfigSection === 'templates' ? 'page' : undefined}
                 >
                   <FileText size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Templates</span>
@@ -1507,11 +1523,13 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('sla')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'sla' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'sla'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="SLA Settings"
+                  aria-current={activeConfigSection === 'sla' ? 'page' : undefined}
                 >
                   <Timer size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">SLA Settings</span>
@@ -1519,11 +1537,13 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('webhooks')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'webhooks' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'webhooks'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Webhooks"
+                  aria-current={activeConfigSection === 'webhooks' ? 'page' : undefined}
                 >
                   <Webhook size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Webhooks</span>
@@ -1531,11 +1551,13 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('business-hours')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'business-hours' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'business-hours'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Business Hours"
+                  aria-current={activeConfigSection === 'business-hours' ? 'page' : undefined}
                 >
                   <Calendar size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Business Hours</span>
@@ -1543,11 +1565,13 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('customer-tiers')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'customer-tiers' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'customer-tiers'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Customer Tiers"
+                  aria-current={activeConfigSection === 'customer-tiers' ? 'page' : undefined}
                 >
                   <Crown size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Customer Tiers</span>
@@ -1555,11 +1579,13 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('email-providers')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'email-providers' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'email-providers'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Email Providers"
+                  aria-current={activeConfigSection === 'email-providers' ? 'page' : undefined}
                 >
                   <Server size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Email Providers</span>
@@ -1567,32 +1593,173 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={() => setActiveConfigSection('performance-goals')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeConfigSection === 'performance-goals' 
-                      ? 'bg-accent/40 text-foreground' 
+                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                    activeConfigSection === 'performance-goals'
+                      ? 'bg-accent/40 text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
+                  aria-label="Performance Goals"
+                  aria-current={activeConfigSection === 'performance-goals' ? 'page' : undefined}
                 >
                   <Target size={18} className="transition-colors" />
                   <span className="text-sm font-medium transition-colors">Performance Goals</span>
                 </button>
               </div>
             </div>
-          </div>
+          </nav>
         )}
 
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-        {/* Header with welcome message */}
-        <div className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Main Content - WITH DYNAMIC LEFT MARGIN FOR SIDEBAR */}
+        <div className={`flex-1 overflow-y-auto transition-all duration-300 ${isConfigMenuOpen ? 'lg:ml-84' : 'lg:ml-20'} ml-0`}>
+        {/* Mobile Navigation Bar */}
+        <div className="lg:hidden sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
+          <div className="px-4 py-2">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-semibold text-foreground">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.toggle('hidden');
+                    }
+                  }}
+                  className="p-2 rounded-lg bg-primary/10 text-primary"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <h1 className="text-lg font-semibold text-foreground">
                   {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
                 </h1>
-                <p className="mt-1 text-muted-foreground">Welcome back, {session.user.name || session.user.email}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <NotificationDropdown />
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div id="mobile-menu" className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm hidden">
+          <div className="fixed inset-y-0 left-0 w-64 bg-sidebar border-r border-sidebar-border overflow-y-auto">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+                <button
+                  onClick={() => {
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setActiveSection('dashboard');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                    activeSection === 'dashboard'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
+                >
+                  <Home size={20} />
+                  <span className="font-medium">Dashboard</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleSectionClick('analytics');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                    activeSection === 'analytics'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
+                >
+                  <BarChart3 size={20} />
+                  <span className="font-medium">Analytics</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleSectionClick('alerts');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                    activeSection === 'alerts'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
+                >
+                  <Bell size={20} />
+                  <span className="font-medium">Alerts</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleSectionClick('team');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                    activeSection === 'team'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
+                >
+                  <Users size={20} />
+                  <span className="font-medium">Team</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveSection('settings');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu) {
+                      mobileMenu.classList.add('hidden');
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                    activeSection === 'settings'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
+                >
+                  <Settings size={20} />
+                  <span className="font-medium">Settings</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Header with welcome message - COMPACT */}
+        <div className="hidden lg:block sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">
+                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+                </h1>
+                <p className="text-xs text-muted-foreground">Welcome back, {session.user.name || session.user.email}</p>
               </div>
               <div className="flex items-center gap-3">
                 <NotificationDropdown />
@@ -1602,8 +1769,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Content based on active section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Content based on active section - REDUCED PADDING */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {activeSection === 'dashboard' && (
             <OptimizedDashboard
               emails={emails}
@@ -1627,16 +1794,9 @@ export default function DashboardPage() {
           )}
 
           {activeSection === 'analytics' && dashboardData && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               {/* BI Tools Integration Section */}
-              <div className="rounded-lg border border-primary/20 bg-background p-5">
-                <div className="mb-4">
-                  <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
-                    <Database className="text-primary" size={24} />
-                    BI Tools Integration
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Connect with PowerBI, Tableau, Looker and more</p>
-                </div>
+              <div className="rounded-lg border border-primary/20 bg-background p-4">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* PowerBI */}
@@ -1689,8 +1849,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Additional Export Options */}
-                <div className="mt-4 border-t border-border pt-4">
-                  <p className="mb-2 text-xs text-muted-foreground">📊 Quick Exports (Last 7 days):</p>
+                <div className="mt-3 border-t border-border pt-3">
                   <div className="flex flex-wrap gap-2">
                     <Button
                       onClick={() => window.open('/api/reports/export?type=emails', '_blank')}
@@ -1720,76 +1879,75 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Avg Reply Time</p>
-                  <p className="text-3xl font-bold text-primary">{formatTime(dashboardData.avgReplyTimeMinutes)}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Avg Reply Time</p>
+                  <p className="text-2xl font-bold text-primary">{formatTime(dashboardData.avgReplyTimeMinutes)}</p>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Resolution Rate</p>
-                  <p className="text-3xl font-bold text-primary">{dashboardData.avgResolutionRate.toFixed(1)}%</p>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Resolution Rate</p>
+                  <p className="text-2xl font-bold text-primary">{dashboardData.avgResolutionRate.toFixed(1)}%</p>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">High Priority</p>
-                  <p className="text-3xl font-bold text-primary">{dashboardData.highPriorityEmails}</p>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">High Priority</p>
+                  <p className="text-2xl font-bold text-primary">{dashboardData.highPriorityEmails}</p>
                 </div>
               </div>
 
               {/* Performance Goals Tracking - LIVE - MOVED UP */}
-              <div className="rounded-lg border border-primary/20 bg-background p-5">
-                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <h2 className="flex items-center gap-3 text-xl font-semibold text-foreground">
-                    <TrendingUp size={24} className="text-primary" />
-                    Performance Goals vs Actual
-                    <span className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-primary">
-                      <span className="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
+              <div className="rounded-lg border border-primary/20 bg-background p-4">
+                <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp size={20} className="text-primary" />
+                    <span className="text-sm font-semibold text-foreground">Performance Goals</span>
+                    <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-primary">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
                       <span className="text-xs font-semibold">LIVE</span>
                     </span>
-                  </h2>
+                  </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Last update</p>
-                    <p className="font-mono text-sm text-foreground">{lastUpdate.toLocaleTimeString()}</p>
+                    <p className="font-mono text-xs text-foreground">{lastUpdate.toLocaleTimeString()}</p>
                   </div>
                 </div>
 
                 {/* Big Number Metrics */}
-                <div className="mb-6 grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
-                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">First Reply Time</p>
-                    <p className="text-4xl font-bold text-primary">
-                      {formatTime(dashboardData.recentMetrics.length > 0 
-                        ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length 
+                <div className="mb-4 grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">First Reply Time</p>
+                    <p className="text-3xl font-bold text-primary">
+                      {formatTime(dashboardData.recentMetrics.length > 0
+                        ? dashboardData.recentMetrics.reduce((sum, m) => sum + m.avgFirstReplyTimeMinutes, 0) / dashboardData.recentMetrics.length
                         : 0)}
                     </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.firstReplyTimeMinutes || 60)}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Overall Reply Time</p>
-                    <p className="text-4xl font-bold text-primary">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Overall Reply Time</p>
+                    <p className="text-3xl font-bold text-primary">
                       {formatTime(dashboardData.avgReplyTimeMinutes || 0)}
                     </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.overallReplyTimeMinutes || 480)}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                    <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Time to Close</p>
-                    <p className="text-4xl font-bold text-primary">
+                  <div className="rounded-lg border border-primary/20 bg-muted/30 p-3">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Time to Close</p>
+                    <p className="text-3xl font-bold text-primary">
                       {formatTime((dashboardData.avgReplyTimeMinutes * 1.5) || 0)}
                     </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Goal: {formatTime(performanceGoals.goals?.find((g: any) => g.channel === selectedChannel)?.timeToCloseMinutes || 2880)}
                     </p>
                   </div>
                 </div>
                 {/* Progress Bars */}
-                <div className="mb-6 rounded-lg border border-primary/20 bg-muted/30 p-5">
-                  <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-foreground">Progress Tracking</h3>
-                  <div className="space-y-6">
+                <div className="mb-4 rounded-lg border border-primary/20 bg-muted/30 p-4">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-foreground">Progress Tracking</h3>
+                  <div className="space-y-4">
                     {/* First Reply Bar */}
                     <div>
                       <div className="mb-2 flex items-center justify-between">
@@ -1862,11 +2020,11 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Metrics Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Reply Time Trend */}
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <h2 className="mb-6 text-xl font-semibold text-foreground">Average Reply Time Trend</h2>
-                  <ResponsiveContainer width="100%" height={300}>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <h2 className="mb-4 text-lg font-semibold text-foreground">Reply Time Trend</h2>
+                  <ResponsiveContainer width="100%" height={250}>
                     <LineChart data={dashboardData.recentMetrics}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
                       <XAxis 
@@ -1900,9 +2058,9 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Resolution Rate Trend */}
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <h2 className="mb-6 text-xl font-semibold text-foreground">Resolution Rate Trend</h2>
-                  <ResponsiveContainer width="100%" height={300}>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <h2 className="mb-4 text-lg font-semibold text-foreground">Resolution Rate Trend</h2>
+                  <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={dashboardData.recentMetrics}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
                       <XAxis 
@@ -1937,7 +2095,7 @@ export default function DashboardPage() {
           )}
 
           {activeSection === 'alerts' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <AlertsList
                 alerts={alerts}
                 isLive={alertsLive}
@@ -1947,39 +2105,39 @@ export default function DashboardPage() {
           )}
 
           {activeSection === 'team' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Leaderboard and Workload for Managers - Using new components */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Leaderboard teamPerformance={teamPerformance} type="resolution" />
                 <Leaderboard teamPerformance={teamPerformance} type="workload" />
               </div>
               {/* Team Summary Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Total Members</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.length}</p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Members</p>
+                  <p className="text-2xl font-bold text-primary">{teamMembers.length}</p>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Active Members</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.isActive).length}</p>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Active Members</p>
+                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.isActive).length}</p>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Agents</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'agent').length}</p>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Agents</p>
+                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.role === 'agent').length}</p>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Managers</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'manager').length}</p>
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Managers</p>
+                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.role === 'manager').length}</p>
                 </div>
               </div>
 
               {/* Add Team Member Form */}
-              <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
-                <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
-                  <Plus size={24} className="text-primary" />
+              <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-foreground">
+                  <Plus size={20} className="text-primary" />
                   Add Team Member
                 </h2>
                 
@@ -2021,14 +2179,13 @@ export default function DashboardPage() {
 
               {/* Team Workload Overview */}
               {teamWorkload.length > 0 && (
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="rounded-lg border border-primary/20 bg-background p-4">
+                  <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                        <Users className="text-primary" size={24} />
+                      <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                        <Users className="text-primary" size={20} />
                         Team Workload Distribution
                       </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Current capacity and load per agent</p>
                     </div>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -2125,8 +2282,7 @@ export default function DashboardPage() {
               )}
 
               {/* Team Members Performance */}
-              <div className="rounded-lg border border-primary/20 bg-background p-5">
-                <h2 className="text-xl font-bold text-foreground mb-4">Team Performance & KPIs</h2>
+              <div className="rounded-lg border border-primary/20 bg-background p-4">
                 
                 {teamPerformance.length === 0 ? (
                   <div className="text-center py-8">
@@ -2249,24 +2405,11 @@ export default function DashboardPage() {
 
           {/* Configuration Section */}
           {activeSection === 'configuration' && (
-            <div className="space-y-8">
-              {/* Breadcrumb */}
-              <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                <p className="text-foreground text-sm flex items-center gap-2">
-                  <Sliders size={16} className="text-primary" />
-                  Configuration → <span className="text-foreground font-semibold">{activeConfigSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-                </p>
-              </div>
+            <div className="space-y-4">
 
               {/* Email Providers Section */}
               {activeConfigSection === 'email-providers' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📧 Email & Integration</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-              
               {/* Email Provider Integration */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <div className="flex items-center justify-between mb-6">
@@ -2431,12 +2574,6 @@ export default function DashboardPage() {
               {/* SLA & Compliance Section */}
               {activeConfigSection === 'sla' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">⏰ SLA & Compliance</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               {/* SLA Settings */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
@@ -2518,12 +2655,6 @@ export default function DashboardPage() {
               {/* Templates Section */}
               {activeConfigSection === 'templates' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📝 Templates & Automation</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               {/* Reply Templates */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
@@ -2623,12 +2754,6 @@ export default function DashboardPage() {
               {/* Performance Goals Section */}
               {activeConfigSection === 'performance-goals' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">📊 Performance & Analytics</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               {/* Performance Goals */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
@@ -2848,12 +2973,6 @@ export default function DashboardPage() {
               {/* Webhooks Section */}
               {activeConfigSection === 'webhooks' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">🔗 Webhooks & Integrations</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               {/* Webhooks */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
@@ -2971,12 +3090,6 @@ export default function DashboardPage() {
               {/* Business Hours Section */}
               {activeConfigSection === 'business-hours' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">⏰ Business Hours & Holidays</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                   <Clock size={24} className="text-primary" />
@@ -3067,12 +3180,6 @@ export default function DashboardPage() {
               {/* Customer Tiers Section */}
               {activeConfigSection === 'customer-tiers' && (
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  <h2 className="text-sm font-bold text-primary uppercase tracking-wider">👥 Customer Tiers</h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                </div>
-
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                   <Users size={24} className="text-primary" />

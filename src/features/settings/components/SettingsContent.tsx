@@ -63,11 +63,43 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
   useEffect(() => {
     if (session?.user) {
-      fetchSettings();
-      fetchEmailProviders();
-      fetchSubscription();
+      loadAllData();
     }
   }, [session]);
+
+  const loadAllData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all data in parallel for faster loading
+      const [settingsRes, providersRes, subscriptionRes] = await Promise.all([
+        fetch('/api/user/settings').catch(() => null),
+        fetch('/api/email-providers').catch(() => null),
+        fetch('/api/user/subscription').catch(() => null),
+      ]);
+
+      // Process settings
+      if (settingsRes?.ok) {
+        const data = await settingsRes.json();
+        setSettings(data.settings || settings);
+      }
+
+      // Process email providers
+      if (providersRes?.ok) {
+        const data = await providersRes.json();
+        setEmailProviders(data.providers || []);
+      }
+
+      // Process subscription
+      if (subscriptionRes?.ok) {
+        const data = await subscriptionRes.json();
+        setSubscription(data.subscription || null);
+      }
+    } catch (error) {
+      console.error('Error loading settings data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -78,8 +110,6 @@ export function SettingsContent({ session }: SettingsContentProps) {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -189,12 +219,9 @@ export function SettingsContent({ session }: SettingsContentProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account and application settings</p>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+       
         {subscription && subscription.plan !== 'free' && (
           <Badge variant="default" className="text-sm bg-orange-600 hover:bg-orange-700">
             {subscription.plan === 'pro' ? 'Pro Plan' : 'Enterprise'}
@@ -204,19 +231,16 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Settings Column */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Notifications */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-lg">
                 <Bell className="w-5 h-5 mr-2" />
                 Notifications
               </CardTitle>
-              <CardDescription>
-                Configure how you receive notifications
-              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-base font-medium">Email Notifications</Label>
@@ -279,16 +303,13 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
           {/* Email Management */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-lg">
                 <Mail className="w-5 h-5 mr-2" />
                 Email Management
               </CardTitle>
-              <CardDescription>
-                Configure email providers and routing
-              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-base font-medium">Auto-Assignment</Label>
@@ -363,16 +384,16 @@ export function SettingsContent({ session }: SettingsContentProps) {
         </div>
 
         {/* Sidebar Column */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Subscription */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-lg">
                 <CreditCard className="w-5 h-5 mr-2" />
                 Subscription
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {subscription ? (
                 <>
                   <div className="space-y-2">
@@ -411,7 +432,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
           {/* Quick Actions */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-lg">
                 <Zap className="w-5 h-5 mr-2" />
                 Quick Actions
