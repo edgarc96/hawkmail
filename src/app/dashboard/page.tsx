@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authClient, useSession } from "@/lib/auth-client";
 import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, Bell, LogOut, BarChart3, Settings, Home, XCircle, Search, Send, Filter, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Zap, Shuffle, Database, Download, FileSpreadsheet, Info, Sparkles, ChevronRight, ChevronDown, Sliders, User, CreditCard, BellRing, Palette, FileText, Timer, Webhook, Calendar, Crown, Server, Target } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -1250,11 +1251,14 @@ export default function DashboardPage() {
   };
 
   const handleSectionClick = (section: 'dashboard' | 'analytics' | 'alerts' | 'team' | 'settings') => {
-    setActiveSection(section);
-    
-    // Fetch webhooks when opening settings
+    // Navigate to settings page separately to maintain its layout
     if (section === 'settings') {
-      fetchWebhooks();
+      router.push('/settings');
+    } else {
+      // For all other sections, use internal state for SPA navigation
+      setActiveSection(section as 'dashboard' | 'analytics' | 'alerts' | 'team');
+      setIsConfigMenuOpen(false);
+      setIsSettingsMenuOpen(false);
     }
   };
 
@@ -1355,11 +1359,7 @@ export default function DashboardPage() {
         {/* Left Navbar Vertical - Main Icons Only */}
         <div className="w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center gap-4 py-8 sticky top-0 h-screen backdrop-blur-sm">
           <button
-            onClick={() => {
-              setActiveSection('dashboard');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
+            onClick={() => handleSectionClick('dashboard')}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
               activeSection === 'dashboard'
                 ? 'bg-primary/15 text-primary'
@@ -1372,11 +1372,7 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={() => {
-              handleSectionClick('analytics');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
+            onClick={() => handleSectionClick('analytics')}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
               activeSection === 'analytics'
                 ? 'bg-primary/15 text-primary'
@@ -1389,11 +1385,7 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={() => {
-              handleSectionClick('alerts');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
+            onClick={() => handleSectionClick('alerts')}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
               activeSection === 'alerts'
                 ? 'bg-primary/15 text-primary'
@@ -1411,11 +1403,7 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={() => {
-              handleSectionClick('team');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
+            onClick={() => handleSectionClick('team')}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors ${
               activeSection === 'team'
                 ? 'bg-primary/15 text-primary'
@@ -1455,13 +1443,7 @@ export default function DashboardPage() {
 
           {/* Settings (Personal) with Submenu */}
           <button
-            onClick={() => {
-              setIsSettingsMenuOpen(!isSettingsMenuOpen);
-              setIsConfigMenuOpen(false);
-              if (!isSettingsMenuOpen) {
-                setActiveSection('settings');
-              }
-            }}
+            onClick={() => handleSectionClick('settings')}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative ${
               activeSection === 'settings'
                 ? 'bg-primary/15 text-primary'
@@ -1471,12 +1453,6 @@ export default function DashboardPage() {
           >
             <Settings className="transition-colors" size={24} />
             <span className="text-[10px] font-medium tracking-wide transition-colors">Settings</span>
-            <ChevronRight 
-              className={`absolute -right-1 top-1/2 -translate-y-1/2 transition-transform ${
-                isSettingsMenuOpen ? 'rotate-90' : ''
-              }`} 
-              size={12} 
-            />
           </button>
 
           <div className="flex-1"></div>
@@ -1657,7 +1633,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-semibold text-foreground">
-                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+                  {activeSection === 'dashboard' ? 'Dashboard' :
+                   activeSection === 'analytics' ? 'Analytics' :
+                   activeSection === 'alerts' ? 'Alerts' :
+                   activeSection === 'team' ? 'Team' :
+                   activeSection === 'configuration' ? 'Configuration' : 'Settings'}
                 </h1>
                 <p className="mt-1 text-muted-foreground">Welcome back, {session.user.name || session.user.email}</p>
               </div>
