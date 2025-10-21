@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { db } from '@/db';
+import { userSettings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 // GET: Obtener configuración del usuario
 export async function GET(req: NextRequest) {
@@ -15,8 +18,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Por ahora, devolver configuración por defecto
-    // TODO: Almacenar en la base de datos
+    // Get settings from database
+    const existingSettings = await db.select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, session.user.id))
+      .limit(1);
+
+    if (existingSettings.length > 0) {
+      const settings = existingSettings[0];
+      return NextResponse.json({
+        settings: {
+          emailNotifications: settings.emailNotifications,
+          slackNotifications: settings.slackNotifications,
+          autoAssignment: settings.autoAssignment,
+          slaAlerts: settings.slaAlerts,
+          weeklyReports: settings.weeklyReports,
+        }
+      });
+    }
+
+    // Return default settings if no record exists
     const defaultSettings = {
       emailNotifications: true,
       slackNotifications: false,
@@ -54,8 +75,35 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { settings } = body;
 
-    // TODO: Guardar en la base de datos
-    console.log('Saving settings for user:', session.user.id, settings);
+    // Check if settings exist
+    const existingSettings = await db.select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, session.user.id))
+      .limit(1);
+
+    if (existingSettings.length > 0) {
+      // Update existing settings
+      await db.update(userSettings)
+        .set({
+          emailNotifications: settings.emailNotifications,
+          slackNotifications: settings.slackNotifications,
+          autoAssignment: settings.autoAssignment,
+          slaAlerts: settings.slaAlerts,
+          weeklyReports: settings.weeklyReports,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSettings.userId, session.user.id));
+    } else {
+      // Create new settings
+      await db.insert(userSettings).values({
+        userId: session.user.id,
+        emailNotifications: settings.emailNotifications,
+        slackNotifications: settings.slackNotifications,
+        autoAssignment: settings.autoAssignment,
+        slaAlerts: settings.slaAlerts,
+        weeklyReports: settings.weeklyReports,
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -174,6 +174,45 @@ export function SettingsContent({ session }: SettingsContentProps) {
     window.location.href = `/api/oauth/${provider}/authorize?userId=${session.user.id}`;
   };
 
+  const handleDisconnectProvider = async (providerId: number) => {
+    try {
+      const response = await fetch(`/api/email-providers/${providerId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Email provider disconnected successfully');
+        fetchEmailProviders(); // Refresh the list
+      } else {
+        toast.error('Failed to disconnect email provider');
+      }
+    } catch (error) {
+      console.error('Error disconnecting provider:', error);
+      toast.error('Failed to disconnect email provider');
+    }
+  };
+
+  const handleSyncProvider = async (providerId: number, providerName: string) => {
+    try {
+      toast.info(`Syncing ${providerName}...`);
+      const response = await fetch(`/api/email-providers/${providerId}/sync`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(`Synced ${data.emailsProcessed || 0} emails from ${providerName}`);
+        fetchEmailProviders(); // Refresh to show updated lastSyncAt
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to sync emails');
+      }
+    } catch (error) {
+      console.error('Error syncing provider:', error);
+      toast.error('Failed to sync emails');
+    }
+  };
+
   const handleManageSubscription = async () => {
     try {
       const response = await fetch('/api/stripe/create-portal-session', {
@@ -348,11 +387,29 @@ export function SettingsContent({ session }: SettingsContentProps) {
                           <div>
                             <p className="font-medium capitalize">{provider.provider}</p>
                             <p className="text-sm text-muted-foreground">{provider.email}</p>
+                            {provider.lastSyncAt && (
+                              <p className="text-xs text-muted-foreground">
+                                Last sync: {new Date(provider.lastSyncAt).toLocaleString()}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Configure
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleSyncProvider(provider.id, provider.provider)}
+                          >
+                            Sync
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDisconnectProvider(provider.id)}
+                          >
+                            Disconnect
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -442,7 +499,10 @@ export function SettingsContent({ session }: SettingsContentProps) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => toast.info('Team management coming soon')}
+                onClick={() => {
+                  // Navigate to team section in dashboard
+                  window.location.href = '/dashboard?section=team';
+                }}
               >
                 <Users className="w-4 h-4 mr-2" />
                 Manage Team
@@ -450,18 +510,24 @@ export function SettingsContent({ session }: SettingsContentProps) {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => toast.info('Security settings coming soon')}
+                onClick={() => {
+                  // Navigate to configuration section
+                  window.location.href = '/dashboard?section=configuration';
+                }}
               >
                 <Shield className="w-4 h-4 mr-2" />
-                Security Settings
+                Configuration
               </Button>
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => toast.info('Notification history coming soon')}
+                onClick={() => {
+                  // Navigate to alerts section
+                  window.location.href = '/dashboard?section=alerts';
+                }}
               >
                 <History className="w-4 h-4 mr-2" />
-                Notification History
+                View Alerts
               </Button>
             </CardContent>
           </Card>

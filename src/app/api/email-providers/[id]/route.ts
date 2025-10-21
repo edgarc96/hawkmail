@@ -169,3 +169,75 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Authentication check
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'AUTHENTICATION_REQUIRED' },
+        { status: 401 }
+      );
+    }
+    const user = session.user;
+
+    // Validate ID parameter
+    const { id } = await params;
+    if (!id || isNaN(parseInt(id))) {
+      return NextResponse.json(
+        { error: 'Valid ID is required', code: 'INVALID_ID' },
+        { status: 400 }
+      );
+    }
+
+    // Check if provider exists and belongs to authenticated user
+    const existingProvider = await db
+      .select()
+      .from(emailProviders)
+      .where(
+        and(
+          eq(emailProviders.id, parseInt(id)),
+          eq(emailProviders.userId, user.id)
+        )
+      )
+      .limit(1);
+
+    if (existingProvider.length === 0) {
+      return NextResponse.json(
+        {
+          error: 'Email provider not found',
+          code: 'PROVIDER_NOT_FOUND',
+        },
+        { status: 404 }
+      );
+    }
+
+    // Delete the provider
+    await db
+      .delete(emailProviders)
+      .where(
+        and(
+          eq(emailProviders.id, parseInt(id)),
+          eq(emailProviders.userId, user.id)
+        )
+      );
+
+    return NextResponse.json(
+      { success: true, message: 'Email provider deleted successfully' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('DELETE error:', error);
+    return NextResponse.json(
+      {
+        error: 'Internal server error: ' + error,
+        code: 'INTERNAL_SERVER_ERROR',
+      },
+      { status: 500 }
+    );
+  }
+}

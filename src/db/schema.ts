@@ -124,6 +124,18 @@ export const slaSettings = sqliteTable('sla_settings', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
 });
 
+export const userSettings = sqliteTable('user_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
+  emailNotifications: integer('email_notifications', { mode: 'boolean' }).notNull().default(true),
+  slackNotifications: integer('slack_notifications', { mode: 'boolean' }).notNull().default(false),
+  autoAssignment: integer('auto_assignment', { mode: 'boolean' }).notNull().default(true),
+  slaAlerts: integer('sla_alerts', { mode: 'boolean' }).notNull().default(true),
+  weeklyReports: integer('weekly_reports', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});
+
 export const alerts = sqliteTable('alerts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   emailId: integer('email_id').references(() => emails.id, { onDelete: 'cascade' }),
