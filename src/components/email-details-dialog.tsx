@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Email {
@@ -11,6 +13,7 @@ interface Email {
   subject: string;
   senderEmail: string;
   recipientEmail: string;
+  bodyContent?: string | null;
   receivedAt: string;
   slaDeadline: string;
   firstReplyAt: string | null;
@@ -31,6 +34,9 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
   const [priority, setPriority] = useState(email?.priority || "medium");
   const [isResolved, setIsResolved] = useState(email?.isResolved || false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyContent, setReplyContent] = useState("");
+  const [showReplyForm, setShowReplyForm] = useState(false);
 
   if (!email) return null;
 
@@ -169,6 +175,46 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
     }
   };
 
+  const handleSendReply = async () => {
+    if (!replyContent.trim()) {
+      toast.error("Reply content cannot be empty");
+      return;
+    }
+
+    setIsReplying(true);
+    try {
+      const token = localStorage.getItem("bearer_token");
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const response = await fetch(`/api/emails/${email.id}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ replyContent: replyContent.trim() }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to send reply");
+      }
+
+      toast.success("Reply sent successfully!");
+      setReplyContent("");
+      setShowReplyForm(false);
+      onUpdate();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reply");
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
   const timeRemaining = getTimeRemaining(email.slaDeadline);
 
   return (
@@ -187,6 +233,21 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <label className="text-purple-300 text-sm font-semibold">Subject</label>
             <p className="text-white text-lg mt-1">{email.subject}</p>
           </div>
+
+          {/* Email Content */}
+          {email.bodyContent && (
+            <div>
+              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+                <Mail size={16} />
+                Email Content
+              </label>
+              <div className="mt-2 p-4 bg-[#1a0f2e]/60 rounded-lg border border-purple-500/20 max-h-96 overflow-y-auto">
+                <div className="text-white whitespace-pre-wrap text-sm leading-relaxed">
+                  {email.bodyContent}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sender & Recipient */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -292,21 +353,80 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               Mark as Resolved
             </label>
           </div>
+
+          {/* Reply Section */}
+          <div className="border-t border-purple-500/20 pt-6">
+            {!showReplyForm ? (
+              <Button
+                onClick={() => setShowReplyForm(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-2"
+                disabled={email.isResolved}
+              >
+                <Reply size={16} />
+                Reply to Email
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-purple-300 text-sm font-semibold flex items-center gap-2 mb-2">
+                    <Reply size={16} />
+                    Your Reply
+                  </label>
+                  <Textarea
+                    placeholder="Type your reply here..."
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    className="min-h-[120px] bg-[#1a0f2e]/60 border-purple-500/30 text-white placeholder:text-purple-400 resize-none"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSendReply}
+                    disabled={isReplying || !replyContent.trim()}
+                    className="bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-2"
+                  >
+                    {isReplying ? (
+                      <>
+                        <Loader2 className="animate-spin" size={16} />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        Send Reply
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowReplyForm(false);
+                      setReplyContent("");
+                    }}
+                    variant="outline"
+                    className="border-gray-600/30 text-gray-300 hover:bg-gray-600/20 transition-all"
+                    disabled={isReplying}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
           <button
             onClick={() => onOpenChange(false)}
             className="px-4 py-2 bg-gray-600/20 text-gray-300 rounded-lg hover:bg-gray-600/30 transition-all"
-            disabled={isUpdating}
+            disabled={isUpdating || isReplying}
           >
-            Cancel
+            Close
           </button>
           {!email.firstReplyAt && (
             <button
               onClick={handleMarkAsReplied}
               className="px-4 py-2 bg-green-600/20 text-green-300 rounded-lg hover:bg-green-600/30 transition-all flex items-center gap-2"
-              disabled={isUpdating}
+              disabled={isUpdating || isReplying}
             >
               <CheckCircle size={16} />
               Mark as Replied
@@ -316,7 +436,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <button
               onClick={handleMarkAsResolved}
               className="px-4 py-2 bg-blue-600/20 text-blue-300 rounded-lg hover:bg-blue-600/30 transition-all flex items-center gap-2"
-              disabled={isUpdating}
+              disabled={isUpdating || isReplying}
             >
               <CheckCircle size={16} />
               Mark as Resolved
@@ -325,7 +445,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           <button
             onClick={handleUpdateEmail}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
-            disabled={isUpdating}
+            disabled={isUpdating || isReplying}
           >
             {isUpdating ? "Updating..." : "Save Changes"}
           </button>

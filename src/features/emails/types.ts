@@ -3,6 +3,7 @@ export interface Email {
   subject: string;
   senderEmail: string;
   recipientEmail: string;
+  bodyContent?: string | null;
   receivedAt: string;
   slaDeadline: string;
   firstReplyAt: string | null;

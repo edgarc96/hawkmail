@@ -4,6 +4,82 @@ import { emails } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Authentication check
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+    const user = session.user;
+
+    // Validate ID parameter
+    const { id } = await params;
+    if (!id || isNaN(parseInt(id))) {
+      return NextResponse.json(
+        { error: 'Valid ID is required', code: 'INVALID_ID' },
+        { status: 400 }
+      );
+    }
+
+    const emailId = parseInt(id);
+
+    // Get email with full content
+    const email = await db
+      .select({
+        id: emails.id,
+        subject: emails.subject,
+        senderEmail: emails.senderEmail,
+        recipientEmail: emails.recipientEmail,
+        bodyContent: emails.bodyContent,
+        receivedAt: emails.receivedAt,
+        firstReplyAt: emails.firstReplyAt,
+        status: emails.status,
+        priority: emails.priority,
+        slaDeadline: emails.slaDeadline,
+        isResolved: emails.isResolved,
+        assignedTo: emails.assignedTo,
+        externalId: emails.externalId,
+        threadId: emails.threadId,
+        providerId: emails.providerId,
+        createdAt: emails.createdAt,
+      })
+      .from(emails)
+      .where(and(eq(emails.id, emailId), eq(emails.userId, user.id)))
+      .limit(1);
+
+    if (email.length === 0) {
+      return NextResponse.json(
+        { error: 'Email not found', code: 'EMAIL_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    // Format dates as ISO strings
+    const formattedEmail = {
+      ...email[0],
+      receivedAt: email[0].receivedAt.toISOString(),
+      slaDeadline: email[0].slaDeadline.toISOString(),
+      firstReplyAt: email[0].firstReplyAt?.toISOString() || null,
+      createdAt: email[0].createdAt.toISOString(),
+    };
+
+    return NextResponse.json(formattedEmail, { status: 200 });
+  } catch (error) {
+    console.error('GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error: ' + error },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
