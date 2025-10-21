@@ -32,9 +32,10 @@ Desde `/dashboard`, prueba los siguientes botones de navegación:
 
 ### 3. Probar navegación a Settings
 5. **Settings** (ícono de engranaje)
-   - ✅ Debe redirigir a `/settings` (cambio de URL)
-   - ✅ Debe mostrar el layout de settings diferente al dashboard
-   - ✅ Debe mantener el diseño de 3 columnas con sidebar
+   - ✅ Debe cargar el contenido de settings SIN recargar la página (SPA)
+   - ✅ La URL debe permanecer `/dashboard`
+   - ✅ Debe mostrar el contenido de settings dentro del layout del dashboard
+   - ✅ Debe mantener el diseño de 3 columnas pero dentro del dashboard
 
 ### 4. Verificar sin recargas
 Abre la consola del navegador (F12) y observa:
@@ -53,15 +54,14 @@ Desde `/settings`, prueba navegar de vuelta:
 | Dashboard → Analytics | SPA (sin recarga) | `/dashboard` | Dashboard |
 | Dashboard → Alerts | SPA (sin recarga) | `/dashboard` | Dashboard |
 | Dashboard → Team | SPA (sin recarga) | `/dashboard` | Dashboard |
-| Dashboard → Settings | Redirección | `/settings` | Settings |
-| Settings → Dashboard | Redirección | `/dashboard` | Dashboard |
+| Dashboard → Settings | SPA (sin recarga) | `/dashboard` | Dashboard (contenido de settings) |
 
 ## 🔍 Señales de que funciona correctamente
 
-1. **Sin recargas**: El contenido cambia instantáneamente sin parpadeo de página
-2. **URL consistente**: La URL se mantiene en `/dashboard` para todas las secciones SPA
-3. **Settings separado**: `/settings` tiene su propio layout y URL
-4. **Estado preservado**: Los datos y filtros se mantienen al cambiar entre secciones
+1. **Sin recargas**: El contenido cambia instantáneamente sin parpadeo de página para TODAS las secciones
+2. **URL consistente**: La URL se mantiene en `/dashboard` para TODAS las secciones (incluyendo settings)
+3. **Settings integrado**: Settings se carga dentro del dashboard manteniendo su layout visual
+4. **Estado preservado**: Los datos y filtros se mantienen al cambiar entre todas las secciones
 
 ## 🐛 Problemas comunes a verificar
 

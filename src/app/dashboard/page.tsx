@@ -16,6 +16,7 @@ import { PerformanceTrendChart } from "@/features/analytics/components/Performan
 import { EmailDistributionChart } from "@/features/analytics/components/EmailDistributionChart";
 import { TeamPerformanceHeatmap } from "@/features/analytics/components/TeamPerformanceHeatmap";
 import { NotificationDropdown } from "@/features/notifications/components/NotificationDropdown";
+import { SettingsContent } from "@/features/settings/components/SettingsContent";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -1251,15 +1252,10 @@ export default function DashboardPage() {
   };
 
   const handleSectionClick = (section: 'dashboard' | 'analytics' | 'alerts' | 'team' | 'settings') => {
-    // Navigate to settings page separately to maintain its layout
-    if (section === 'settings') {
-      router.push('/settings');
-    } else {
-      // For all other sections, use internal state for SPA navigation
-      setActiveSection(section as 'dashboard' | 'analytics' | 'alerts' | 'team');
-      setIsConfigMenuOpen(false);
-      setIsSettingsMenuOpen(false);
-    }
+    // Use internal state for all sections including settings for SPA navigation
+    setActiveSection(section);
+    setIsConfigMenuOpen(false);
+    setIsSettingsMenuOpen(false);
   };
 
   const formatTime = (minutes: number): string => {
@@ -3201,118 +3197,9 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Settings Section (Personal) */}
+          {/* Settings Section (SPA) */}
           {activeSection === 'settings' && (
-            <div className="space-y-8">
-              {/* Breadcrumb */}
-              <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                <p className="text-foreground text-sm flex items-center gap-2">
-                  <Settings size={16} className="text-primary" />
-                  Settings → <span className="text-foreground font-semibold">{activeSettingsSection.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-                </p>
-              </div>
-
-              {/* Personal Settings Subsections - show based on activeSettingsSection */}
-
-              {/* Profile Settings */}
-              {activeSettingsSection === 'profile' && (
-                <div className="rounded-lg border border-primary/20 bg-background p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                    <User size={28} className="text-primary" />
-                    Profile Settings
-                  </h2>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-foreground text-sm font-medium">Full Name</label>
-                      <Input 
-                        defaultValue={session.user.name || ''} 
-                        className="mt-2 bg-background border-primary/20"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-foreground text-sm font-medium">Email</label>
-                      <Input 
-                        defaultValue={session.user.email || ''} 
-                        disabled
-                        className="mt-2 bg-background border-primary/20 opacity-60"
-                      />
-                    </div>
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Save Changes
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Billing Settings */}
-              {activeSettingsSection === 'billing' && (
-                <div className="rounded-lg border border-primary/20 bg-background p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                    <CreditCard size={28} className="text-primary" />
-                    Billing & Payments
-                  </h2>
-                  <div className="text-center py-12">
-                    <CreditCard className="mx-auto mb-4 text-primary" size={64} />
-                    <h3 className="text-foreground text-lg font-semibold mb-2">Coming Soon</h3>
-                    <p className="text-muted-foreground">Billing and payment management will be available soon</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Notification Settings */}
-              {activeSettingsSection === 'notifications' && (
-                <div className="rounded-lg border border-primary/20 bg-background p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                    <BellRing size={28} className="text-primary" />
-                    Notification Preferences
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-primary/20 bg-muted/30">
-                      <div>
-                        <h3 className="text-foreground font-semibold">Email Notifications</h3>
-                        <p className="text-muted-foreground text-sm">Receive email alerts</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5" />
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-primary/20 bg-muted/30">
-                      <div>
-                        <h3 className="text-foreground font-semibold">Desktop Notifications</h3>
-                        <p className="text-muted-foreground text-sm">Show desktop alerts</p>
-                      </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Preferences */}
-              {activeSettingsSection === 'preferences' && (
-                <div className="rounded-lg border border-primary/20 bg-background p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
-                    <Palette size={28} className="text-primary" />
-                    Preferences
-                  </h2>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-foreground text-sm font-medium mb-2 block">Theme</label>
-                      <ThemeToggle />
-                    </div>
-                    <div>
-                      <label className="text-foreground text-sm font-medium mb-2 block">Language</label>
-                      <Select>
-                        <SelectTrigger className="bg-background border-primary/20">
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <SettingsContent session={session} />
           )}
         </div>
 
