@@ -12,7 +12,7 @@ import {
   Menu,
   X 
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
@@ -25,8 +25,16 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session, isPending } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Verificar autenticación
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login");
+    }
+  }, [session, isPending, router]);
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -48,6 +56,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: Users, label: "Team", href: "/team" },
     { icon: Settings, label: "Settings", href: "/settings" },
   ];
+
+  // Mostrar loading mientras verifica la sesión
+  if (isPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted to-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Si no hay sesión, no mostrar nada (el useEffect redirigirá)
+  if (!session) {
+    return null;
+  }
 
   return (
     <TooltipProvider delayDuration={300}>

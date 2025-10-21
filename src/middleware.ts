@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
 
 // Rutas que requieren autenticación
 const protectedRoutes = [
@@ -34,25 +33,18 @@ export async function middleware(request: NextRequest) {
 
   // Verificar autenticación para rutas protegidas
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      if (!session?.user) {
-        // Redirigir a login si no está autenticado
-        const loginUrl = new URL('/login', request.url);
-        return NextResponse.redirect(loginUrl);
-      }
-
-      // Usuario autenticado, permitir acceso
-      return NextResponse.next();
-    } catch (error) {
-      console.error('Middleware auth error:', error);
-      // En caso de error, redirigir a login
+    // Verificar si hay una cookie de sesión de Better Auth
+    const sessionToken = request.cookies.get('better-auth.session_token');
+    
+    if (!sessionToken) {
+      // Redirigir a login si no hay cookie de sesión
       const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Si hay cookie, permitir acceso (la verificación real se hará en el componente)
+    return NextResponse.next();
   }
 
   return NextResponse.next();
