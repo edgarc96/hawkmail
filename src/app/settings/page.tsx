@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { DashboardLayout } from '@/components/dashboard-layout';
 import { 
   Settings, 
   Bell, 
@@ -21,7 +22,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-export default function SettingsPage() {
+function SettingsContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -323,5 +324,13 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <DashboardLayout>
+      <SettingsContent />
+    </DashboardLayout>
   );
 }

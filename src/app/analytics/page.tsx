@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, TrendingUp, Users, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { DashboardLayout } from '@/components/dashboard-layout';
 
-export default function AnalyticsPage() {
+function AnalyticsContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -140,5 +141,13 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <DashboardLayout>
+      <AnalyticsContent />
+    </DashboardLayout>
   );
 }

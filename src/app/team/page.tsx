@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Users, UserPlus, Mail, Clock, TrendingUp, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { DashboardLayout } from '@/components/dashboard-layout';
 
 interface TeamMember {
   id: string;
@@ -21,7 +22,7 @@ interface TeamMember {
   isActive: boolean;
 }
 
-export default function TeamPage() {
+function TeamContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
@@ -213,5 +214,13 @@ export default function TeamPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TeamPage() {
+  return (
+    <DashboardLayout>
+      <TeamContent />
+    </DashboardLayout>
   );
 }
