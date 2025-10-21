@@ -1253,6 +1253,7 @@ export default function DashboardPage() {
 
   const handleSectionClick = (section: 'dashboard' | 'analytics' | 'alerts' | 'team' | 'settings') => {
     // Use internal state for all sections including settings for SPA navigation
+    console.log('handleSectionClick called with:', section);
     setActiveSection(section);
     setIsConfigMenuOpen(false);
     setIsSettingsMenuOpen(false);
@@ -1998,63 +1999,109 @@ export default function DashboardPage() {
               </div>
               {/* Team Summary Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Total Members</p>
+                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-5 hover:from-primary/10 hover:to-primary/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Members</p>
+                    <Users className="w-4 h-4 text-primary/60" />
+                  </div>
                   <p className="text-3xl font-bold text-primary">{teamMembers.length}</p>
+                  <div className="mt-2 h-1 w-full bg-primary/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary/60 rounded-full" style={{ width: `${Math.min(100, (teamMembers.length / 10) * 100)}%` }}></div>
+                  </div>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Active Members</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.isActive).length}</p>
+                <div className="rounded-xl border border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10 p-5 hover:from-green-500/10 hover:to-green-500/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Active Members</p>
+                    <div className="w-4 h-4 rounded-full bg-green-500/60 animate-pulse"></div>
+                  </div>
+                  <p className="text-3xl font-bold text-green-600">{teamMembers.filter(m => m.isActive).length}</p>
+                  <div className="mt-2 h-1 w-full bg-green-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500/60 rounded-full" style={{ width: `${(teamMembers.filter(m => m.isActive).length / Math.max(1, teamMembers.length)) * 100}%` }}></div>
+                  </div>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Agents</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'agent').length}</p>
+                <div className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-5 hover:from-blue-500/10 hover:to-blue-500/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Agents</p>
+                    <div className="w-4 h-4 rounded bg-blue-500/60"></div>
+                  </div>
+                  <p className="text-3xl font-bold text-blue-600">{teamMembers.filter(m => m.role === 'agent').length}</p>
+                  <div className="mt-2 h-1 w-full bg-blue-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500/60 rounded-full" style={{ width: `${Math.min(100, (teamMembers.filter(m => m.role === 'agent').length / Math.max(1, teamMembers.length)) * 100)}%` }}></div>
+                  </div>
                 </div>
 
-                <div className="rounded-lg border border-primary/20 bg-background p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Managers</p>
-                  <p className="text-3xl font-bold text-primary">{teamMembers.filter(m => m.role === 'manager').length}</p>
+                <div className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-5 hover:from-purple-500/10 hover:to-purple-500/20 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Managers</p>
+                    <div className="w-4 h-4 rounded-full bg-purple-500/60"></div>
+                  </div>
+                  <p className="text-3xl font-bold text-purple-600">{teamMembers.filter(m => m.role === 'manager').length}</p>
+                  <div className="mt-2 h-1 w-full bg-purple-500/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500/60 rounded-full" style={{ width: `${Math.min(100, (teamMembers.filter(m => m.role === 'manager').length / Math.max(1, teamMembers.length)) * 100)}%` }}></div>
+                  </div>
                 </div>
               </div>
 
               {/* Add Team Member Form */}
-              <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
-                <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
-                  <Plus size={24} className="text-primary" />
-                  Add Team Member
-                </h2>
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Plus size={24} className="text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Add Team Member</h2>
+                    <p className="text-sm text-muted-foreground">Expand your team to improve email handling capacity</p>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                  <Input
-                    placeholder="Name"
-                    value={newMemberName}
-                    onChange={(e) => setNewMemberName(e.target.value)}
-                    className="text-foreground"
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder="Full name"
+                      value={newMemberName}
+                      onChange={(e) => setNewMemberName(e.target.value)}
+                      className="text-foreground bg-background/80 border-primary/30 focus:border-primary pl-10"
+                    />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  </div>
                   
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    className="text-foreground"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      placeholder="Email address"
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      className="text-foreground bg-background/80 border-primary/30 focus:border-primary pl-10"
+                    />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  </div>
                   
                   <Select value={newMemberRole} onValueChange={setNewMemberRole}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background/80 border-primary/30 focus:border-primary">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="agent">Agent</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="agent">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded bg-blue-500"></div>
+                          Agent
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="manager">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded bg-purple-500"></div>
+                          Manager
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   
                   <Button
                     onClick={handleAddTeamMember}
-                    className="justify-center"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+                    disabled={!newMemberName.trim() || !newMemberEmail.trim()}
                   >
                     <Plus size={16} className="mr-2" />
                     Add Member
@@ -2100,65 +2147,100 @@ export default function DashboardPage() {
                     </Tooltip>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {teamWorkload.map((agent) => (
-                      <div key={agent.id} className="rounded-xl border border-border bg-muted/50 p-4">
-                        <div className="mb-3 flex items-center justify-between">
+                      <div key={agent.id} className="rounded-xl border border-border bg-gradient-to-br from-background to-muted/30 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                        <div className="mb-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 font-semibold text-primary">
+                            <div className={`relative flex h-12 w-12 items-center justify-center rounded-full font-semibold text-white ${
+                              agent.currentLoad / agent.capacity > 0.8
+                                ? 'bg-gradient-to-br from-red-500 to-red-600'
+                                : agent.currentLoad / agent.capacity > 0.5
+                                  ? 'bg-gradient-to-br from-yellow-500 to-yellow-600'
+                                  : 'bg-gradient-to-br from-green-500 to-green-600'
+                            }`}>
                               {agent.name.charAt(0).toUpperCase()}
+                              {agent.currentLoad / agent.capacity > 0.8 && (
+                                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                              )}
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground">{agent.name}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{agent.role}</p>
+                              <p className="font-bold text-foreground text-lg">{agent.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize flex items-center gap-1">
+                                {agent.role === 'agent' ? (
+                                  <>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    Agent
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                                    Manager
+                                  </>
+                                )}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-semibold text-foreground">{agent.currentLoad}</p>
-                            <p className="text-xs text-muted-foreground">/{agent.capacity}</p>
+                            <p className="text-3xl font-bold text-foreground">{agent.currentLoad}</p>
+                            <p className="text-xs text-muted-foreground">of {agent.capacity}</p>
                           </div>
                         </div>
 
-                        {/* Workload bar */}
-                        <div className="relative mb-2 h-3 overflow-hidden rounded-full bg-background/60">
-                          <div 
-                            className={`absolute h-full rounded-full transition-all duration-500 ${
-                              agent.currentLoad / agent.capacity > 0.8 
-                                ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                        {/* Workload bar with improved design */}
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>Workload</span>
+                            <span className={`font-semibold ${
+                              agent.currentLoad / agent.capacity > 0.8
+                                ? 'text-rose-500'
                                 : agent.currentLoad / agent.capacity > 0.5
-                                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                                  : 'bg-gradient-to-r from-green-500 to-green-600'
-                            }`}
-                            style={{ width: `${Math.min(100, (agent.currentLoad / agent.capacity) * 100)}%` }}
-                          ></div>
-                        </div>
-
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Capacity: {Math.round((agent.currentLoad / agent.capacity) * 100)}%</span>
-                          <span className={`font-semibold ${
-                            agent.currentLoad / agent.capacity > 0.8 
-                              ? 'text-rose-500' 
-                              : agent.currentLoad / agent.capacity > 0.5
-                                ? 'text-amber-500'
-                                : 'text-emerald-500'
-                          }`}>
-                            {agent.currentLoad / agent.capacity > 0.8 
-                              ? 'Overloaded' 
-                              : agent.currentLoad / agent.capacity > 0.5
-                                ? 'Moderate'
-                                : 'Available'}
-                          </span>
-                        </div>
-
-                        {/* Performance metrics */}
-                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
-                          <div>
-                            <p>Avg Reply</p>
-                            <p className="font-semibold text-foreground">{agent.avgReplyTimeMinutes > 0 ? `${Math.round(agent.avgReplyTimeMinutes / 60)}h` : 'N/A'}</p>
+                                  ? 'text-amber-500'
+                                  : 'text-emerald-500'
+                            }`}>
+                              {Math.round((agent.currentLoad / agent.capacity) * 100)}%
+                            </span>
                           </div>
-                          <div>
-                            <p>Resolution</p>
-                            <p className="font-semibold text-foreground">{agent.resolutionRate}%</p>
+                          <div className="relative h-4 overflow-hidden rounded-full bg-background/80 border border-border/50">
+                            <div
+                              className={`absolute h-full rounded-full transition-all duration-700 ${
+                                agent.currentLoad / agent.capacity > 0.8
+                                  ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/30'
+                                  : agent.currentLoad / agent.capacity > 0.5
+                                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/30'
+                                    : 'bg-gradient-to-r from-green-500 to-green-600 shadow-lg shadow-green-500/30'
+                              }`}
+                              style={{ width: `${Math.min(100, (agent.currentLoad / agent.capacity) * 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span className={
+                              agent.currentLoad / agent.capacity > 0.8
+                                ? 'text-rose-500'
+                                : agent.currentLoad / agent.capacity > 0.5
+                                  ? 'text-amber-500'
+                                  : 'text-emerald-500'
+                            }>
+                              {agent.currentLoad / agent.capacity > 0.8
+                                ? '⚠️ Overloaded'
+                                : agent.currentLoad / agent.capacity > 0.5
+                                  ? '📊 Moderate'
+                                  : '✅ Available'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Performance metrics with improved design */}
+                        <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/20 p-3">
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Avg Reply</p>
+                            <p className="font-bold text-foreground">
+                              {agent.avgReplyTimeMinutes > 0 ? `${Math.round(agent.avgReplyTimeMinutes / 60)}h` : 'N/A'}
+                            </p>
+                          </div>
+                          <div className="text-center border-l border-border/50">
+                            <p className="text-xs text-muted-foreground mb-1">Resolution</p>
+                            <p className="font-bold text-foreground">{agent.resolutionRate}%</p>
                           </div>
                         </div>
                       </div>
@@ -2178,24 +2260,39 @@ export default function DashboardPage() {
                     <p className="text-muted-foreground text-sm mt-2">Add your first team member above to get started</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {teamPerformance.map((member) => (
-                      <div key={member.id} className="p-6 bg-purple-900/20 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-colors">
+                      <div key={member.id} className="p-6 bg-gradient-to-br from-background via-muted/20 to-background rounded-xl border border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg">
                         {/* Member Header */}
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary font-bold text-xl">
+                            <div className={`relative w-16 h-16 rounded-full bg-gradient-to-br ${
+                              member.role === 'manager'
+                                ? 'from-purple-500 to-purple-600'
+                                : 'from-blue-500 to-blue-600'
+                            } border-2 border-primary/20 flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
                               {member.name.charAt(0).toUpperCase()}
+                              {member.isActive && (
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-background animate-pulse"></div>
+                              )}
                             </div>
                             
                             <div>
-                              <p className="font-bold text-foreground text-xl">{member.name}</p>
+                              <p className="font-bold text-foreground text-2xl">{member.name}</p>
                               <p className="text-sm text-muted-foreground">{member.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                  member.role === 'manager'
+                                    ? 'bg-purple-500/20 text-purple-600'
+                                    : 'bg-blue-500/20 text-blue-600'
+                                }`}>
                                   {member.role === 'manager' ? '👔 Manager' : '👤 Agent'}
                                 </span>
-                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
+                                <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                  member.isActive
+                                    ? 'bg-green-500/20 text-green-600'
+                                    : 'bg-gray-500/20 text-gray-600'
+                                }`}>
                                   {member.isActive ? '✓ Active' : '✕ Inactive'}
                                 </span>
                               </div>
@@ -2209,7 +2306,7 @@ export default function DashboardPage() {
                                 setIsTeamMemberModalOpen(true);
                               }}
                               size="sm"
-                              className="bg-primary/20 hover:bg-primary/30 text-primary"
+                              className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30"
                             >
                               <Eye size={16} className="mr-2" />
                               View KPIs
@@ -2218,66 +2315,71 @@ export default function DashboardPage() {
                               onClick={() => openDeleteConfirmation('team', member.id, member.name)}
                               variant="destructive"
                               size="sm"
+                              className="shadow-lg hover:shadow-xl"
                             >
                               <Trash2 size={16} />
                             </Button>
                           </div>
                         </div>
                         
-                        {/* KPIs Grid */}
+                        {/* KPIs Grid with improved design */}
                         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                          <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 hover:from-primary/10 hover:to-primary/20 transition-all duration-300">
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Total Assigned</p>
                             <p className="text-2xl font-bold text-primary">{member.metrics.totalAssigned}</p>
                           </div>
                           
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                          <div className="rounded-lg border border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10 p-4 hover:from-green-500/10 hover:to-green-500/20 transition-all duration-300">
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Replied</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.replied}</p>
+                            <p className="text-2xl font-bold text-green-600">{member.metrics.replied}</p>
                           </div>
                           
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                          <div className="rounded-lg border border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-yellow-500/10 p-4 hover:from-yellow-500/10 hover:to-yellow-500/20 transition-all duration-300">
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Pending</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.pending}</p>
+                            <p className="text-2xl font-bold text-yellow-600">{member.metrics.pending}</p>
                           </div>
                           
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
+                          <div className="rounded-lg border border-red-500/20 bg-gradient-to-br from-red-500/5 to-red-500/10 p-4 hover:from-red-500/10 hover:to-red-500/20 transition-all duration-300">
                             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Overdue</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.overdue}</p>
+                            <p className="text-2xl font-bold text-red-600">{member.metrics.overdue}</p>
                           </div>
                           
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Avg Reply Time</p>
-                            <p className="text-2xl font-bold text-primary">
-                              {member.metrics.avgReplyTimeMinutes > 0 
-                                ? `${Math.round(member.metrics.avgReplyTimeMinutes / 60)}h ${member.metrics.avgReplyTimeMinutes % 60}m`
+                          <div className="rounded-lg border border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-4 hover:from-blue-500/10 hover:to-blue-500/20 transition-all duration-300">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Avg Reply</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {member.metrics.avgReplyTimeMinutes > 0
+                                ? `${Math.round(member.metrics.avgReplyTimeMinutes / 60)}h`
                                 : 'N/A'}
                             </p>
                           </div>
                           
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Resolution Rate</p>
+                          <div className="rounded-lg border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-4 hover:from-purple-500/10 hover:to-purple-500/20 transition-all duration-300">
+                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Resolution</p>
                             <div className="flex items-center gap-2">
-                              <p className="text-2xl font-bold text-primary">{member.metrics.resolutionRate}%</p>
-                              {member.metrics.resolutionRate >= 90 && <span className="text-primary">✓</span>}
+                              <p className="text-2xl font-bold text-purple-600">{member.metrics.resolutionRate}%</p>
+                              {member.metrics.resolutionRate >= 90 && <span className="text-purple-600">✓</span>}
                             </div>
                           </div>
                         </div>
                         
-                        {/* Alerts for this member */}
+                        {/* Alerts for this member with improved design */}
                         {member.metrics.overdue > 0 && (
-                          <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2">
-                            <AlertCircle className="text-primary" size={20} />
-                            <span className="text-primary text-sm font-semibold">
-                              ⚠️ {member.metrics.overdue} overdue emails - Needs attention!
+                          <div className="mt-4 p-4 bg-gradient-to-r from-red-500/10 to-red-500/5 border border-red-500/20 rounded-lg flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                              <AlertCircle className="text-red-500" size={18} />
+                            </div>
+                            <span className="text-red-500 text-sm font-semibold">
+                              ⚠️ {member.metrics.overdue} overdue emails - Needs immediate attention!
                             </span>
                           </div>
                         )}
                         
                         {member.metrics.pending > 10 && (
-                          <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-2">
-                            <AlertCircle className="text-yellow-400" size={20} />
-                            <span className="text-yellow-400 text-sm font-semibold">
+                          <div className="mt-2 p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/20 rounded-lg flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                              <AlertCircle className="text-yellow-500" size={18} />
+                            </div>
+                            <span className="text-yellow-500 text-sm font-semibold">
                               ⚠️ High workload: {member.metrics.pending} pending emails
                             </span>
                           </div>
