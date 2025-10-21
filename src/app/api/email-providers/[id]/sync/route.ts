@@ -238,6 +238,30 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         const from = decodeMimeHeader(fromRaw);
         const to = decodeMimeHeader(toRaw);
 
+        // Extract email body content
+        let bodyContent = '';
+        if (emailData.data.payload?.parts) {
+          // Multipart email - find text/plain part
+          for (const part of emailData.data.payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body?.data) {
+              bodyContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
+              break;
+            }
+          }
+          // If no text/plain found, try text/html
+          if (!bodyContent) {
+            for (const part of emailData.data.payload.parts) {
+              if (part.mimeType === 'text/html' && part.body?.data) {
+                bodyContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
+                break;
+              }
+            }
+          }
+        } else if (emailData.data.payload?.body?.data) {
+          // Single part email
+          bodyContent = Buffer.from(emailData.data.payload.body.data, 'base64').toString('utf-8');
+        }
+
         // Calculate SLA deadline (24 hours by default)
         const slaDeadline = new Date(receivedAt);
         slaDeadline.setHours(slaDeadline.getHours() + 24);
@@ -258,6 +282,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             subject,
             senderEmail: from,
             recipientEmail: to,
+            bodyContent: bodyContent || null,
             receivedAt,
             slaDeadline,
             status: 'pending',
