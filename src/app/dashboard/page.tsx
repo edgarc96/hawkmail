@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient, useSession } from "@/lib/auth-client";
-import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, Bell, LogOut, BarChart3, Settings, Home, XCircle, Search, Send, Filter, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Zap, Shuffle, Database, Download, FileSpreadsheet, Info, Sparkles, ChevronRight, ChevronDown, Sliders, User, CreditCard, BellRing, Palette, FileText, Timer, Webhook, Calendar, Crown, Server, Target } from "lucide-react";
+import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, Bell, LogOut, BarChart3, Settings, Home, XCircle, Search, Send, Filter, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Zap, Shuffle, Database, Download, FileSpreadsheet, Info, Sparkles, ChevronRight, ChevronDown, Sliders, User, CreditCard, BellRing, Palette, FileText, Timer, Webhook, Calendar, Crown, Server, Target, Shield } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -122,8 +122,11 @@ export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState<'dashboard' | 'analytics' | 'alerts' | 'team' | 'configuration' | 'settings'>('dashboard');
   const [activeConfigSection, setActiveConfigSection] = useState<'templates' | 'sla' | 'webhooks' | 'business-hours' | 'customer-tiers' | 'email-providers' | 'performance-goals'>('templates');
   const [activeSettingsSection, setActiveSettingsSection] = useState<'profile' | 'billing' | 'notifications' | 'preferences'>('profile');
+  const [activeTeamSection, setActiveTeamSection] = useState<'members' | 'metrics' | 'distribution'>('members');
+  const [activeTeamSubsection, setActiveTeamSubsection] = useState<'overview' | 'add-member' | 'roles' | 'permissions'>('overview');
   const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const [isTeamMenuOpen, setIsTeamMenuOpen] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   
   // New states for email details and filters
@@ -1257,6 +1260,24 @@ export default function DashboardPage() {
     setActiveSection(section);
     setIsConfigMenuOpen(false);
     setIsSettingsMenuOpen(false);
+    setIsTeamMenuOpen(false);
+    
+    // Reset team subsections when switching to team
+    if (section === 'team') {
+      setActiveTeamSection('members');
+      setActiveTeamSubsection('overview');
+    }
+  };
+
+  const handleTeamSectionClick = (section: 'members' | 'metrics' | 'distribution') => {
+    setActiveTeamSection(section);
+    // Reset subsection when changing main section
+    if (section === 'members') setActiveTeamSubsection('overview');
+  };
+
+  const handleTeamSubsectionClick = (subsection: 'overview' | 'add-member' | 'roles' | 'permissions') => {
+    setActiveTeamSubsection(subsection);
+    setActiveTeamSection('members');
   };
 
   const formatTime = (minutes: number): string => {
@@ -1992,11 +2013,166 @@ export default function DashboardPage() {
 
           {activeSection === 'team' && (
             <div className="space-y-6">
-              {/* Leaderboard and Workload for Managers - Using new components */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Leaderboard teamPerformance={teamPerformance} type="resolution" />
-                <Leaderboard teamPerformance={teamPerformance} type="workload" />
+              {/* Team Navigation Header */}
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 backdrop-blur-sm">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Users className="w-7 h-7 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground">Team Management</h1>
+                      <p className="text-muted-foreground mt-1">Organize and manage your team efficiently</p>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">{teamMembers.length}</p>
+                      <p className="text-xs text-muted-foreground">Total Members</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">{teamMembers.filter(m => m.isActive).length}</p>
+                      <p className="text-xs text-muted-foreground">Active</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{teamMembers.filter(m => m.role === 'agent').length}</p>
+                      <p className="text-xs text-muted-foreground">Agents</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">{teamMembers.filter(m => m.role === 'manager').length}</p>
+                      <p className="text-xs text-muted-foreground">Managers</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Breadcrumb Navigation */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Team</span>
+                <ChevronRight className="w-4 h-4" />
+                <span className="text-foreground font-medium capitalize">
+                  {activeTeamSection === 'members' ? 'Gestión de Miembros' :
+                   activeTeamSection === 'metrics' ? 'Métricas y Estadísticas' :
+                   'Distribuciones'}
+                </span>
+                {activeTeamSection === 'members' && activeTeamSubsection !== 'overview' && (
+                  <>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-foreground font-medium capitalize">
+                      {activeTeamSubsection === 'add-member' ? 'Agregar Nuevo Miembro' :
+                       activeTeamSubsection === 'roles' ? 'Roles y Permisos' :
+                       'Ver Todos los Miembros'}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Team Section Navigation */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Sidebar Navigation */}
+                <div className="lg:col-span-1">
+                  <div className="bg-background border border-border rounded-xl p-4 space-y-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Navegación</h3>
+                    
+                    {/* Main Sections */}
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => handleTeamSectionClick('members')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          activeTeamSection === 'members'
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <Users className="w-4 h-4" />
+                        <span className="font-medium">Gestión de Miembros</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleTeamSectionClick('metrics')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          activeTeamSection === 'metrics'
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="font-medium">Métricas y Estadísticas</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleTeamSectionClick('distribution')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          activeTeamSection === 'distribution'
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        <Shuffle className="w-4 h-4" />
+                        <span className="font-medium">Distribuciones</span>
+                      </button>
+                    </div>
+
+                    {/* Subsections for Members */}
+                    {activeTeamSection === 'members' && (
+                      <div className="mt-4 pt-4 border-t border-border space-y-1">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Subsecciones</h4>
+                        
+                        <button
+                          onClick={() => handleTeamSubsectionClick('overview')}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-sm ${
+                            activeTeamSubsection === 'overview'
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>Ver Todos</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleTeamSubsectionClick('add-member')}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-sm ${
+                            activeTeamSubsection === 'add-member'
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Agregar Miembro</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleTeamSubsectionClick('roles')}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors text-sm ${
+                            activeTeamSubsection === 'roles'
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          <Shield className="w-3 h-3" />
+                          <span>Roles y Permisos</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="lg:col-span-3">
+                  {/* Members Section */}
+                  {activeTeamSection === 'members' && (
+                    <div className="space-y-6">
+                      {/* Overview Subsection */}
+                      {activeTeamSubsection === 'overview' && (
+                        <div className="space-y-6">
+                          {/* Leaderboard and Workload */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Leaderboard teamPerformance={teamPerformance} type="resolution" />
+                            <Leaderboard teamPerformance={teamPerformance} type="workload" />
+                          </div>
               {/* Team Summary Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-5 hover:from-primary/10 hover:to-primary/20 transition-all duration-300">
@@ -2389,6 +2565,454 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+                      )}
+
+                      {/* Add Member Subsection */}
+                      {activeTeamSubsection === 'add-member' && (
+                        <div className="space-y-6">
+                          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+                            <div className="mb-6 flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                <Plus size={24} className="text-primary" />
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-foreground">Add New Team Member</h2>
+                                <p className="text-sm text-muted-foreground">Expand your team to improve email handling capacity</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                              <div className="relative">
+                                <Input
+                                  placeholder="Full name"
+                                  value={newMemberName}
+                                  onChange={(e) => setNewMemberName(e.target.value)}
+                                  className="text-foreground bg-background/80 border-primary/30 focus:border-primary pl-10"
+                                />
+                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                              </div>
+                              
+                              <div className="relative">
+                                <Input
+                                  type="email"
+                                  placeholder="Email address"
+                                  value={newMemberEmail}
+                                  onChange={(e) => setNewMemberEmail(e.target.value)}
+                                  className="text-foreground bg-background/80 border-primary/30 focus:border-primary pl-10"
+                                />
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                              </div>
+                              
+                              <Select value={newMemberRole} onValueChange={setNewMemberRole}>
+                                <SelectTrigger className="bg-background/80 border-primary/30 focus:border-primary">
+                                  <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="agent">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded bg-blue-500"></div>
+                                      Agent
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="manager">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded bg-purple-500"></div>
+                                      Manager
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              <Button
+                                onClick={handleAddTeamMember}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+                                disabled={!newMemberName.trim() || !newMemberEmail.trim()}
+                              >
+                                <Plus size={16} className="mr-2" />
+                                Add Member
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Team Members List */}
+                          <div className="rounded-lg border border-primary/20 bg-background p-5">
+                            <h3 className="text-lg font-semibold text-foreground mb-4">Current Team Members</h3>
+                            {teamMembers.length === 0 ? (
+                              <div className="text-center py-8">
+                                <Users className="mx-auto text-primary mb-4" size={48} />
+                                <p className="text-foreground text-lg">No team members yet</p>
+                                <p className="text-muted-foreground text-sm mt-2">Add your first team member above to get started</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {teamMembers.map((member) => (
+                                  <div key={member.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/50">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${
+                                        member.role === 'manager'
+                                          ? 'from-purple-500 to-purple-600'
+                                          : 'from-blue-500 to-blue-600'
+                                      } flex items-center justify-center text-white font-bold`}>
+                                        {member.name.charAt(0).toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <p className="font-semibold text-foreground">{member.name}</p>
+                                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        member.role === 'manager'
+                                          ? 'bg-purple-500/20 text-purple-600'
+                                          : 'bg-blue-500/20 text-blue-600'
+                                      }`}>
+                                        {member.role}
+                                      </span>
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        member.isActive
+                                          ? 'bg-green-500/20 text-green-600'
+                                          : 'bg-gray-500/20 text-gray-600'
+                                      }`}>
+                                        {member.isActive ? 'Active' : 'Inactive'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Roles and Permissions Subsection */}
+                      {activeTeamSubsection === 'roles' && (
+                        <div className="space-y-6">
+                          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+                            <div className="mb-6 flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                <Shield size={24} className="text-primary" />
+                              </div>
+                              <div>
+                                <h2 className="text-xl font-bold text-foreground">Roles and Permissions</h2>
+                                <p className="text-sm text-muted-foreground">Manage team roles and access levels</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Role Definitions */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Manager Role */}
+                            <div className="rounded-lg border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-5">
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                                  <Crown className="text-white" size={20} />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-bold text-foreground">Manager</h3>
+                                  <p className="text-sm text-muted-foreground">Full administrative access</p>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-foreground">Permissions:</h4>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">View all emails and metrics</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Manage team members</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Configure SLA settings</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Access billing and settings</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Export reports and analytics</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 pt-4 border-t border-purple-500/20">
+                                <p className="text-sm text-muted-foreground">
+                                  <span className="font-semibold text-purple-600">{teamMembers.filter(m => m.role === 'manager').length}</span> managers on team
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Agent Role */}
+                            <div className="rounded-lg border border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-5">
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                                  <Users className="text-white" size={20} />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-bold text-foreground">Agent</h3>
+                                  <p className="text-sm text-muted-foreground">Email handling and response</p>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <h4 className="text-sm font-semibold text-foreground">Permissions:</h4>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">View assigned emails</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Reply to emails</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">View personal metrics</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="text-green-500" size={16} />
+                                    <span className="text-sm text-foreground">Use reply templates</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <XCircle className="text-red-500" size={16} />
+                                    <span className="text-sm text-muted-foreground">Cannot manage team</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 pt-4 border-t border-blue-500/20">
+                                <p className="text-sm text-muted-foreground">
+                                  <span className="font-semibold text-blue-600">{teamMembers.filter(m => m.role === 'agent').length}</span> agents on team
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Role Assignment Guide */}
+                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-5">
+                            <h3 className="text-lg font-semibold text-foreground mb-4">Role Assignment Guidelines</h3>
+                            <div className="space-y-4">
+                              <div className="flex gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                  <span className="text-purple-600 font-bold text-sm">1</span>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-foreground">Start with Managers</p>
+                                  <p className="text-sm text-muted-foreground">Assign manager roles to team leads who need full access to team management and configuration.</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                  <span className="text-blue-600 font-bold text-sm">2</span>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-foreground">Add Agents</p>
+                                  <p className="text-sm text-muted-foreground">Most team members should be agents with access to handle emails and view their own performance.</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-4">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                  <span className="text-primary font-bold text-sm">3</span>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-foreground">Adjust as Needed</p>
+                                  <p className="text-sm text-muted-foreground">You can always change roles later as your team grows and responsibilities evolve.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Metrics Section */}
+                  {activeTeamSection === 'metrics' && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                            <BarChart3 size={24} className="text-primary" />
+                          </div>
+                          <div>
+                            <h2 className="text-xl font-bold text-foreground">Team Metrics and Analytics</h2>
+                            <p className="text-sm text-muted-foreground">Monitor team performance and productivity</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Performance Charts */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="rounded-lg border border-primary/20 bg-background p-5">
+                          <h3 className="text-lg font-semibold text-foreground mb-4">Response Time Trends</h3>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={teamPerformance.map(m => ({
+                              name: m.name,
+                              avgReplyTime: m.metrics.avgReplyTimeMinutes,
+                            }))}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
+                              <XAxis dataKey="name" stroke="#a78bfa" />
+                              <YAxis stroke="#a78bfa" />
+                              <ChartTooltip
+                                contentStyle={{
+                                  backgroundColor: 'var(--card)',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '12px',
+                                  color: 'var(--foreground)',
+                                }}
+                                formatter={(value: number) => [formatTime(value), 'Avg Reply Time']}
+                              />
+                              <Line type="monotone" dataKey="avgReplyTime" stroke="#8b5cf6" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+
+                        <div className="rounded-lg border border-primary/20 bg-background p-5">
+                          <h3 className="text-lg font-semibold text-foreground mb-4">Resolution Rates</h3>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={teamPerformance.map(m => ({
+                              name: m.name,
+                              resolutionRate: m.metrics.resolutionRate,
+                            }))}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#9333ea33" />
+                              <XAxis dataKey="name" stroke="#a78bfa" />
+                              <YAxis stroke="#a78bfa" />
+                              <ChartTooltip
+                                contentStyle={{
+                                  backgroundColor: 'var(--card)',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '12px',
+                                  color: 'var(--foreground)',
+                                }}
+                                formatter={(value: number) => [`${value}%`, 'Resolution Rate']}
+                              />
+                              <Bar dataKey="resolutionRate" fill="#10b981" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      {/* Team Performance Heatmap */}
+                      <TeamPerformanceHeatmap teamData={teamPerformance} />
+                    </div>
+                  )}
+
+                  {/* Distribution Section */}
+                  {activeTeamSection === 'distribution' && (
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-6 shadow-lg backdrop-blur-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Shuffle size={24} className="text-primary" />
+                          </div>
+                          <div>
+                            <h2 className="text-xl font-bold text-foreground">Email Distribution Management</h2>
+                            <p className="text-sm text-muted-foreground">Optimize workload distribution across your team</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Auto-Assignment Controls */}
+                      <div className="rounded-lg border border-primary/20 bg-background p-5">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Auto-Assignment Controls</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <Button
+                            onClick={handleBulkAutoAssign}
+                            disabled={isAutoAssigning}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          >
+                            {isAutoAssigning ? (
+                              <>
+                                <RefreshCw size={16} className="mr-2 animate-spin" />
+                                Auto-Assigning...
+                              </>
+                            ) : (
+                              <>
+                                <Zap size={16} className="mr-2" />
+                                Auto-Assign All Emails
+                              </>
+                            )}
+                          </Button>
+                          
+                          <Button
+                            onClick={handleRebalanceWorkload}
+                            disabled={isRebalancing}
+                            variant="outline"
+                          >
+                            {isRebalancing ? (
+                              <>
+                                <RefreshCw size={16} className="mr-2 animate-spin" />
+                                Rebalancing...
+                              </>
+                            ) : (
+                              <>
+                                <Shuffle size={16} className="mr-2" />
+                                Rebalance Workload
+                              </>
+                            )}
+                          </Button>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground">
+                          <p>• <strong>Auto-Assign:</strong> Automatically assign unassigned emails to team members based on workload</p>
+                          <p>• <strong>Rebalance:</strong> Redistribute emails from overloaded agents (>80%) to underloaded agents (<50%)</p>
+                        </div>
+                      </div>
+
+                      {/* Email Distribution Chart */}
+                      <EmailDistributionChart data={{
+                        totalEmails: emails.length,
+                        pendingEmails: emails.filter(e => e.status === 'pending').length,
+                        repliedEmails: emails.filter(e => e.status === 'replied').length,
+                        overdueEmails: emails.filter(e => e.status === 'overdue').length,
+                        highPriorityEmails: emails.filter(e => e.priority === 'high').length,
+                      }} />
+
+                      {/* Assignment Rules */}
+                      <div className="rounded-lg border border-primary/20 bg-background p-5">
+                        <h3 className="text-lg font-semibold text-foreground mb-4">Assignment Rules</h3>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
+                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-blue-600 font-bold text-sm">1</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">Round-Robin Distribution</p>
+                              <p className="text-sm text-muted-foreground">Emails are distributed evenly among all active agents to maintain balanced workloads.</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
+                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-green-600 font-bold text-sm">2</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">Workload-Based Assignment</p>
+                              <p className="text-sm text-muted-foreground">New emails are assigned to agents with the lowest current workload to prevent overload.</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
+                            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-purple-600 font-bold text-sm">3</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">Priority-Based Routing</p>
+                              <p className="text-sm text-muted-foreground">High-priority emails can be automatically routed to managers or experienced agents.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
