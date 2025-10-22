@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authClient } from '@/lib/auth-client';
+import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('Creating test user...');
     
-    // Create test user using Better Auth
-    const { data, error } = await authClient.signUp.email({
-      email: 'test@example.com',
-      name: 'Test User',
-      password: 'testpassword123',
+    // Create test user using Better Auth server-side
+    const result = await auth.api.signUpEmail({
+      body: {
+        email: 'test@example.com',
+        name: 'Test User',
+        password: 'testpassword123',
+      },
     });
     
-    if (error) {
-      console.error('Error creating test user:', error);
+    if (!result.user) {
+      console.error('Error creating test user: No user returned');
       return NextResponse.json({
         success: false,
         message: 'Error creating test user',
-        error: error.message || 'Unknown error',
+        error: 'No user returned from auth service',
       }, { status: 400 });
     }
     
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
       user: {
         email: 'test@example.com',
         password: 'testpassword123',
-        id: data?.user?.id,
+        id: result.user.id,
       }
     });
     

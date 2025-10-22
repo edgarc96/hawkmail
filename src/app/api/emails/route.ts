@@ -31,7 +31,24 @@ export async function GET(request: NextRequest) {
       }
 
       const email = await db
-        .select()
+        .select({
+          id: emails.id,
+          subject: emails.subject,
+          senderEmail: emails.senderEmail,
+          recipientEmail: emails.recipientEmail,
+          bodyContent: emails.bodyContent,
+          receivedAt: emails.receivedAt,
+          firstReplyAt: emails.firstReplyAt,
+          status: emails.status,
+          priority: emails.priority,
+          slaDeadline: emails.slaDeadline,
+          isResolved: emails.isResolved,
+          assignedTo: emails.assignedTo,
+          externalId: emails.externalId,
+          threadId: emails.threadId,
+          providerId: emails.providerId,
+          createdAt: emails.createdAt,
+        })
         .from(emails)
         .where(and(eq(emails.id, parseInt(id)), eq(emails.userId, user.id)))
         .limit(1);
@@ -85,7 +102,24 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await db
-      .select()
+      .select({
+        id: emails.id,
+        subject: emails.subject,
+        senderEmail: emails.senderEmail,
+        recipientEmail: emails.recipientEmail,
+        bodyContent: emails.bodyContent,
+        receivedAt: emails.receivedAt,
+        firstReplyAt: emails.firstReplyAt,
+        status: emails.status,
+        priority: emails.priority,
+        slaDeadline: emails.slaDeadline,
+        isResolved: emails.isResolved,
+        assignedTo: emails.assignedTo,
+        externalId: emails.externalId,
+        threadId: emails.threadId,
+        providerId: emails.providerId,
+        createdAt: emails.createdAt,
+      })
       .from(emails)
       .where(and(...conditions))
       .orderBy(desc(emails.createdAt))
@@ -252,7 +286,24 @@ export async function DELETE(request: NextRequest) {
 
     // Check if email exists and belongs to user
     const existing = await db
-      .select()
+      .select({
+        id: emails.id,
+        subject: emails.subject,
+        senderEmail: emails.senderEmail,
+        recipientEmail: emails.recipientEmail,
+        bodyContent: emails.bodyContent,
+        receivedAt: emails.receivedAt,
+        firstReplyAt: emails.firstReplyAt,
+        status: emails.status,
+        priority: emails.priority,
+        slaDeadline: emails.slaDeadline,
+        isResolved: emails.isResolved,
+        assignedTo: emails.assignedTo,
+        externalId: emails.externalId,
+        threadId: emails.threadId,
+        providerId: emails.providerId,
+        createdAt: emails.createdAt,
+      })
       .from(emails)
       .where(and(eq(emails.id, parseInt(id)), eq(emails.userId, user.id)))
       .limit(1);

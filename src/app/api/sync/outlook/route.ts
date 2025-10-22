@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     try {
       // Fetch messages from Microsoft Graph API
       const response = await fetch(
-        "https://graph.microsoft.com/v1.0/me/messages?$top=50&$filter=isRead eq false",
+        "https://graph.microsoft.com/v1.0/me/messages?$top=10", // Reduced from 50 and removed filter for read status
         {
           headers: {
             Authorization: `Bearer ${emailProvider.accessToken}`,
@@ -63,11 +63,20 @@ export async function POST(req: NextRequest) {
           .limit(1);
 
         if (existingEmail.length === 0) {
+          // Extract email body content
+          let bodyContent = "";
+          if (message.body?.content) {
+            bodyContent = message.body.content;
+          } else if (message.bodyPreview) {
+            bodyContent = message.bodyPreview;
+          }
+
           // Create email in database
           await db.insert(emails).values({
             senderEmail: message.from?.emailAddress?.address || "",
             recipientEmail: message.toRecipients?.[0]?.emailAddress?.address || emailProvider.email,
             subject: message.subject || "",
+            bodyContent: bodyContent, // Add the email body content
             receivedAt: new Date(message.receivedDateTime),
             status: "pending",
             priority: message.importance === "high" ? "high" : "medium",
