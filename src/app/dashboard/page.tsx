@@ -2996,19 +2996,37 @@ export default function DashboardPage() {
 
       {/* Email Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="max-w-3xl bg-[#2a1f3d] border-purple-500/30 text-white max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-slate-900/95 border-slate-700/50 text-white max-h-[85vh] overflow-y-auto shadow-2xl backdrop-blur-sm">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-white">Email Details</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
+              <Mail className="text-blue-400" size={24} />
+              Email Details
+            </DialogTitle>
           </DialogHeader>
           {selectedEmail && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              {/* Email Content - Primero y más grande */}
+              {selectedEmail.bodyContent && (
                 <div>
-                  <p className="text-purple-400 text-sm">Subject</p>
-                  <p className="text-white font-semibold">{selectedEmail.subject}</p>
+                  <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
+                    <Mail size={16} />
+                    Email Content
+                  </label>
+                  <div className="p-6 bg-slate-800/80 rounded-xl border border-slate-700/50 max-h-[400px] overflow-y-auto shadow-inner">
+                    <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
+                      {selectedEmail.bodyContent}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-blue-400 text-sm font-semibold">Subject</p>
+                  <p className="text-white font-semibold mt-1">{selectedEmail.subject}</p>
                 </div>
                 <div>
-                  <p className="text-purple-400 text-sm">Status</p>
+                  <p className="text-blue-400 text-sm font-semibold">Status</p>
                   <div className="flex gap-2 mt-1">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedEmail.status)}`}>
                       {selectedEmail.status}
@@ -3022,45 +3040,45 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-purple-400 text-sm">From</p>
-                  <p className="text-white">{selectedEmail.senderEmail}</p>
+                  <p className="text-blue-400 text-sm font-semibold">From</p>
+                  <p className="text-white mt-1">{selectedEmail.senderEmail}</p>
                 </div>
                 <div>
-                  <p className="text-purple-400 text-sm">To</p>
-                  <p className="text-white">{selectedEmail.recipientEmail}</p>
+                  <p className="text-blue-400 text-sm font-semibold">To</p>
+                  <p className="text-white mt-1">{selectedEmail.recipientEmail}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-purple-400 text-sm">Priority</p>
+                  <p className="text-blue-400 text-sm font-semibold">Priority</p>
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(selectedEmail.priority)}`}>
                     {selectedEmail.priority}
                   </span>
                 </div>
                 <div>
-                  <p className="text-purple-400 text-sm">Time Remaining</p>
-                  <p className="text-white font-semibold">{getTimeRemaining(selectedEmail.slaDeadline)}</p>
+                  <p className="text-blue-400 text-sm font-semibold">Time Remaining</p>
+                  <p className="text-white font-semibold mt-1">{getTimeRemaining(selectedEmail.slaDeadline)}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-purple-400 text-sm">Received At</p>
-                  <p className="text-white">{new Date(selectedEmail.receivedAt).toLocaleString()}</p>
+                  <p className="text-blue-400 text-sm font-semibold">Received At</p>
+                  <p className="text-white mt-1">{new Date(selectedEmail.receivedAt).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-purple-400 text-sm">SLA Deadline</p>
-                  <p className="text-white">{new Date(selectedEmail.slaDeadline).toLocaleString()}</p>
+                  <p className="text-blue-400 text-sm font-semibold">SLA Deadline</p>
+                  <p className="text-white mt-1">{new Date(selectedEmail.slaDeadline).toLocaleString()}</p>
                 </div>
               </div>
 
               {selectedEmail.firstReplyAt && (
                 <div>
-                  <p className="text-purple-400 text-sm">First Reply At</p>
-                  <p className="text-white">{new Date(selectedEmail.firstReplyAt).toLocaleString()}</p>
+                  <p className="text-blue-400 text-sm font-semibold">First Reply At</p>
+                  <p className="text-white mt-1">{new Date(selectedEmail.firstReplyAt).toLocaleString()}</p>
                 </div>
               )}
             </div>
@@ -3079,7 +3097,7 @@ export default function DashboardPage() {
               <Button onClick={() => {
                 setIsDetailModalOpen(false);
                 handleOpenReply(selectedEmail);
-              }} className="bg-purple-600 hover:bg-purple-700">
+              }} className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Reply size={16} className="mr-2" />
                 Reply to Email
               </Button>
@@ -3090,14 +3108,32 @@ export default function DashboardPage() {
 
       {/* Reply Modal */}
       <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
-        <DialogContent className="max-w-2xl bg-[#2a1f3d] border-purple-500/30 text-white">
+        <DialogContent className="max-w-3xl bg-slate-900/95 border-slate-700/50 text-white shadow-2xl backdrop-blur-sm">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white">Reply to Email</DialogTitle>
-            <DialogDescription className="text-purple-300">
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Reply className="text-blue-400" size={20} />
+              Reply to Email
+            </DialogTitle>
+            <DialogDescription className="text-blue-400/80">
               {selectedEmail && `Subject: ${selectedEmail.subject}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Email Content Preview */}
+            {selectedEmail?.bodyContent && (
+              <div>
+                <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-2">
+                  <Mail size={16} />
+                  Original Message
+                </label>
+                <div className="p-4 bg-slate-800/60 rounded-lg border border-slate-700/50 max-h-[200px] overflow-y-auto">
+                  <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
+                    {selectedEmail.bodyContent}
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Template Selector */}
             {replyTemplates.length > 0 && (
               <div className="flex gap-3 items-center">
@@ -3111,10 +3147,10 @@ export default function DashboardPage() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-64 bg-[#1a0f2e]/40 border-purple-500/30 text-white">
+                  <SelectTrigger className="w-64 bg-slate-800/40 border-slate-700/50 text-white">
                     <SelectValue placeholder="Use a template..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-800 border-slate-700/50">
                     {replyTemplates.map((template) => (
                       <SelectItem key={template.id} value={template.id.toString()}>
                         {template.name} ({template.category})
@@ -3122,7 +3158,7 @@ export default function DashboardPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-purple-400 text-sm">or type manually below</span>
+                <span className="text-blue-400/80 text-sm">or type manually below</span>
               </div>
             )}
             
@@ -3130,14 +3166,14 @@ export default function DashboardPage() {
               placeholder="Type your reply here..."
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
-              className="min-h-[200px] bg-[#1a0f2e]/40 border-purple-500/30 text-white placeholder:text-purple-400"
+              className="min-h-[200px] bg-slate-800/80 border-slate-700/50 text-white placeholder:text-slate-400/60 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsReplyModalOpen(false)} disabled={isReplying}>
               Cancel
             </Button>
-            <Button onClick={handleSendReply} disabled={isReplying || !replyContent.trim()} className="bg-purple-600 hover:bg-purple-700">
+            <Button onClick={handleSendReply} disabled={isReplying || !replyContent.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
               {isReplying ? (
                 <>
                   <Loader2 className="mr-2 animate-spin" size={16} />
@@ -3156,17 +3192,17 @@ export default function DashboardPage() {
 
       {/* Team Member KPIs Modal */}
       <Dialog open={isTeamMemberModalOpen} onOpenChange={setIsTeamMemberModalOpen}>
-        <DialogContent className="max-w-4xl bg-[#2a1f3d] border-purple-500/30 text-white max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-slate-900/95 border-slate-700/50 text-white max-h-[85vh] overflow-y-auto backdrop-blur-sm">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
               {selectedTeamMember && (
                 <>
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-lg">
                     {selectedTeamMember.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p>{selectedTeamMember.name}</p>
-                    <p className="text-sm text-purple-300 font-normal">{selectedTeamMember.email}</p>
+                    <p className="text-sm text-blue-300 font-normal">{selectedTeamMember.email}</p>
                   </div>
                 </>
               )}
@@ -3190,28 +3226,28 @@ export default function DashboardPage() {
                     <p className="text-xs text-green-400 mb-1">Replied</p>
                     <p className="text-3xl font-bold text-white">{selectedTeamMember.metrics.replied}</p>
                   </div>
-                  <div className="bg-gradient-to-br frombg-primary/10 text-primary/10 p-4 rounded-lg border border-amber-500/30">
-                    <p className="text-xs text-primary mb-1">Avg Reply Time</p>
+                  <div className="bg-gradient-to-br from-slate-800/30 to-slate-700/10 p-4 rounded-lg border border-slate-600/30">
+                    <p className="text-xs text-slate-400 mb-1">Avg Reply Time</p>
                     <p className="text-2xl font-bold text-white">{formatTime(selectedTeamMember.metrics.avgReplyTimeMinutes)}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 p-4 rounded-lg border border-purple-500/30">
-                    <p className="text-xs text-purple-400 mb-1">Resolution Rate</p>
+                  <div className="bg-gradient-to-br from-indigo-900/30 to-indigo-800/10 p-4 rounded-lg border border-indigo-500/30">
+                    <p className="text-xs text-indigo-400 mb-1">Resolution Rate</p>
                     <p className="text-3xl font-bold text-white">{selectedTeamMember.metrics.resolutionRate.toFixed(1)}%</p>
                   </div>
                 </div>
               </div>
 
               {/* Performance Chart */}
-              <div className="bg-[#1a0f2e]/40 rounded-lg p-6 border border-purple-500/20">
+              <div className="bg-slate-800/40 rounded-lg p-6 border border-slate-700/20">
                 <h3 className="text-lg font-bold text-white mb-4">Performance Trend</h3>
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-purple-400">Response Speed</span>
+                      <span className="text-sm text-blue-400">Response Speed</span>
                       <span className="text-sm text-white font-mono">{formatTime(selectedTeamMember.metrics.avgReplyTimeMinutes)}</span>
                     </div>
                     <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all"
                         style={{ width: `${Math.min(100, (1 - selectedTeamMember.metrics.avgReplyTimeMinutes / 480) * 100)}%` }}
                       ></div>
@@ -3219,11 +3255,11 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-purple-400">Resolution Rate</span>
+                      <span className="text-sm text-blue-400">Resolution Rate</span>
                       <span className="text-sm text-white font-mono">{selectedTeamMember.metrics.resolutionRate.toFixed(1)}%</span>
                     </div>
                     <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all"
                         style={{ width: `${selectedTeamMember.metrics.resolutionRate}%` }}
                       ></div>
@@ -3231,11 +3267,11 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-purple-400">Workload (Pending)</span>
+                      <span className="text-sm text-blue-400">Workload (Pending)</span>
                       <span className="text-sm text-white font-mono">{selectedTeamMember.metrics.pending}</span>
                     </div>
                     <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
                         style={{ width: `${Math.min(100, (selectedTeamMember.metrics.pending / selectedTeamMember.metrics.totalAssigned) * 100)}%` }}
                       ></div>
@@ -3245,7 +3281,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Activity Status */}
-              <div className="bg-[#1a0f2e]/40 rounded-lg p-6 border border-purple-500/20">
+              <div className="bg-slate-800/40 rounded-lg p-6 border border-slate-700/20">
                 <h3 className="text-lg font-bold text-white mb-4">Current Status</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
@@ -3253,7 +3289,7 @@ export default function DashboardPage() {
                     <span className="text-white">{selectedTeamMember.isActive ? 'Active' : 'Inactive'}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Users size={16} className="text-purple-400" />
+                    <Users size={16} className="text-blue-400" />
                     <span className="text-white capitalize">{selectedTeamMember.role}</span>
                   </div>
                 </div>
@@ -3267,20 +3303,20 @@ export default function DashboardPage() {
       <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(open) => {
         if (!open) setDeleteConfirmation({ isOpen: false, type: null, id: null, name: '' });
       }}>
-        <AlertDialogContent className="bg-[#2a1f3d] border-red-500/30 text-white">
+        <AlertDialogContent className="bg-slate-900/95 border-red-500/30 text-white backdrop-blur-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-red-400 flex items-center gap-2">
               <AlertCircle size={24} />
               Confirm Deletion
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-purple-300">
+            <AlertDialogDescription className="text-slate-300">
               Are you sure you want to delete <span className="font-bold text-white">{deleteConfirmation.name}</span>?
               <br />
               <span className="text-red-400">This action cannot be undone.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
+            <AlertDialogCancel className="bg-slate-700 hover:bg-slate-600 text-white border-slate-600">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -3296,13 +3332,13 @@ export default function DashboardPage() {
       {/* Onboarding Wizard */}
       {showOnboarding && (
         <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
-          <DialogContent className="max-w-2xl bg-gradient-to-br from-purple-900/95 to-blue-900/95 border-purple-500/50 text-white backdrop-blur-lg">
+          <DialogContent className="max-w-2xl bg-slate-900/95 border-slate-700/50 text-white backdrop-blur-sm">
             <DialogHeader>
               <DialogTitle className="text-3xl font-bold text-white flex items-center gap-3">
                 <Sparkles className="text-yellow-400" size={32} />
                 Welcome to TimeToReply!
               </DialogTitle>
-              <DialogDescription className="text-purple-200 text-base mt-2">
+              <DialogDescription className="text-slate-200 text-base mt-2">
                 Let's get you started in 3 simple steps
               </DialogDescription>
             </DialogHeader>
@@ -3310,12 +3346,12 @@ export default function DashboardPage() {
             <div className="space-y-6 mt-6">
               {/* Step 1 */}
               <div className="flex gap-4 items-start">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white font-bold text-xl">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-xl">
                   1
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-white mb-2">Connect Your Email</h3>
-                  <p className="text-purple-200 mb-3">
+                  <p className="text-slate-200 mb-3">
                     Connect Gmail or Outlook to start tracking your emails and response times.
                   </p>
                   <Button
@@ -3334,12 +3370,12 @@ export default function DashboardPage() {
 
               {/* Step 2 */}
               <div className="flex gap-4 items-start">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white font-bold text-xl">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-xl">
                   2
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-white mb-2">Add Your Team</h3>
-                  <p className="text-purple-200 mb-3">
+                  <p className="text-slate-200 mb-3">
                     Add team members to enable auto-assignment and workload distribution.
                   </p>
                   <Button
@@ -3358,12 +3394,12 @@ export default function DashboardPage() {
 
               {/* Step 3 */}
               <div className="flex gap-4 items-start">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white font-bold text-xl">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-xl">
                   3
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-white mb-2">Configure SLA Goals</h3>
-                  <p className="text-purple-200 mb-3">
+                  <p className="text-slate-200 mb-3">
                     Set your response time targets and track performance against your goals.
                   </p>
                   <Button
@@ -3388,7 +3424,7 @@ export default function DashboardPage() {
                   setShowOnboarding(false);
                   localStorage.setItem('onboarding_completed', 'true');
                 }}
-                className="bg-transparent border-purple-500 text-purple-200 hover:bg-purple-800/50"
+                className="bg-transparent border-slate-500 text-slate-200 hover:bg-slate-800/50"
               >
                 Skip for Now
               </Button>

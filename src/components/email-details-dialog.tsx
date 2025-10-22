@@ -219,10 +219,10 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[#2a1f3d] border-purple-500/20 text-white">
+      <DialogContent className="max-w-4xl bg-slate-900/95 border-slate-700/50 text-white shadow-2xl backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-2xl text-white flex items-center gap-2">
-            <Mail className="text-purple-400" size={24} />
+            <Mail className="text-blue-400" size={24} />
             Email Details
           </DialogTitle>
         </DialogHeader>
@@ -230,19 +230,19 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
         <div className="space-y-6">
           {/* Subject */}
           <div>
-            <label className="text-purple-300 text-sm font-semibold">Subject</label>
-            <p className="text-white text-lg mt-1">{email.subject}</p>
+            <label className="text-[#4ECDC4] text-sm font-semibold">Subject</label>
+            <p className="text-white text-lg mt-1 font-medium">{email.subject}</p>
           </div>
 
-          {/* Email Content */}
+          {/* Email Content - Mejorado y más grande */}
           {email.bodyContent && (
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
                 <Mail size={16} />
                 Email Content
               </label>
-              <div className="mt-2 p-4 bg-[#1a0f2e]/60 rounded-lg border border-purple-500/20 max-h-96 overflow-y-auto">
-                <div className="text-white whitespace-pre-wrap text-sm leading-relaxed">
+              <div className="mt-2 p-6 bg-slate-800/80 rounded-xl border border-slate-700/50 max-h-[500px] overflow-y-auto shadow-inner">
+                <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
                   {email.bodyContent}
                 </div>
               </div>
@@ -252,32 +252,32 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           {/* Sender & Recipient */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2">
                 <User size={16} />
                 From
               </label>
-              <p className="text-white mt-1">{email.senderEmail}</p>
+              <p className="text-white mt-1 font-medium">{email.senderEmail}</p>
             </div>
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2">
                 <User size={16} />
                 To
               </label>
-              <p className="text-white mt-1">{email.recipientEmail}</p>
+              <p className="text-white mt-1 font-medium">{email.recipientEmail}</p>
             </div>
           </div>
 
           {/* Timestamps */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2">
                 <Calendar size={16} />
                 Received At
               </label>
               <p className="text-white mt-1">{new Date(email.receivedAt).toLocaleString()}</p>
             </div>
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2">
                 <Clock size={16} />
                 SLA Deadline
               </label>
@@ -302,7 +302,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           {/* First Reply */}
           {email.firstReplyAt && (
             <div>
-              <label className="text-purple-300 text-sm font-semibold flex items-center gap-2">
+              <label className="text-blue-400 text-sm font-semibold flex items-center gap-2">
                 <CheckCircle size={16} />
                 First Reply At
               </label>
@@ -313,12 +313,12 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           {/* Status & Priority Controls */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-purple-300 text-sm font-semibold mb-2 block">Status</label>
+              <label className="text-blue-400 text-sm font-semibold mb-2 block">Status</label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="bg-[#1a0f2e] border-purple-500/30 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700/50 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#2a1f3d] border-purple-500/30">
+                <SelectContent className="bg-slate-800 border-slate-700/50">
                   <SelectItem value="pending" className="text-white">Pending</SelectItem>
                   <SelectItem value="replied" className="text-white">Replied</SelectItem>
                   <SelectItem value="overdue" className="text-white">Overdue</SelectItem>
@@ -326,12 +326,12 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Select>
             </div>
             <div>
-              <label className="text-purple-300 text-sm font-semibold mb-2 block">Priority</label>
+              <label className="text-blue-400 text-sm font-semibold mb-2 block">Priority</label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="bg-[#1a0f2e] border-purple-500/30 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700/50 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#2a1f3d] border-purple-500/30">
+                <SelectContent className="bg-slate-800 border-slate-700/50">
                   <SelectItem value="low" className="text-white">Low</SelectItem>
                   <SelectItem value="medium" className="text-white">Medium</SelectItem>
                   <SelectItem value="high" className="text-white">High</SelectItem>
@@ -347,19 +347,19 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               id="resolved"
               checked={isResolved}
               onChange={(e) => setIsResolved(e.target.checked)}
-              className="w-4 h-4 rounded border-purple-500/30 bg-[#1a0f2e] text-purple-500 focus:ring-purple-500"
+              className="w-4 h-4 rounded border-slate-700/50 bg-slate-800 text-blue-400 focus:ring-blue-400"
             />
-            <label htmlFor="resolved" className="text-purple-300 text-sm font-semibold cursor-pointer">
+            <label htmlFor="resolved" className="text-blue-400 text-sm font-semibold cursor-pointer">
               Mark as Resolved
             </label>
           </div>
 
-          {/* Reply Section */}
-          <div className="border-t border-purple-500/20 pt-6">
+          {/* Reply Section - Mejorado */}
+          <div className="border-t border-[#4ECDC4]/20 pt-6">
             {!showReplyForm ? (
               <Button
                 onClick={() => setShowReplyForm(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 shadow-lg"
                 disabled={email.isResolved}
               >
                 <Reply size={16} />
@@ -367,8 +367,20 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Button>
             ) : (
               <div className="space-y-4">
+                {/* Original Email Preview */}
                 <div>
-                  <label className="text-purple-300 text-sm font-semibold flex items-center gap-2 mb-2">
+                  <label className="text-[#4ECDC4] text-sm font-semibold flex items-center gap-2 mb-2">
+                    <Mail size={16} />
+                    Original Message
+                  </label>
+                  <div className="p-4 bg-gradient-to-br from-[#0f172a]/60 to-[#1a0f2e]/40 rounded-lg border border-[#4ECDC4]/20 max-h-[200px] overflow-y-auto">
+                    <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
+                      {email.bodyContent}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-2">
                     <Reply size={16} />
                     Your Reply
                   </label>
@@ -376,14 +388,14 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                     placeholder="Type your reply here..."
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
-                    className="min-h-[120px] bg-[#1a0f2e]/60 border-purple-500/30 text-white placeholder:text-purple-400 resize-none"
+                    className="min-h-[150px] bg-slate-800/80 border-slate-700/50 text-white placeholder:text-slate-400/60 resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleSendReply}
                     disabled={isReplying || !replyContent.trim()}
-                    className="bg-purple-600 hover:bg-purple-700 text-white transition-all flex items-center gap-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2 shadow-lg"
                   >
                     {isReplying ? (
                       <>
@@ -403,7 +415,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                       setReplyContent("");
                     }}
                     variant="outline"
-                    className="border-gray-600/30 text-gray-300 hover:bg-gray-600/20 transition-all"
+                    className="border-slate-600/30 text-slate-300 hover:bg-slate-600/20 transition-all"
                     disabled={isReplying}
                   >
                     Cancel
@@ -444,7 +456,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           )}
           <button
             onClick={handleUpdateEmail}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-lg"
             disabled={isUpdating || isReplying}
           >
             {isUpdating ? "Updating..." : "Save Changes"}
