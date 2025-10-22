@@ -318,6 +318,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             providerId: provider.id,
             externalId: message.id!,
             threadId: emailData.data.threadId || null,
+            createdAt: new Date(), // Explicitly set createdAt for Turso compatibility
           });
           emailsProcessed++;
           console.log(`✅ [Sync ${syncLogId}] Successfully inserted email #${emailsProcessed}`);
