@@ -306,13 +306,12 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           console.log(`💾 [Sync ${syncLogId}] Inserting NEW email - Subject: "${subject.substring(0, 50)}...", From: ${from}`);
           
           // Prepare insert data with explicit typing for LibSQL/Turso compatibility
-          // NOTE: bodyContent removed temporarily - column doesn't exist in production DB yet
           const emailInsertData = {
             userId,
             subject,
             senderEmail: from,
             recipientEmail: to,
-            // bodyContent: bodyContent || null, // TODO: Add this column to production DB
+            bodyContent: bodyContent || null,
             receivedAt,
             slaDeadline,
             status: 'pending' as const,
