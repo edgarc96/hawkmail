@@ -232,6 +232,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
     console.log(`📋 [Sync ${syncLogId}] Message IDs found: ${messages.map(m => m.id).slice(0, 5).join(', ')}${messages.length > 5 ? '...' : ''}`);
     let emailsProcessed = 0;
     let skippedCount = 0;
+    let errorCount = 0;
 
     // Process messages in parallel batches of 10 for faster sync
     const batchSize = 10;
@@ -320,7 +321,12 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           console.log(`⏭️  [Sync ${syncLogId}] Email already exists (${skippedCount} skipped) - Subject: "${subject.substring(0, 50)}..."`);
         }
         } catch (emailError) {
-          console.error(`Error processing email ${message.id}:`, emailError);
+          errorCount++;
+          console.error(`❌ [Sync ${syncLogId}] ERROR processing email ${message.id} (${errorCount} errors):`, emailError);
+          console.error(`❌ [Sync ${syncLogId}] Error details:`, {
+            message: emailError instanceof Error ? emailError.message : String(emailError),
+            stack: emailError instanceof Error ? emailError.stack : undefined
+          });
         }
       }));
     }
@@ -344,7 +350,12 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
       })
       .where(eq(emailProviders.id, provider.id));
 
-    console.log(`🎉 [Sync ${syncLogId}] Gmail sync completed! Processed ${emailsProcessed} NEW emails, ${skippedCount} already existed, ${messages.length} total found`);
+    console.log(`🎉 [Sync ${syncLogId}] Gmail sync completed! Processed ${emailsProcessed} NEW emails, ${skippedCount} already existed, ${errorCount} errors, ${messages.length} total found`);
+    
+    if (errorCount > 0) {
+      console.warn(`⚠️ [Sync ${syncLogId}] Warning: ${errorCount} emails failed to process. Check errors above.`);
+    }
+    
     return { success: true, emailsProcessed };
   } catch (error) {
     console.error(`❌ [Sync ${syncLogId}] Gmail sync error:`, error);
