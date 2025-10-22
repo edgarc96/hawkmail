@@ -304,7 +304,9 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
 
         if (existingEmail.length === 0) {
           console.log(`💾 [Sync ${syncLogId}] Inserting NEW email - Subject: "${subject.substring(0, 50)}...", From: ${from}`);
-          await db.insert(emails).values({
+          
+          // Prepare insert data with explicit typing for LibSQL/Turso compatibility
+          const emailInsertData = {
             userId,
             subject,
             senderEmail: from,
@@ -312,14 +314,24 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             bodyContent: bodyContent || null,
             receivedAt,
             slaDeadline,
-            status: 'pending',
-            priority: 'medium',
+            status: 'pending' as const,
+            priority: 'medium' as const,
             isResolved: false,
             providerId: provider.id,
             externalId: message.id!,
             threadId: emailData.data.threadId || null,
-            createdAt: new Date(), // Explicitly set createdAt for Turso compatibility
+            createdAt: new Date(),
+          };
+          
+          console.log(`🔍 [Sync ${syncLogId}] Insert data:`, {
+            userId: emailInsertData.userId,
+            subject: emailInsertData.subject.substring(0, 30),
+            from: emailInsertData.senderEmail.substring(0, 30),
+            receivedAt: emailInsertData.receivedAt,
+            isResolved: emailInsertData.isResolved,
           });
+          
+          await db.insert(emails).values(emailInsertData);
           emailsProcessed++;
           console.log(`✅ [Sync ${syncLogId}] Successfully inserted email #${emailsProcessed}`);
         } else {
@@ -329,12 +341,11 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         } catch (emailError) {
           errorCount++;
           const errorMsg = emailError instanceof Error ? emailError.message : String(emailError);
-          errorDetails.push(`Email ${message.id}: ${errorMsg}`);
-          console.error(`❌ [Sync ${syncLogId}] ERROR processing email ${message.id} (${errorCount} errors):`, emailError);
-          console.error(`❌ [Sync ${syncLogId}] Error details:`, {
-            message: errorMsg,
-            stack: emailError instanceof Error ? emailError.stack : undefined
-          });
+          const fullError = emailError instanceof Error && 'cause' in emailError 
+            ? `${errorMsg} | Cause: ${(emailError.cause as any)?.message || emailError.cause}`
+            : errorMsg;
+          errorDetails.push(`Email ${message.id}: ${fullError}`);
+          console.error(`❌ [Sync ${syncLogId}] ERROR #${errorCount} processing email ${message.id}:`, emailError);
         }
       }));
     }
