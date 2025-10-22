@@ -153,6 +153,10 @@ export async function POST(
         syncLogId: syncLog[0].id,
         status: result.success ? 'success' : 'failed',
         emailsProcessed: result.emailsProcessed,
+        totalFound: result.totalFound,
+        skipped: result.skipped,
+        errors: result.errors,
+        errorDetails: result.errorDetails,
         provider: provider[0],
       },
       { status: result.success ? 200 : 500 }
@@ -166,7 +170,7 @@ export async function POST(
   }
 }
 
-async function syncGmailEmails(provider: any, userId: string, syncLogId: number): Promise<{ success: boolean; emailsProcessed: number }> {
+async function syncGmailEmails(provider: any, userId: string, syncLogId: number): Promise<{ success: boolean; emailsProcessed: number; skipped: number; errors: number; totalFound: number; errorDetails?: string[] }> {
   console.log(`🔵 [Sync ${syncLogId}] Starting Gmail sync for provider ${provider.id}, Email: ${provider.email}`);
   try {
     const oauth2Client = new google.auth.OAuth2(
@@ -226,13 +230,14 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         })
         .where(eq(emailSyncLogs.id, syncLogId));
         
-      return { success: true, emailsProcessed: 0 };
+      return { success: true, emailsProcessed: 0, skipped: 0, errors: 0, totalFound: 0 };
     }
     
     console.log(`📋 [Sync ${syncLogId}] Message IDs found: ${messages.map(m => m.id).slice(0, 5).join(', ')}${messages.length > 5 ? '...' : ''}`);
     let emailsProcessed = 0;
     let skippedCount = 0;
     let errorCount = 0;
+    const errorDetails: string[] = [];
 
     // Process messages in parallel batches of 10 for faster sync
     const batchSize = 10;
@@ -322,9 +327,11 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         }
         } catch (emailError) {
           errorCount++;
+          const errorMsg = emailError instanceof Error ? emailError.message : String(emailError);
+          errorDetails.push(`Email ${message.id}: ${errorMsg}`);
           console.error(`❌ [Sync ${syncLogId}] ERROR processing email ${message.id} (${errorCount} errors):`, emailError);
           console.error(`❌ [Sync ${syncLogId}] Error details:`, {
-            message: emailError instanceof Error ? emailError.message : String(emailError),
+            message: errorMsg,
             stack: emailError instanceof Error ? emailError.stack : undefined
           });
         }
@@ -356,7 +363,14 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
       console.warn(`⚠️ [Sync ${syncLogId}] Warning: ${errorCount} emails failed to process. Check errors above.`);
     }
     
-    return { success: true, emailsProcessed };
+    return { 
+      success: true, 
+      emailsProcessed, 
+      skipped: skippedCount,
+      errors: errorCount,
+      totalFound: messages.length,
+      errorDetails: errorDetails.length > 0 ? errorDetails.slice(0, 5) : undefined // Only first 5 errors
+    };
   } catch (error) {
     console.error(`❌ [Sync ${syncLogId}] Gmail sync error:`, error);
     
@@ -370,7 +384,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
       })
       .where(eq(emailSyncLogs.id, syncLogId));
     
-    return { success: false, emailsProcessed: 0 };
+    return { success: false, emailsProcessed: 0, skipped: 0, errors: 1, totalFound: 0, errorDetails: [error instanceof Error ? error.message : 'Unknown error'] };
   }
 }
 

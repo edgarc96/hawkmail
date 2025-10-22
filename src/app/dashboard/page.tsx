@@ -721,8 +721,27 @@ export default function DashboardPage() {
       });
       const data = await response.json();
       
+      // Log detailed sync results to console for debugging
+      console.log('📊 Sync Results:', {
+        processed: data.emailsProcessed || 0,
+        totalFound: data.totalFound || 0,
+        skipped: data.skipped || 0,
+        errors: data.errors || 0,
+        errorDetails: data.errorDetails || []
+      });
+      
       if (response.ok) {
-        toast.success(`✅ Sync completed! ${data.emailsProcessed || 0} emails processed`);
+        const message = `✅ Sync completed! Found: ${data.totalFound || 0}, New: ${data.emailsProcessed || 0}, Skipped: ${data.skipped || 0}${data.errors > 0 ? `, Errors: ${data.errors}` : ''}`;
+        
+        if (data.errors > 0 && data.errorDetails && data.errorDetails.length > 0) {
+          console.error('❌ Sync Errors:', data.errorDetails);
+          toast.error(`${message}\nCheck console for error details`, { duration: 8000 });
+        } else if (data.emailsProcessed === 0 && data.totalFound > 0) {
+          toast.warning(`⚠️ ${message}\nAll emails already exist or had errors`, { duration: 6000 });
+        } else {
+          toast.success(message, { duration: 4000 });
+        }
+        
         fetchSyncLogs(providerId);
         fetchEmailProviders();
         // Refresh dashboard data to show new metrics
