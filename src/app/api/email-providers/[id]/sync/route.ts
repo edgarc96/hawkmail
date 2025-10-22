@@ -306,12 +306,11 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           console.log(`💾 [Sync ${syncLogId}] Inserting NEW email - Subject: "${subject.substring(0, 50)}...", From: ${from}`);
           
           // Prepare insert data with explicit typing for LibSQL/Turso compatibility
-          const emailInsertData = {
+          const emailInsertData: any = {
             userId,
             subject,
             senderEmail: from,
             recipientEmail: to,
-            bodyContent: bodyContent || null,
             receivedAt,
             slaDeadline,
             status: 'pending' as const,
@@ -322,6 +321,11 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             threadId: emailData.data.threadId || null,
             createdAt: new Date(),
           };
+          
+          // Only add bodyContent if it exists to avoid database issues
+          if (bodyContent) {
+            emailInsertData.bodyContent = bodyContent;
+          }
           
           console.log(`🔍 [Sync ${syncLogId}] Insert data:`, {
             userId: emailInsertData.userId,
