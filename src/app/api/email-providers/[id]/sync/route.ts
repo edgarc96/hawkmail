@@ -167,7 +167,7 @@ export async function POST(
 }
 
 async function syncGmailEmails(provider: any, userId: string, syncLogId: number): Promise<{ success: boolean; emailsProcessed: number }> {
-  console.log(`[Sync ${syncLogId}] Starting Gmail sync for provider ${provider.id}`);
+  console.log(`🔵 [Sync ${syncLogId}] Starting Gmail sync for provider ${provider.id}, Email: ${provider.email}`);
   try {
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
@@ -202,7 +202,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const query = `after:${Math.floor(sevenDaysAgo.getTime() / 1000)}`;
 
-    console.log(`[Sync ${syncLogId}] Fetching emails with query: ${query}`);
+    console.log(`📧 [Sync ${syncLogId}] Fetching emails with query: ${query}`);
     const response = await gmail.users.messages.list({
       userId: 'me',
       q: query,
@@ -210,7 +210,11 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
     });
 
     const messages = response.data.messages || [];
-    console.log(`[Sync ${syncLogId}] Found ${messages.length} messages`);
+    console.log(`✅ [Sync ${syncLogId}] Found ${messages.length} messages in Gmail inbox`);
+    
+    if (messages.length === 0) {
+      console.log(`⚠️ [Sync ${syncLogId}] No messages found. Check your Gmail inbox.`);
+    }
     let emailsProcessed = 0;
 
     // Process messages in parallel batches of 10 for faster sync
@@ -277,6 +281,7 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           .limit(1);
 
         if (existingEmail.length === 0) {
+          console.log(`💾 [Sync ${syncLogId}] Inserting NEW email - Subject: "${subject.substring(0, 50)}...", From: ${from}`);
           await db.insert(emails).values({
             userId,
             subject,
@@ -293,6 +298,9 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             threadId: emailData.data.threadId || null,
           });
           emailsProcessed++;
+          console.log(`✅ [Sync ${syncLogId}] Successfully inserted email #${emailsProcessed}`);
+        } else {
+          console.log(`⏭️  [Sync ${syncLogId}] Email already exists, skipping - Subject: "${subject.substring(0, 50)}..."`);
         }
         } catch (emailError) {
           console.error(`Error processing email ${message.id}:`, emailError);
@@ -319,10 +327,10 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
       })
       .where(eq(emailProviders.id, provider.id));
 
-    console.log(`Gmail sync completed: ${emailsProcessed} emails processed`);
+    console.log(`🎉 [Sync ${syncLogId}] Gmail sync completed! Processed ${emailsProcessed} NEW emails out of ${messages.length} found`);
     return { success: true, emailsProcessed };
   } catch (error) {
-    console.error('Gmail sync error:', error);
+    console.error(`❌ [Sync ${syncLogId}] Gmail sync error:`, error);
     
     // Update sync log as failed
     await db
