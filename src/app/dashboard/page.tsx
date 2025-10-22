@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OptimizedDashboard } from "@/features/dashboard/components/OptimizedDashboard";
 import { AlertsList } from "@/features/alerts/components/AlertsList";
 import { Leaderboard } from "@/features/team/components/Leaderboard";
+import { ProgressiveTeamOverview } from "@/features/team/components/ProgressiveTeamOverview";
 import { PerformanceTrendChart } from "@/features/analytics/components/PerformanceTrendChart";
 import { EmailDistributionChart } from "@/features/analytics/components/EmailDistributionChart";
 import { TeamPerformanceHeatmap } from "@/features/analytics/components/TeamPerformanceHeatmap";
@@ -2105,300 +2106,26 @@ export default function DashboardPage() {
           )}
 
           {activeSection === 'team' && (
-            <div className="space-y-4">
-              {/* Leaderboard and Workload for Managers - Using new components */}
+            <div className="space-y-6">
+              {/* Progressive Team Overview - Clean Initial State */}
+              <ProgressiveTeamOverview
+                teamMembers={teamMembers}
+                teamPerformance={teamPerformance}
+                onAddTeamMember={handleAddTeamMember}
+                onDeleteTeamMember={(id) => openDeleteConfirmation('team', id, '')}
+                onViewMemberDetails={(member) => {
+                  setSelectedTeamMember(member);
+                  setIsTeamMemberModalOpen(true);
+                }}
+                onRebalanceWorkload={handleRebalanceWorkload}
+                isRebalancing={isRebalancing}
+                teamWorkload={teamWorkload}
+              />
+              
+              {/* Compact Leaderboard for Quick Overview */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Leaderboard teamPerformance={teamPerformance} type="resolution" />
                 <Leaderboard teamPerformance={teamPerformance} type="workload" />
-              </div>
-              {/* Team Summary Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="rounded-lg border border-primary/20 bg-background p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Members</p>
-                  <p className="text-2xl font-bold text-primary">{teamMembers.length}</p>
-                </div>
-
-                <div className="rounded-lg border border-primary/20 bg-background p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Active Members</p>
-                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.isActive).length}</p>
-                </div>
-
-                <div className="rounded-lg border border-primary/20 bg-background p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Agents</p>
-                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.role === 'agent').length}</p>
-                </div>
-
-                <div className="rounded-lg border border-primary/20 bg-background p-4">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Managers</p>
-                  <p className="text-2xl font-bold text-primary">{teamMembers.filter(m => m.role === 'manager').length}</p>
-                </div>
-              </div>
-
-              {/* Add Team Member Form */}
-              <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-foreground">
-                  <Plus size={20} className="text-primary" />
-                  Add Team Member
-                </h2>
-                
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                  <Input
-                    placeholder="Name"
-                    value={newMemberName}
-                    onChange={(e) => setNewMemberName(e.target.value)}
-                    className="text-foreground"
-                  />
-                  
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    className="text-foreground"
-                  />
-                  
-                  <Select value={newMemberRole} onValueChange={setNewMemberRole}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="agent">Agent</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button
-                    onClick={handleAddTeamMember}
-                    className="justify-center"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add Member
-                  </Button>
-                </div>
-              </div>
-
-              {/* Team Workload Overview */}
-              {teamWorkload.length > 0 && (
-                <div className="rounded-lg border border-primary/20 bg-background p-4">
-                  <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                        <Users className="text-primary" size={20} />
-                        Team Workload Distribution
-                      </h3>
-                    </div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={handleRebalanceWorkload}
-                          disabled={isRebalancing}
-                          variant="outline"
-                          className="gap-2"
-                        >
-                          {isRebalancing ? (
-                            <>
-                              <RefreshCw size={18} className="animate-spin" />
-                              Rebalancing...
-                            </>
-                          ) : (
-                            <>
-                              <Shuffle size={18} />
-                              Rebalance Workload
-                            </>
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="border border-border bg-card text-foreground shadow-lg">
-                        <p>Redistributes emails from overloaded agents (&gt;80%) to underloaded agents (&lt;50%)</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teamWorkload.map((agent) => (
-                      <div key={agent.id} className="rounded-xl border border-border bg-muted/50 p-4">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 font-semibold text-primary">
-                              {agent.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-foreground">{agent.name}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{agent.role}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-semibold text-foreground">{agent.currentLoad}</p>
-                            <p className="text-xs text-muted-foreground">/{agent.capacity}</p>
-                          </div>
-                        </div>
-
-                        {/* Workload bar */}
-                        <div className="relative mb-2 h-3 overflow-hidden rounded-full bg-background/60">
-                          <div 
-                            className={`absolute h-full rounded-full transition-all duration-500 ${
-                              agent.currentLoad / agent.capacity > 0.8 
-                                ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                                : agent.currentLoad / agent.capacity > 0.5
-                                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                                  : 'bg-gradient-to-r from-green-500 to-green-600'
-                            }`}
-                            style={{ width: `${Math.min(100, (agent.currentLoad / agent.capacity) * 100)}%` }}
-                          ></div>
-                        </div>
-
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Capacity: {Math.round((agent.currentLoad / agent.capacity) * 100)}%</span>
-                          <span className={`font-semibold ${
-                            agent.currentLoad / agent.capacity > 0.8 
-                              ? 'text-rose-500' 
-                              : agent.currentLoad / agent.capacity > 0.5
-                                ? 'text-amber-500'
-                                : 'text-emerald-500'
-                          }`}>
-                            {agent.currentLoad / agent.capacity > 0.8 
-                              ? 'Overloaded' 
-                              : agent.currentLoad / agent.capacity > 0.5
-                                ? 'Moderate'
-                                : 'Available'}
-                          </span>
-                        </div>
-
-                        {/* Performance metrics */}
-                        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
-                          <div>
-                            <p>Avg Reply</p>
-                            <p className="font-semibold text-foreground">{agent.avgReplyTimeMinutes > 0 ? `${Math.round(agent.avgReplyTimeMinutes / 60)}h` : 'N/A'}</p>
-                          </div>
-                          <div>
-                            <p>Resolution</p>
-                            <p className="font-semibold text-foreground">{agent.resolutionRate}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Team Members Performance */}
-              <div className="rounded-lg border border-primary/20 bg-background p-4">
-                
-                {teamPerformance.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Users className="mx-auto text-primary mb-4" size={64} />
-                    <p className="text-foreground text-lg">No team members yet</p>
-                    <p className="text-muted-foreground text-sm mt-2">Add your first team member above to get started</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {teamPerformance.map((member) => (
-                      <div key={member.id} className="p-6 bg-purple-900/20 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-colors">
-                        {/* Member Header */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary font-bold text-xl">
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                            
-                            <div>
-                              <p className="font-bold text-foreground text-xl">{member.name}</p>
-                              <p className="text-sm text-muted-foreground">{member.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
-                                  {member.role === 'manager' ? '👔 Manager' : '👤 Agent'}
-                                </span>
-                                <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">
-                                  {member.isActive ? '✓ Active' : '✕ Inactive'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => {
-                                setSelectedTeamMember(member);
-                                setIsTeamMemberModalOpen(true);
-                              }}
-                              size="sm"
-                              className="bg-primary/20 hover:bg-primary/30 text-primary"
-                            >
-                              <Eye size={16} className="mr-2" />
-                              View KPIs
-                            </Button>
-                            <Button
-                              onClick={() => openDeleteConfirmation('team', member.id, member.name)}
-                              variant="destructive"
-                              size="sm"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* KPIs Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Total Assigned</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.totalAssigned}</p>
-                          </div>
-                          
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Replied</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.replied}</p>
-                          </div>
-                          
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Pending</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.pending}</p>
-                          </div>
-                          
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Overdue</p>
-                            <p className="text-2xl font-bold text-primary">{member.metrics.overdue}</p>
-                          </div>
-                          
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Avg Reply Time</p>
-                            <p className="text-2xl font-bold text-primary">
-                              {member.metrics.avgReplyTimeMinutes > 0 
-                                ? `${Math.round(member.metrics.avgReplyTimeMinutes / 60)}h ${member.metrics.avgReplyTimeMinutes % 60}m`
-                                : 'N/A'}
-                            </p>
-                          </div>
-                          
-                          <div className="rounded-lg border border-primary/20 bg-muted/30 p-4">
-                            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">Resolution Rate</p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-2xl font-bold text-primary">{member.metrics.resolutionRate}%</p>
-                              {member.metrics.resolutionRate >= 90 && <span className="text-primary">✓</span>}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Alerts for this member */}
-                        {member.metrics.overdue > 0 && (
-                          <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2">
-                            <AlertCircle className="text-primary" size={20} />
-                            <span className="text-primary text-sm font-semibold">
-                              ⚠️ {member.metrics.overdue} overdue emails - Needs attention!
-                            </span>
-                          </div>
-                        )}
-                        
-                        {member.metrics.pending > 10 && (
-                          <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-2">
-                            <AlertCircle className="text-yellow-400" size={20} />
-                            <span className="text-yellow-400 text-sm font-semibold">
-                              ⚠️ High workload: {member.metrics.pending} pending emails
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           )}
