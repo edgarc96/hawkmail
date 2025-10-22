@@ -39,6 +39,7 @@ export const auth = betterAuth({
       'https://hawkmail.app',
       'https://www.hawkmail.app',
       'https://time-to-reply-eddies-projects.vercel.app',
+      'https://time-to-reply-dked27ub8-eddies-projects.vercel.app',
     ];
     
     // In development, allow any localhost, 127.0.0.1, or local network origin
