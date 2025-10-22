@@ -171,7 +171,7 @@ export async function POST(
 }
 
 async function syncGmailEmails(provider: any, userId: string, syncLogId: number): Promise<{ success: boolean; emailsProcessed: number; skipped: number; errors: number; totalFound: number; errorDetails?: string[] }> {
-  console.log(`🔵 [Sync ${syncLogId}] Starting Gmail sync for provider ${provider.id}, Email: ${provider.email}`);
+  console.log(`🔵 [Sync ${syncLogId}] Starting Gmail sync v2 (no bodyContent) for provider ${provider.id}, Email: ${provider.email}`);
   try {
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
