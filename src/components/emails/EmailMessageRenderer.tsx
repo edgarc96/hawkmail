@@ -25,8 +25,41 @@ export function EmailMessageRenderer({
   const sanitizedHtml = useMemo(() => {
     if (!htmlContent) return "";
 
+    let content = htmlContent;
+
+    // Detect if it's plain text (no HTML tags)
+    const isPlainText = !/<[^>]+>/.test(content);
+    
+    if (isPlainText) {
+      // Convert plain text to HTML with proper line breaks
+      content = content
+        .split('\n')
+        .map(line => {
+          if (!line.trim()) return '<br/>';
+          // Detect quoted lines (starts with >)
+          if (line.trim().startsWith('>')) {
+            return `<blockquote class="email-quote">${line.replace(/^>\s*/, '')}</blockquote>`;
+          }
+          return `<p>${line}</p>`;
+        })
+        .join('');
+    } else {
+      // Clean up common email artifacts
+      content = content
+        // Remove gmail_quote divs but keep the content
+        .replace(/<div class="gmail_quote"[^>]*>/gi, '<blockquote class="email-quote">')
+        .replace(/<\/div>\s*$/gi, '</blockquote>')
+        // Clean up excessive whitespace
+        .replace(/\s{2,}/g, ' ')
+        // Remove empty paragraphs
+        .replace(/<p>\s*<\/p>/gi, '')
+        // Clean inline styles that break layout
+        .replace(/style="[^"]*font-family:[^;"]*;?/gi, 'style="')
+        .replace(/style="[^"]*font-size:[^;"]*;?/gi, 'style="');
+    }
+
     // DOMPurify configuration for email content
-    const cleanHtml = DOMPurify.sanitize(htmlContent, {
+    const cleanHtml = DOMPurify.sanitize(content, {
       USE_PROFILES: { html: true },
       ALLOWED_TAGS: [
         'p', 'div', 'span', 'br', 'strong', 'em', 'u', 'a', 'img',
@@ -43,7 +76,7 @@ export function EmailMessageRenderer({
       ALLOW_DATA_ATTR: false,
       FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
       FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-      ADD_ATTR: ['target'], // For forcing target="_blank" on links
+      ADD_ATTR: ['target'],
       FORCE_BODY: true,
     });
 
@@ -94,13 +127,8 @@ export function EmailMessageRenderer({
   return (
     <div 
       id="email-content-container"
-      className={`prose prose-sm max-w-none ${className}`}
+      className={`email-content ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-      style={{
-        // Email-specific styling
-        wordWrap: 'break-word',
-        overflowWrap: 'break-word',
-      }}
     />
   );
 }

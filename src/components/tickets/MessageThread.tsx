@@ -23,9 +23,41 @@ function MessageItem({ message, isLatest }: MessageItemProps) {
   const [showQuotedText, setShowQuotedText] = useState(false);
   const [showHeaders, setShowHeaders] = useState(false);
 
-  // Detect quoted content (basic heuristic)
-  const hasQuotedContent = message.content.includes('<blockquote') || 
-                           message.content.includes('&gt;');
+  // Split content into main and quoted parts
+  const { mainContent, quotedContent } = React.useMemo(() => {
+    let content = message.content;
+    let main = content;
+    let quoted = '';
+
+    // Try to find blockquotes
+    const blockquoteMatch = content.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i);
+    if (blockquoteMatch) {
+      main = content.substring(0, blockquoteMatch.index);
+      quoted = blockquoteMatch[0];
+    } else {
+      // Try to find Gmail-style quoted text markers
+      const gmailQuoteIdx = content.toLowerCase().indexOf('<div class="gmail_quote">');
+      if (gmailQuoteIdx > 0) {
+        main = content.substring(0, gmailQuoteIdx);
+        quoted = content.substring(gmailQuoteIdx);
+      } else {
+        // Try to find "On ... wrote:" pattern
+        const onWrotePattern = /On .+?wrote:/i;
+        const onWroteMatch = content.match(onWrotePattern);
+        if (onWroteMatch && onWroteMatch.index) {
+          main = content.substring(0, onWroteMatch.index);
+          quoted = content.substring(onWroteMatch.index);
+        }
+      }
+    }
+
+    return {
+      mainContent: main.trim(),
+      quotedContent: quoted.trim()
+    };
+  }, [message.content]);
+
+  const hasQuotedContent = quotedContent.length > 0;
 
   return (
     <div className={`border-b border-gray-200 ${isLatest ? 'bg-blue-50/50' : 'bg-white'}`}>
@@ -98,16 +130,35 @@ function MessageItem({ message, isLatest }: MessageItemProps) {
         <div className="px-4 pb-4">
           <div className="border-t border-gray-200 pt-4">
             <div className="rounded-md border border-gray-200 bg-white p-4">
-              <EmailMessageRenderer htmlContent={message.content} />
+              <EmailMessageRenderer htmlContent={mainContent} />
+              
+              {hasQuotedContent && (
+                <div className="mt-4">
+                  {!showQuotedText && (
+                    <button
+                      onClick={() => setShowQuotedText(true)}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <span>···</span>
+                      <span>Mostrar texto citado</span>
+                    </button>
+                  )}
+                  {showQuotedText && (
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setShowQuotedText(false)}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Ocultar texto citado
+                      </button>
+                      <div className="border-l-3 border-gray-300 pl-4">
+                        <EmailMessageRenderer htmlContent={quotedContent} className="text-gray-600" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            
-            {hasQuotedContent && (
-              <QuotedEmail 
-                content={message.content}
-                isExpanded={showQuotedText}
-                onToggle={() => setShowQuotedText(!showQuotedText)}
-              />
-            )}
 
             {/* Attachments */}
             {message.attachments.length > 0 && (
