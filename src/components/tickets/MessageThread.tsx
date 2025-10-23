@@ -21,6 +21,7 @@ interface MessageItemProps {
 function MessageItem({ message, isLatest }: MessageItemProps) {
   const [isExpanded, setIsExpanded] = useState(isLatest);
   const [showQuotedText, setShowQuotedText] = useState(false);
+  const [showHeaders, setShowHeaders] = useState(false);
 
   // Detect quoted content (basic heuristic)
   const hasQuotedContent = message.content.includes('<blockquote') || 
@@ -55,7 +56,23 @@ function MessageItem({ message, isLatest }: MessageItemProps) {
               )}
             </div>
             <div className="text-sm text-gray-500 mt-1">
-              {formatRelativeTime(message.timestamp.toISOString())} · To: {message.recipient}
+              {formatRelativeTime(message.timestamp.toISOString())}
+            </div>
+            <div className="text-sm text-gray-600 mt-1">
+              <span className="text-gray-500">Para:</span>{' '}
+              <span className="text-gray-700">
+                {Array.isArray((message as any).to)
+                  ? (message as any).to.join(', ')
+                  : (message.metadata && Array.isArray((message.metadata as any).to))
+                    ? (message.metadata as any).to.join(', ')
+                    : message.recipient}
+              </span>
+              <button
+                className="ml-2 text-blue-600 hover:text-blue-800"
+                onClick={(e) => { e.stopPropagation(); setShowHeaders(!showHeaders); }}
+              >
+                {showHeaders ? 'Mostrar menos' : 'Mostrar más'}
+              </button>
             </div>
             {!isExpanded && (
               <div className="text-sm text-gray-600 mt-2 line-clamp-2">
@@ -80,7 +97,9 @@ function MessageItem({ message, isLatest }: MessageItemProps) {
       {isExpanded && (
         <div className="px-4 pb-4">
           <div className="border-t border-gray-200 pt-4">
-            <EmailMessageRenderer htmlContent={message.content} />
+            <div className="rounded-md border border-gray-200 bg-white p-4">
+              <EmailMessageRenderer htmlContent={message.content} />
+            </div>
             
             {hasQuotedContent && (
               <QuotedEmail 

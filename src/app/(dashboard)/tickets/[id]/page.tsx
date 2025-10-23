@@ -69,32 +69,80 @@ export default function TicketDetailPage() {
       };
       
       setTicket(transformedTicket);
-      
-      // Fetch messages (for now, create initial message from ticket)
-      const initialMessage: Message = {
-        id: `msg-${ticketData.id}`,
-        ticketId: ticketData.id.toString(),
-        threadId: ticketData.threadId || ticketData.id.toString(),
-        parentId: undefined,
-        isInternal: false,
-        sender: {
-          id: ticketData.senderEmail,
-          name: ticketData.senderEmail.split('@')[0],
-          email: ticketData.senderEmail,
-          avatar: undefined,
-          isAgent: false,
-        },
-        recipient: ticketData.recipientEmail,
-        subject: ticketData.subject,
-        content: ticketData.bodyContent || '',
-        bodyContent: ticketData.bodyContent || '',
-        attachments: [],
-        timestamp: new Date(ticketData.receivedAt),
-        metadata: {},
-        isRead: true,
-      };
-      
-      setMessages([initialMessage]);
+
+      // Fetch thread messages
+      const msgsRes = await fetch(`/api/tickets/${ticketId}/messages`);
+      let mappedMessages: Message[] = [];
+      if (msgsRes.ok) {
+        const data = await msgsRes.json();
+        const roots = data.messages || [];
+        const flat: any[] = [];
+        const walk = (node: any) => {
+          flat.push(node);
+          if (Array.isArray(node.children)) node.children.forEach(walk);
+        };
+        roots.forEach(walk);
+
+        mappedMessages = flat.map((m) => {
+          let headers: any = {};
+          try { headers = m.rawHeaders ? JSON.parse(m.rawHeaders) : {}; } catch {}
+          return {
+            id: String(m.id),
+            ticketId: String(m.ticketId),
+            threadId: m.threadId || String(ticketData.id),
+            parentId: m.parentId ? String(m.parentId) : undefined,
+            isInternal: !!m.isInternal,
+            sender: {
+              id: m.senderId || m.senderEmail,
+              name: m.senderName || (m.senderEmail?.split('@')[0] ?? 'Sender'),
+              email: m.senderEmail,
+              avatar: undefined,
+              isAgent: !!m.senderId,
+            },
+            recipient: m.recipientEmail || ticketData.recipientEmail,
+            subject: m.subject || ticketData.subject,
+            content: m.htmlContent || m.textContent || '',
+            bodyContent: m.htmlContent || m.textContent || '',
+            attachments: [],
+            timestamp: new Date(m.timestamp),
+            metadata: {
+              to: headers.to || (headers.To ? [headers.To] : undefined),
+              cc: headers.cc || headers.Cc,
+              inReplyTo: m.inReplyTo,
+              references: m.references,
+            },
+            isRead: !!m.isRead,
+          } as Message;
+        }).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      } else {
+        // Fallback to initial message when API is not available
+        mappedMessages = [
+          {
+            id: `msg-${ticketData.id}`,
+            ticketId: ticketData.id.toString(),
+            threadId: ticketData.threadId || ticketData.id.toString(),
+            parentId: undefined,
+            isInternal: false,
+            sender: {
+              id: ticketData.senderEmail,
+              name: ticketData.senderEmail.split('@')[0],
+              email: ticketData.senderEmail,
+              avatar: undefined,
+              isAgent: false,
+            },
+            recipient: ticketData.recipientEmail,
+            subject: ticketData.subject,
+            content: ticketData.bodyContent || '',
+            bodyContent: ticketData.bodyContent || '',
+            attachments: [],
+            timestamp: new Date(ticketData.receivedAt),
+            metadata: {},
+            isRead: true,
+          },
+        ];
+      }
+
+      setMessages(mappedMessages);
       
       // Fetch customer data
       const customerRes = await fetch(`/api/customers/${ticketData.senderEmail}`);

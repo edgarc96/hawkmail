@@ -84,6 +84,24 @@ export function TicketList({ onTicketSelect }: TicketListProps) {
     resetFilters();
   };
 
+  // Normalize subject: strip repeated Re:/Fwd:/FW: prefixes for clean display
+  function normalizeSubject(subject: string): { clean: string; prefix: 're' | 'fwd' | null } {
+    if (!subject) return { clean: '', prefix: null };
+    let s = subject.trim();
+    let prefix: 're' | 'fwd' | null = null;
+    // Capture chains like "Re: Re: Fwd: subject"
+    const rePattern = /^(re\s*:)+/i;
+    const fwdPattern = /^((fw|fwd)\s*:)+/i;
+    if (rePattern.test(s)) {
+      prefix = 're';
+      s = s.replace(rePattern, '').trim();
+    } else if (fwdPattern.test(s)) {
+      prefix = 'fwd';
+      s = s.replace(fwdPattern, '').trim();
+    }
+    return { clean: s, prefix };
+  }
+
   const getStatusColor = (statusId: string) => {
     const status = ticketStatuses.find((s) => s.id === statusId);
     return status?.color || '#6c757d';
@@ -261,7 +279,22 @@ export function TicketList({ onTicketSelect }: TicketListProps) {
                         #{ticket.id.slice(-6)}
                       </span>
                     </div>
-                    <h3 className="font-semibold zd-text-neutral-800 mb-1">{ticket.subject}</h3>
+                    <h3 className="font-semibold zd-text-neutral-800 mb-1 flex items-center gap-2">
+                      {(() => {
+                        const { clean, prefix } = normalizeSubject(ticket.subject || '');
+                        return (
+                          <>
+                            {prefix === 're' && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Re</span>
+                            )}
+                            {prefix === 'fwd' && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Fwd</span>
+                            )}
+                            <span>{clean}</span>
+                          </>
+                        );
+                      })()}
+                    </h3>
                     <p className="text-sm zd-text-neutral-600 line-clamp-2">
                       {ticket.description}
                     </p>

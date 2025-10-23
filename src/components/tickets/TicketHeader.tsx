@@ -26,6 +26,21 @@ export function TicketHeader({
   onToggleTimelinePanel,
 }: TicketHeaderProps) {
   const router = useRouter();
+  function normalizeSubject(subject: string): { clean: string; prefix: 're' | 'fwd' | null } {
+    if (!subject) return { clean: '', prefix: null };
+    let s = subject.trim();
+    let prefix: 're' | 'fwd' | null = null;
+    const rePattern = /^(re\s*:)+/i;
+    const fwdPattern = /^((fw|fwd)\s*:)+/i;
+    if (rePattern.test(s)) {
+      prefix = 're';
+      s = s.replace(rePattern, '').trim();
+    } else if (fwdPattern.test(s)) {
+      prefix = 'fwd';
+      s = s.replace(fwdPattern, '').trim();
+    }
+    return { clean: s, prefix };
+  }
 
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -44,7 +59,23 @@ export function TicketHeader({
           <div className="h-8 w-px bg-gray-300" />
           
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">{ticket.subject}</h1>
+            <div className="flex items-center gap-2">
+              {(() => {
+                const { clean, prefix } = normalizeSubject(ticket.subject || '');
+                return (
+                  <>
+                    {prefix === 're' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Re</span>
+                    )}
+                    {prefix === 'fwd' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Fwd</span>
+                    )}
+                    <h1 className="text-lg font-semibold text-gray-900">{clean}</h1>
+                  </>
+                );
+              })()}
+            </div>
+            <div className="text-sm text-gray-500 mt-0.5">A través de correo electrónico</div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-gray-500">#{ticket.id.slice(-8)}</span>
               <Badge
