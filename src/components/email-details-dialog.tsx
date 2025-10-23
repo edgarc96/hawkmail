@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -8,38 +8,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-// Helper function to convert HTML to plain text
-function htmlToPlainText(html: string): string {
+// Helper function to sanitize and prepare HTML for safe rendering
+function sanitizeHtml(html: string): string {
   if (!html) return '';
   
-  // Replace common HTML tags with appropriate line breaks
-  let text = html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<p[^>]*>/gi, '')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<div[^>]*>/gi, '')
-    .replace(/<\/li>/gi, '\n')
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<h[1-6][^>]*>/gi, '')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<td[^>]*>/gi, '\t')
-    .replace(/<\/td>/gi, '')
-    .replace(/<[^>]+>/g, ''); // Remove all other HTML tags
+  // Create a temporary div to parse HTML
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
   
-  // Decode HTML entities
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = text;
-  text = textarea.value;
+  // Remove script tags and other dangerous elements
+  const scripts = temp.querySelectorAll('script, iframe, object, embed');
+  scripts.forEach(el => el.remove());
   
-  // Clean up excessive whitespace
-  text = text
-    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
-    .replace(/[ \t]+/g, ' ') // Multiple spaces to single space
-    .trim();
+  // Remove inline event handlers
+  const allElements = temp.querySelectorAll('*');
+  allElements.forEach(el => {
+    Array.from(el.attributes).forEach(attr => {
+      if (attr.name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
   
-  return text;
+  return temp.innerHTML;
 }
 
 interface Email {
@@ -71,6 +62,71 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [showReplyForm, setShowReplyForm] = useState(false);
+
+  // Inject email content styles
+  useEffect(() => {
+    const styleId = 'email-content-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .email-content {
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
+        .email-content p {
+          margin: 0 0 1em 0;
+        }
+        .email-content p:last-child {
+          margin-bottom: 0;
+        }
+        .email-content a {
+          color: #1a73e8;
+          text-decoration: none;
+        }
+        .email-content a:hover {
+          text-decoration: underline;
+        }
+        .email-content h1, .email-content h2, .email-content h3, 
+        .email-content h4, .email-content h5, .email-content h6 {
+          margin: 1em 0 0.5em 0;
+          font-weight: 600;
+        }
+        .email-content ul, .email-content ol {
+          margin: 0.5em 0;
+          padding-left: 2em;
+        }
+        .email-content li {
+          margin: 0.25em 0;
+        }
+        .email-content blockquote {
+          margin: 1em 0;
+          padding-left: 1em;
+          border-left: 3px solid #ddd;
+          color: #666;
+        }
+        .email-content img {
+          max-width: 100%;
+          height: auto;
+        }
+        .email-content table {
+          border-collapse: collapse;
+          margin: 1em 0;
+        }
+        .email-content table td, .email-content table th {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+        .email-content strong, .email-content b {
+          font-weight: 600;
+        }
+        .email-content em, .email-content i {
+          font-style: italic;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   if (!email) return null;
 
@@ -268,21 +324,24 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <p className="text-white text-lg mt-1 font-medium">{email.subject}</p>
           </div>
 
-          {/* Email Content - Optimizado para mejor legibilidad y experiencia visual */}
+          {/* Email Content - Renderizado como Gmail con HTML */}
           {email.bodyContent && (
             <div>
               <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
                 <Mail size={16} />
                 Email Content
               </label>
-              <div className="mt-2 p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-slate-700/50 max-h-[500px] overflow-y-auto shadow-inner backdrop-blur-sm">
-                <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
-                  <div className="prose prose-invert prose-slate max-w-none">
-                    <div className="text-[#e2e8f0] leading-[1.7] tracking-[0.01em]">
-                      {htmlToPlainText(email.bodyContent)}
-                    </div>
-                  </div>
-                </div>
+              <div className="mt-2 p-6 bg-white rounded-xl border border-slate-300 max-h-[500px] overflow-y-auto shadow-lg">
+                <div 
+                  className="email-content"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent) }}
+                  style={{
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    color: '#222',
+                  }}
+                />
               </div>
             </div>
           )}
@@ -405,18 +464,23 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Button>
             ) : (
               <div className="space-y-4">
-                {/* Original Email Preview - Mejorado visualmente */}
+                {/* Original Email Preview - Renderizado como Gmail */}
                 <div>
                   <label className="text-[#4ECDC4] text-sm font-semibold flex items-center gap-2 mb-2">
                     <Mail size={16} />
                     Original Message
                   </label>
-                  <div className="p-4 bg-gradient-to-br from-slate-800/70 to-slate-900/70 rounded-lg border border-[#4ECDC4]/30 max-h-[200px] overflow-y-auto backdrop-blur-sm shadow-inner">
-                    <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
-                      <div className="text-[#cbd5e1] leading-[1.6] tracking-[0.005em]">
-                        {htmlToPlainText(email.bodyContent || '')}
-                      </div>
-                    </div>
+                  <div className="p-4 bg-white rounded-lg border border-slate-300 max-h-[200px] overflow-y-auto shadow-md">
+                    <div 
+                      className="email-content"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent || '') }}
+                      style={{
+                        fontFamily: 'Arial, sans-serif',
+                        fontSize: '13px',
+                        lineHeight: '1.5',
+                        color: '#222',
+                      }}
+                    />
                   </div>
                 </div>
                 <div>
