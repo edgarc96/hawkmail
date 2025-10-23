@@ -12,94 +12,119 @@ export default function TicketsPage() {
   const router = useRouter();
   const { refreshTickets, setTicketStatuses, setTicketPriorities } = useTicketStore();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize ticket statuses and priorities
-    setTicketStatuses([
-      { id: "new", name: "New", color: "#03363d", order: 1, isDefault: true, isResolved: false },
-      { id: "open", name: "Open", color: "#0e7c90", order: 2, isDefault: false, isResolved: false },
-      { id: "pending", name: "Pending", color: "#f7931e", order: 3, isDefault: false, isResolved: false },
-      { id: "solved", name: "Solved", color: "#2e7d32", order: 4, isDefault: false, isResolved: true },
-      { id: "closed", name: "Closed", color: "#6c757d", order: 5, isDefault: false, isResolved: true },
-    ]);
-
-    setTicketPriorities([
-      { id: "low", name: "Low", color: "#6c757d", order: 1, isDefault: false, urgency: 1 },
-      { id: "medium", name: "Medium", color: "#f7931e", order: 2, isDefault: true, urgency: 2 },
-      { id: "high", name: "High", color: "#f57c00", order: 3, isDefault: false, urgency: 3 },
-      { id: "urgent", name: "Urgent", color: "#d32f2f", order: 4, isDefault: false, urgency: 4 },
-    ]);
-
-    // In a real app, we would fetch tickets from the API
-    // For now, we will create some mock data
-    const mockTickets = [
-      {
-        id: "ticket-1",
-        subject: "Issue with login functionality",
-        description: "Customer reports being unable to log in to their account despite using correct credentials.",
-        status: { id: "new", name: "New", color: "#03363d", order: 1, isDefault: true, isResolved: false },
-        priority: { id: "high", name: "High", color: "#f57c00", order: 3, isDefault: false, urgency: 3 },
-        assigneeId: "agent-1",
-        customerId: "customer-1",
-        createdBy: "system",
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        resolvedAt: undefined,
-        tags: ["login", "authentication"],
-        customFields: {},
-        isResolved: false,
-        slaDeadline: new Date(Date.now() + 8 * 60 * 60 * 1000),
-        firstReplyAt: undefined,
-        lastReplyAt: undefined,
-        threadId: "thread-1",
-      },
-      {
-        id: "ticket-2",
-        subject: "Request for feature enhancement",
-        description: "Customer would like to see a dark mode option added to the application.",
-        status: { id: "open", name: "Open", color: "#0e7c90", order: 2, isDefault: false, isResolved: false },
-        priority: { id: "medium", name: "Medium", color: "#f7931e", order: 2, isDefault: true, urgency: 2 },
-        assigneeId: "agent-2",
-        customerId: "customer-2",
-        createdBy: "customer-2",
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        resolvedAt: undefined,
-        tags: ["feature-request", "ui"],
-        customFields: {},
-        isResolved: false,
-        slaDeadline: new Date(Date.now() + 48 * 60 * 60 * 1000),
-        firstReplyAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
-        lastReplyAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-        threadId: "thread-2",
-      },
-      {
-        id: "ticket-3",
-        subject: "Billing inquiry",
-        description: "Customer has questions about their recent invoice and payment method.",
-        status: { id: "pending", name: "Pending", color: "#f7931e", order: 3, isDefault: false, isResolved: false },
-        priority: { id: "low", name: "Low", color: "#6c757d", order: 1, isDefault: false, urgency: 1 },
-        assigneeId: "agent-3",
-        customerId: "customer-3",
-        createdBy: "customer-3",
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        resolvedAt: undefined,
-        tags: ["billing", "payment"],
-        customFields: {},
-        isResolved: false,
-        slaDeadline: new Date(Date.now() + 72 * 60 * 60 * 1000),
-        firstReplyAt: new Date(Date.now() - 70 * 60 * 60 * 1000),
-        lastReplyAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        threadId: "thread-3",
-      },
-    ];
-
-    useTicketStore.getState().setTickets(mockTickets);
+    loadTickets();
   }, [setTicketStatuses, setTicketPriorities]);
+
+  async function loadTickets() {
+    try {
+      setIsLoading(true);
+      
+      // Initialize ticket statuses and priorities
+      setTicketStatuses([
+        { id: "new", name: "New", color: "#03363d", order: 1, isDefault: true, isResolved: false },
+        { id: "open", name: "Open", color: "#0e7c90", order: 2, isDefault: false, isResolved: false },
+        { id: "pending", name: "Pending", color: "#f7931e", order: 3, isDefault: false, isResolved: false },
+        { id: "replied", name: "Replied", color: "#2196f3", order: 4, isDefault: false, isResolved: false },
+        { id: "solved", name: "Solved", color: "#2e7d32", order: 5, isDefault: false, isResolved: true },
+        { id: "closed", name: "Closed", color: "#6c757d", order: 6, isDefault: false, isResolved: true },
+      ]);
+
+      setTicketPriorities([
+        { id: "low", name: "Low", color: "#6c757d", order: 1, isDefault: false, urgency: 1 },
+        { id: "medium", name: "Medium", color: "#f7931e", order: 2, isDefault: true, urgency: 2 },
+        { id: "high", name: "High", color: "#f57c00", order: 3, isDefault: false, urgency: 3 },
+        { id: "urgent", name: "Urgent", color: "#d32f2f", order: 4, isDefault: false, urgency: 4 },
+      ]);
+
+      // Fetch real tickets from API
+      // Note: Using direct DB query for now since /api/emails requires auth
+      const response = await fetch('/api/tickets/list');
+      if (!response.ok) {
+        console.error('Failed to fetch from API, using empty array');
+        useTicketStore.getState().setTickets([]);
+        return;
+      }
+      
+      const emailsData = await response.json();
+      
+      // Transform emails to tickets format
+      const tickets = emailsData.map((email: any) => ({
+        id: email.id.toString(),
+        subject: email.subject,
+        description: email.bodyContent,
+        status: {
+          id: email.status,
+          name: email.status.charAt(0).toUpperCase() + email.status.slice(1),
+          color: getStatusColor(email.status),
+          order: 1,
+          isDefault: false,
+          isResolved: email.isResolved,
+        },
+        priority: {
+          id: email.priority,
+          name: email.priority.charAt(0).toUpperCase() + email.priority.slice(1),
+          color: getPriorityColor(email.priority),
+          order: 1,
+          isDefault: false,
+          urgency: getPriorityUrgency(email.priority),
+        },
+        assigneeId: email.assignedTo?.toString(),
+        customerId: email.senderEmail,
+        createdBy: email.senderEmail,
+        createdAt: new Date(email.receivedAt),
+        updatedAt: new Date(email.createdAt),
+        dueDate: email.slaDeadline ? new Date(email.slaDeadline) : undefined,
+        resolvedAt: undefined,
+        tags: [],
+        customFields: {},
+        isResolved: email.isResolved,
+        slaDeadline: new Date(email.slaDeadline),
+        firstReplyAt: email.firstReplyAt ? new Date(email.firstReplyAt) : undefined,
+        lastReplyAt: undefined,
+        threadId: email.threadId || email.id.toString(),
+      }));
+
+      useTicketStore.getState().setTickets(tickets);
+    } catch (error) {
+      console.error('Error loading tickets:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function getStatusColor(status: string): string {
+    const colors: Record<string, string> = {
+      pending: '#f7931e',
+      open: '#0e7c90',
+      replied: '#2196f3',
+      solved: '#2e7d32',
+      closed: '#6c757d',
+    };
+    return colors[status] || '#6c757d';
+  }
+
+  function getPriorityColor(priority: string): string {
+    const colors: Record<string, string> = {
+      low: '#6c757d',
+      medium: '#f7931e',
+      high: '#f57c00',
+      urgent: '#d32f2f',
+    };
+    return colors[priority] || '#6c757d';
+  }
+
+  function getPriorityUrgency(priority: string): number {
+    const urgency: Record<string, number> = {
+      low: 1,
+      medium: 2,
+      high: 3,
+      urgent: 4,
+    };
+    return urgency[priority] || 2;
+  }
 
   const handleTicketSelect = (ticketId: string) => {
     setSelectedTicketId(ticketId);

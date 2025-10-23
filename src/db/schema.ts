@@ -284,3 +284,86 @@ export const subscriptions = sqliteTable('subscriptions', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
 });
+
+// ============================================================================
+// ZENDESK-STYLE TICKET SYSTEM TABLES
+// ============================================================================
+
+// Ticket messages with email threading support
+export const ticketMessages = sqliteTable('ticket_messages', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ticketId: text('ticket_id').notNull(), // Reference to emails.id or tickets.id
+  threadId: text('thread_id').notNull(), // Email thread ID
+  parentId: integer('parent_id'), // For threading - references another ticket_messages.id
+  isInternal: integer('is_internal', { mode: 'boolean' }).notNull().default(false),
+  senderId: text('sender_id'), // User ID if internal agent
+  senderName: text('sender_name').notNull(),
+  senderEmail: text('sender_email').notNull(),
+  recipientEmail: text('recipient_email').notNull(),
+  subject: text('subject'),
+  htmlContent: text('html_content'), // Sanitized HTML body
+  textContent: text('text_content'), // Plain text fallback
+  rawHeaders: text('raw_headers'), // JSON with all email headers
+  messageId: text('message_id'), // Email Message-ID header
+  inReplyTo: text('in_reply_to'), // Email In-Reply-To header
+  references: text('references'), // Email References header (comma-separated)
+  timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});
+
+// Ticket attachments with inline image support
+export const ticketAttachments = sqliteTable('ticket_attachments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  messageId: integer('message_id').references(() => ticketMessages.id, { onDelete: 'cascade' }),
+  ticketId: text('ticket_id').notNull(),
+  filename: text('filename').notNull(),
+  contentType: text('content_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
+  storageUrl: text('storage_url').notNull(), // S3 URL or local path
+  storageProvider: text('storage_provider').notNull().default('local'), // 'local', 's3', 'gmail'
+  externalId: text('external_id'), // Gmail attachment ID or S3 key
+  isInline: integer('is_inline', { mode: 'boolean' }).notNull().default(false),
+  contentId: text('content_id'), // For inline images (cid:)
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});
+
+// Ticket events for activity timeline
+export const ticketEvents = sqliteTable('ticket_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ticketId: text('ticket_id').notNull(),
+  eventType: text('event_type').notNull(), // 'created', 'status_changed', 'assigned', 'replied', 'note_added', etc.
+  title: text('title').notNull(),
+  description: text('description'),
+  metadata: text('metadata'), // JSON with event-specific data
+  createdBy: text('created_by'), // User ID who triggered event
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});
+
+// Automation rules for ticket management
+export const automationRules = sqliteTable('automation_rules', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  triggerType: text('trigger_type').notNull(), // 'email_received', 'status_changed', 'time_based'
+  conditions: text('conditions').notNull(), // JSON array of conditions
+  actions: text('actions').notNull(), // JSON array of actions to execute
+  priority: integer('priority').notNull().default(0), // Higher priority runs first
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});
+
+// Ticket macros for quick responses
+export const ticketMacros = sqliteTable('ticket_macros', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  shortcut: text('shortcut'), // e.g., "/greeting"
+  content: text('content').notNull(),
+  actions: text('actions'), // JSON: [{type: 'status', value: 'solved'}]
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  usageCount: integer('usage_count').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
+});

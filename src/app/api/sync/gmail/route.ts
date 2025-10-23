@@ -41,6 +41,52 @@ function extractBodies(payload: any): { html?: string; text?: string } {
   return {};
 }
 
+// Extract attachments from Gmail payload
+interface GmailAttachment {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  isInline: boolean;
+  contentId?: string;
+}
+
+function extractAttachments(payload: any): GmailAttachment[] {
+  const attachments: GmailAttachment[] = [];
+  
+  function walk(part: any) {
+    if (!part) return;
+    
+    // Check if this part has an attachment
+    if (part.filename && part.body?.attachmentId) {
+      const contentDisposition = part.headers?.find(
+        (h: any) => h.name?.toLowerCase() === 'content-disposition'
+      )?.value || '';
+      
+      const contentId = part.headers?.find(
+        (h: any) => h.name?.toLowerCase() === 'content-id'
+      )?.value || '';
+      
+      attachments.push({
+        attachmentId: part.body.attachmentId,
+        filename: part.filename,
+        mimeType: part.mimeType || 'application/octet-stream',
+        sizeBytes: part.body.size || 0,
+        isInline: contentDisposition.toLowerCase().includes('inline'),
+        contentId: contentId.replace(/[<>]/g, ''), // Remove < > brackets
+      });
+    }
+    
+    // Recursively walk parts
+    if (Array.isArray(part.parts)) {
+      part.parts.forEach(walk);
+    }
+  }
+  
+  walk(payload);
+  return attachments;
+}
+
 // Simple plaintext -> HTML conversion with quoting and linkification
 function textToHtml(text: string): string {
   if (!text) return "";
@@ -167,11 +213,22 @@ export async function POST(req: NextRequest) {
         const subject = headers.find(h => h.name === "Subject")?.value || "";
         const date = headers.find(h => h.name === "Date")?.value || "";
         
+        // ✨ NEW: Extract threading headers for proper email threading
+        const messageId = headers.find(h => h.name === "Message-ID")?.value || "";
+        const inReplyTo = headers.find(h => h.name === "In-Reply-To")?.value || "";
+        const references = headers.find(h => h.name === "References")?.value || "";
+        const threadId = message.data.threadId || msg.id;
+        
         console.log(`📧 Email details - From: ${from}, To: ${to}, Subject: "${subject}", Date: ${date}`);
+        console.log(`🔗 Threading - Thread: ${threadId}, MessageID: ${messageId}, InReplyTo: ${inReplyTo}`);
 
         // Get message body preferring HTML, with safe fallbacks
         const { html, text } = extractBodies(message.data.payload);
         let body = html || textToHtml(text || "");
+        
+        // ✨ NEW: Extract attachments
+        const attachments = extractAttachments(message.data.payload);
+        console.log(`📎 Found ${attachments.length} attachment(s)`);
 
         // Check if email already exists
         const existingEmail = await db
@@ -186,6 +243,17 @@ export async function POST(req: NextRequest) {
           // Create email in database
           console.log(`💾 Inserting NEW email into database - Subject: "${subject}"`);
           
+          // Store threading headers in rawHeaders as JSON
+          const rawHeaders = JSON.stringify({
+            messageId,
+            inReplyTo,
+            references,
+            from,
+            to,
+            subject,
+            date,
+          });
+          
           await db.insert(emails).values({
             senderEmail: from,
             recipientEmail: to || emailProvider.email,
@@ -199,6 +267,8 @@ export async function POST(req: NextRequest) {
             externalId: msg.id,
             providerId: emailProvider.id,
             userId: emailProvider.userId,
+            threadId: threadId,
+            rawHeaders: rawHeaders,
           });
 
           processedCount++;
