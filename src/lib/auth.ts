@@ -30,7 +30,9 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      redirectUri: `${appUrl}/api/auth/callback/google`,
+      redirectURI: `${appUrl}/api/auth/callback/google`,
+      // Add additional Google OAuth configuration
+      scope: 'openid email profile',
     },
   } : {},
   trustedOrigins: async (request) => {
