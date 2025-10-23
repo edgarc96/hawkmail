@@ -7,7 +7,7 @@ interface EmailRendererProps {
   className?: string;
 }
 
-export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProps) {
+export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProps): JSX.Element {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProp
     
     // Write the processed HTML to the iframe
     doc.open();
-    doc.write(\`
+    doc.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -118,23 +118,23 @@ export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProp
           </style>
         </head>
         <body>
-          \${processedHTML}
+          ${processedHTML}
         </body>
       </html>
-    \`);
+    `);
     doc.close();
   }, [htmlContent]);
 
   if (!htmlContent) {
     return (
-      <div className={\`text-gray-500 italic \${className}\`}>
+      <div className={`text-gray-500 italic ${className}`}>
         No email content available
       </div>
     );
   }
 
   return (
-    <div className={\`w-full \${className}\`}>
+    <div className={`w-full ${className}`}>
       <iframe
         ref={iframeRef}
         className="w-full h-full min-h-[400px] border-0 rounded-lg"
