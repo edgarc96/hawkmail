@@ -6,10 +6,10 @@ import { google } from 'googleapis';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = params.id;
+    const { id: ticketId } = await params;
     const { content, isInternal, recipientEmail, userId, userName, userEmail } = await req.json();
     
     if (!content || !content.trim()) {

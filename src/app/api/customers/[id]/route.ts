@@ -5,10 +5,10 @@ import { eq, and, count } from 'drizzle-orm';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const customerId = params.id;
+    const { id: customerId } = await params;
     
     // For now, we're using email as customer identifier
     // In a real system, you'd have a separate customers table
