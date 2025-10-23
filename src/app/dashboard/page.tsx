@@ -2300,6 +2300,53 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* Clear Emails Section */}
+              <div className="rounded-lg border border-red-500/20 bg-background p-5">
+                <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                  <AlertCircle size={24} className="text-red-500" />
+                  Email Management
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900/30">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      <strong className="text-red-600 dark:text-red-400">Warning:</strong> This will permanently delete all synced emails from the database. 
+                      You'll need to sync again to re-download them with full content.
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Use this if your emails don't have content (showing "body_content" text). 
+                      After clearing, sync again to get emails with full message content.
+                    </p>
+                    <Button
+                      onClick={async () => {
+                        if (!confirm('Are you sure you want to delete ALL emails? This cannot be undone.')) {
+                          return;
+                        }
+                        try {
+                          const token = localStorage.getItem("bearer_token");
+                          const response = await fetch('/api/emails/clear', {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${token}` }
+                          });
+                          if (response.ok) {
+                            toast.success('All emails cleared. Sync now to get emails with content!');
+                            fetchDashboardData(false);
+                          } else {
+                            throw new Error('Failed to clear emails');
+                          }
+                        } catch (error) {
+                          toast.error('Failed to clear emails');
+                        }
+                      }}
+                      variant="destructive"
+                      className="w-full md:w-auto"
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                      Clear All Emails
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
               {/* Account Information */}
               <div className="rounded-lg border border-primary/20 bg-background p-5">
                 <h2 className="text-xl font-bold text-foreground mb-6">Account Information</h2>
