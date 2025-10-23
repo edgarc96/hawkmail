@@ -10,6 +10,12 @@ const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
   'http://localhost:3000';
 
+// For debugging
+console.log('Better Auth URL:', appUrl);
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Google Client ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Not set');
+console.log('Google Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'Set' : 'Not set');
+
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || 'fallback-secret-key-for-development-only',
   baseURL: appUrl,
@@ -24,6 +30,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri: `${appUrl}/api/auth/callback/google`,
     },
   } : {},
   trustedOrigins: async (request) => {
@@ -51,6 +58,11 @@ export const auth = betterAuth({
     
     // In production, allow Vercel preview deployments
     if (origin.match(/^https:\/\/time-to-reply-.*\.vercel\.app$/)) {
+      return [...baseOrigins, origin];
+    }
+    
+    // Also allow the specific deployment URL
+    if (origin === 'https://time-to-reply-dked27ub8-eddies-projects.vercel.app') {
       return [...baseOrigins, origin];
     }
     
