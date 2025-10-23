@@ -25,6 +25,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer } from "recharts";
 
+// Helper function to convert HTML to plain text
+function htmlToPlainText(html: string): string {
+  if (!html) return '';
+  
+  // Replace common HTML tags with appropriate line breaks
+  let text = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<h[1-6][^>]*>/gi, '')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<td[^>]*>/gi, '\t')
+    .replace(/<\/td>/gi, '')
+    .replace(/<[^>]+>/g, ''); // Remove all other HTML tags
+  
+  // Decode HTML entities
+  if (typeof document !== 'undefined') {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    text = textarea.value;
+  }
+  
+  // Clean up excessive whitespace
+  text = text
+    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
+    .replace(/[ \t]+/g, ' ') // Multiple spaces to single space
+    .trim();
+  
+  return text;
+}
+
 interface DashboardSummary {
   totalEmails: number;
   pendingEmails: number;
@@ -3080,7 +3116,7 @@ export default function DashboardPage() {
                   </label>
                   <div className="p-6 bg-slate-800/80 rounded-xl border border-slate-700/50 max-h-[400px] overflow-y-auto shadow-inner">
                     <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
-                      {selectedEmail.bodyContent}
+                      {htmlToPlainText(selectedEmail.bodyContent)}
                     </div>
                   </div>
                 </div>
@@ -3194,7 +3230,7 @@ export default function DashboardPage() {
                 </label>
                 <div className="p-4 bg-slate-800/60 rounded-lg border border-slate-700/50 max-h-[200px] overflow-y-auto">
                   <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
-                    {selectedEmail.bodyContent}
+                    {htmlToPlainText(selectedEmail.bodyContent)}
                   </div>
                 </div>
               </div>

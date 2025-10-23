@@ -8,6 +8,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+// Helper function to convert HTML to plain text
+function htmlToPlainText(html: string): string {
+  if (!html) return '';
+  
+  // Replace common HTML tags with appropriate line breaks
+  let text = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<h[1-6][^>]*>/gi, '')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<td[^>]*>/gi, '\t')
+    .replace(/<\/td>/gi, '')
+    .replace(/<[^>]+>/g, ''); // Remove all other HTML tags
+  
+  // Decode HTML entities
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  text = textarea.value;
+  
+  // Clean up excessive whitespace
+  text = text
+    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
+    .replace(/[ \t]+/g, ' ') // Multiple spaces to single space
+    .trim();
+  
+  return text;
+}
+
 interface Email {
   id: number;
   subject: string;
@@ -243,7 +277,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </label>
               <div className="mt-2 p-6 bg-slate-800/80 rounded-xl border border-slate-700/50 max-h-[500px] overflow-y-auto shadow-inner">
                 <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
-                  {email.bodyContent}
+                  {htmlToPlainText(email.bodyContent)}
                 </div>
               </div>
             </div>
@@ -375,7 +409,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                   </label>
                   <div className="p-4 bg-gradient-to-br from-[#0f172a]/60 to-[#1a0f2e]/40 rounded-lg border border-[#4ECDC4]/20 max-h-[200px] overflow-y-auto">
                     <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
-                      {email.bodyContent}
+                      {htmlToPlainText(email.bodyContent || '')}
                     </div>
                   </div>
                 </div>
