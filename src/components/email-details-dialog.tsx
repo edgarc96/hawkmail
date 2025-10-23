@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { EmailRenderer } from "@/components/email-renderer";
 
 // Helper function to sanitize and prepare HTML for safe rendering
 function sanitizeHtml(html: string): string {
@@ -325,7 +324,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <p className="text-white text-lg mt-1 font-medium">{email.subject}</p>
           </div>
 
-          {/* Email Content - Renderizado profesional con EmailRenderer */}
+          {/* Email Content - Renderizado como Gmail con HTML */}
           {email.bodyContent && (
             <div>
               <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
@@ -333,7 +332,16 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                 Email Content
               </label>
               <div className="mt-2 p-6 bg-white rounded-xl border border-slate-300 max-h-[500px] overflow-y-auto shadow-lg">
-                <EmailRenderer htmlContent={email.bodyContent} />
+                <div 
+                  className="email-content"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent) }}
+                  style={{
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    color: '#222',
+                  }}
+                />
               </div>
             </div>
           )}
@@ -456,14 +464,23 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Button>
             ) : (
               <div className="space-y-4">
-                {/* Original Email Preview - Renderizado profesional con EmailRenderer */}
+                {/* Original Email Preview - Renderizado como Gmail */}
                 <div>
                   <label className="text-[#4ECDC4] text-sm font-semibold flex items-center gap-2 mb-2">
                     <Mail size={16} />
                     Original Message
                   </label>
                   <div className="p-4 bg-white rounded-lg border border-slate-300 max-h-[200px] overflow-y-auto shadow-md">
-                    <EmailRenderer htmlContent={email.bodyContent || ''} />
+                    <div 
+                      className="email-content"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent || '') }}
+                      style={{
+                        fontFamily: 'Arial, sans-serif',
+                        fontSize: '13px',
+                        lineHeight: '1.5',
+                        color: '#222',
+                      }}
+                    />
                   </div>
                 </div>
                 <div>
