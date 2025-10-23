@@ -268,16 +268,20 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <p className="text-white text-lg mt-1 font-medium">{email.subject}</p>
           </div>
 
-          {/* Email Content - Mejorado y más grande */}
+          {/* Email Content - Optimizado para mejor legibilidad y experiencia visual */}
           {email.bodyContent && (
             <div>
               <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
                 <Mail size={16} />
                 Email Content
               </label>
-              <div className="mt-2 p-6 bg-slate-800/80 rounded-xl border border-slate-700/50 max-h-[500px] overflow-y-auto shadow-inner">
+              <div className="mt-2 p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 rounded-xl border border-slate-700/50 max-h-[500px] overflow-y-auto shadow-inner backdrop-blur-sm">
                 <div className="text-white whitespace-pre-wrap text-base leading-relaxed font-sans">
-                  {htmlToPlainText(email.bodyContent)}
+                  <div className="prose prose-invert prose-slate max-w-none">
+                    <div className="text-[#e2e8f0] leading-[1.7] tracking-[0.01em]">
+                      {htmlToPlainText(email.bodyContent)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -401,15 +405,17 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Button>
             ) : (
               <div className="space-y-4">
-                {/* Original Email Preview */}
+                {/* Original Email Preview - Mejorado visualmente */}
                 <div>
                   <label className="text-[#4ECDC4] text-sm font-semibold flex items-center gap-2 mb-2">
                     <Mail size={16} />
                     Original Message
                   </label>
-                  <div className="p-4 bg-gradient-to-br from-[#0f172a]/60 to-[#1a0f2e]/40 rounded-lg border border-[#4ECDC4]/20 max-h-[200px] overflow-y-auto">
+                  <div className="p-4 bg-gradient-to-br from-slate-800/70 to-slate-900/70 rounded-lg border border-[#4ECDC4]/30 max-h-[200px] overflow-y-auto backdrop-blur-sm shadow-inner">
                     <div className="text-white/90 whitespace-pre-wrap text-sm leading-relaxed">
-                      {htmlToPlainText(email.bodyContent || '')}
+                      <div className="text-[#cbd5e1] leading-[1.6] tracking-[0.005em]">
+                        {htmlToPlainText(email.bodyContent || '')}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -422,7 +428,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                     placeholder="Type your reply here..."
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
-                    className="min-h-[150px] bg-slate-800/80 border-slate-700/50 text-white placeholder:text-slate-400/60 resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    className="min-h-[150px] bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-slate-700/50 text-white placeholder:text-slate-400/60 resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 backdrop-blur-sm rounded-lg shadow-inner"
                   />
                 </div>
                 <div className="flex gap-2">
