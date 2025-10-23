@@ -4,6 +4,82 @@ import { emails, emailProviders, emailSyncLogs } from "@/db/schema";
 import { google } from "googleapis";
 import { eq } from "drizzle-orm";
 
+// Gmail encodes bodies with base64url. This safely decodes to UTF-8.
+function decodeBase64Url(data: string): string {
+  try {
+    return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8");
+  } catch {
+    return "";
+  }
+}
+
+// Recursively walk the Gmail payload to extract html/text bodies
+function extractBodies(payload: any): { html?: string; text?: string } {
+  if (!payload) return {};
+
+  // Direct body
+  if (payload.body?.data && typeof payload.mimeType === "string") {
+    const decoded = decodeBase64Url(payload.body.data);
+    if (payload.mimeType === "text/html") return { html: decoded };
+    if (payload.mimeType === "text/plain") return { text: decoded };
+  }
+
+  // Parts (multipart/*)
+  if (Array.isArray(payload.parts)) {
+    let html: string | undefined;
+    let text: string | undefined;
+    for (const part of payload.parts) {
+      const child = extractBodies(part);
+      // Prefer html but keep text as fallback
+      if (!html && child.html) html = child.html;
+      if (!text && child.text) text = child.text;
+      if (html && text) break;
+    }
+    return { html, text };
+  }
+
+  return {};
+}
+
+// Simple plaintext -> HTML conversion with quoting and linkification
+function textToHtml(text: string): string {
+  if (!text) return "";
+
+  // Escape HTML
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Convert URLs to links
+  const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/gi;
+  const withLinks = escaped.replace(urlRegex, (m) => {
+    const href = m.startsWith("http") ? m : `http://${m}`;
+    return `<a href="${href}" target="_blank" rel="noreferrer noopener">${m}</a>`;
+  });
+
+  // Handle quote blocks (lines starting with '>')
+  const lines = withLinks.split(/\r?\n/);
+  const out: string[] = [];
+  let inQuote = false;
+  for (const line of lines) {
+    const isQuote = /^(&gt;|>)+/.test(line);
+    if (isQuote && !inQuote) {
+      inQuote = true;
+      out.push('<blockquote style="border-left:3px solid #e2e8f0;margin:0.5em 0;padding-left:0.8em;color:#64748b;">');
+    }
+    if (!isQuote && inQuote) {
+      inQuote = false;
+      out.push("</blockquote>");
+    }
+    out.push(line.replace(/^(&gt;|>)+\s?/, ""));
+  }
+  if (inQuote) out.push("</blockquote>");
+
+  // Paragraph/line breaks
+  return out.join("<br>");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { providerId } = await req.json();
@@ -93,16 +169,9 @@ export async function POST(req: NextRequest) {
         
         console.log(`📧 Email details - From: ${from}, To: ${to}, Subject: "${subject}", Date: ${date}`);
 
-        // Get message body
-        let body = "";
-        if (message.data.payload?.body?.data) {
-          body = Buffer.from(message.data.payload.body.data, "base64").toString("utf-8");
-        } else if (message.data.payload?.parts) {
-          const textPart = message.data.payload.parts.find(part => part.mimeType === "text/plain");
-          if (textPart?.body?.data) {
-            body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
-          }
-        }
+        // Get message body preferring HTML, with safe fallbacks
+        const { html, text } = extractBodies(message.data.payload);
+        let body = html || textToHtml(text || "");
 
         // Check if email already exists
         const existingEmail = await db

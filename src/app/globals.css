@@ -79,6 +79,28 @@
   --sidebar-accent-foreground: oklch(0.25 0.025 45);
   --sidebar-border: oklch(0.90 0.015 50);
   --sidebar-ring: oklch(0.68 0.08 45);
+  
+  /* Zendesk-inspired colors */
+  --zd-primary: #03363d;
+  --zd-primary-light: #0e7c90;
+  --zd-primary-hover: #0a5c6b;
+  --zd-secondary: #f7931e;
+  --zd-secondary-hover: #e17f0f;
+  --zd-success: #2e7d32;
+  --zd-success-hover: #1b5e20;
+  --zd-warning: #f57c00;
+  --zd-warning-hover: #e65100;
+  --zd-danger: #d32f2f;
+  --zd-danger-hover: #c62828;
+  --zd-neutral-100: #f8f9fa;
+  --zd-neutral-200: #e9ecef;
+  --zd-neutral-300: #dee2e6;
+  --zd-neutral-400: #ced4da;
+  --zd-neutral-500: #adb5bd;
+  --zd-neutral-600: #6c757d;
+  --zd-neutral-700: #495057;
+  --zd-neutral-800: #343a40;
+  --zd-neutral-900: #212529;
 }
 
 .dark {
@@ -441,6 +463,90 @@ nextjs-portal {
     position: relative;
     display: inline-block;
     padding: 0 28px;
+  }
+  
+  @layer utilities {
+    .zd-bg-primary {
+      background-color: var(--zd-primary);
+    }
+    .zd-bg-primary-light {
+      background-color: var(--zd-primary-light);
+    }
+    .zd-bg-primary-hover {
+      background-color: var(--zd-primary-hover);
+    }
+    .zd-bg-secondary {
+      background-color: var(--zd-secondary);
+    }
+    .zd-bg-secondary-hover {
+      background-color: var(--zd-secondary-hover);
+    }
+    .zd-bg-success {
+      background-color: var(--zd-success);
+    }
+    .zd-bg-success-hover {
+      background-color: var(--zd-success-hover);
+    }
+    .zd-bg-warning {
+      background-color: var(--zd-warning);
+    }
+    .zd-bg-warning-hover {
+      background-color: var(--zd-warning-hover);
+    }
+    .zd-bg-danger {
+      background-color: var(--zd-danger);
+    }
+    .zd-bg-danger-hover {
+      background-color: var(--zd-danger-hover);
+    }
+    .zd-text-primary {
+      color: var(--zd-primary);
+    }
+    .zd-text-primary-light {
+      color: var(--zd-primary-light);
+    }
+    .zd-text-secondary {
+      color: var(--zd-secondary);
+    }
+    .zd-text-success {
+      color: var(--zd-success);
+    }
+    .zd-text-warning {
+      color: var(--zd-warning);
+    }
+    .zd-text-danger {
+      color: var(--zd-danger);
+    }
+    .zd-border-primary {
+      border-color: var(--zd-primary);
+    }
+    .zd-border-secondary {
+      border-color: var(--zd-secondary);
+    }
+    .zd-border-neutral-200 {
+      border-color: var(--zd-neutral-200);
+    }
+    .zd-border-neutral-300 {
+      border-color: var(--zd-neutral-300);
+    }
+    .zd-bg-neutral-100 {
+      background-color: var(--zd-neutral-100);
+    }
+    .zd-bg-neutral-200 {
+      background-color: var(--zd-neutral-200);
+    }
+    .zd-text-neutral-600 {
+      color: var(--zd-neutral-600);
+    }
+    .zd-text-neutral-700 {
+      color: var(--zd-neutral-700);
+    }
+    .zd-text-neutral-800 {
+      color: var(--zd-neutral-800);
+    }
+    .zd-text-neutral-900 {
+      color: var(--zd-neutral-900);
+    }
   }
   
   .text-accent-bars::before,

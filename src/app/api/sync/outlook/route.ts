@@ -3,6 +3,21 @@ import { db } from "@/db";
 import { emails, emailProviders, emailSyncLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// Minimal plaintext -> HTML for Outlook when contentType is "text"
+function textToHtml(text: string): string {
+  if (!text) return "";
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/gi;
+  const withLinks = escaped.replace(urlRegex, (m) => {
+    const href = m.startsWith("http") ? m : `http://${m}`;
+    return `<a href="${href}" target="_blank" rel="noreferrer noopener">${m}</a>`;
+  });
+  return withLinks.replace(/\r?\n/g, "<br>");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { providerId } = await req.json();
@@ -66,9 +81,14 @@ export async function POST(req: NextRequest) {
           // Extract email body content
           let bodyContent = "";
           if (message.body?.content) {
-            bodyContent = message.body.content;
+            // If Outlook returns plain text, convert it to simple HTML for consistent rendering
+            if (message.body.contentType === "text") {
+              bodyContent = textToHtml(message.body.content);
+            } else {
+              bodyContent = message.body.content;
+            }
           } else if (message.bodyPreview) {
-            bodyContent = message.bodyPreview;
+            bodyContent = textToHtml(message.bodyPreview);
           }
 
           // Create email in database
