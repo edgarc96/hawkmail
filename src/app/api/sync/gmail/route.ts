@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
             senderEmail: from,
             recipientEmail: to || emailProvider.email,
             subject,
-            bodyContent: body,
+            // bodyContent: body, // Column doesn't exist - migration failed
             receivedAt: new Date(date),
             status: "pending",
             priority: "medium",

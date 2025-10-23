@@ -293,6 +293,28 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         const slaDeadline = new Date(receivedAt);
         slaDeadline.setHours(slaDeadline.getHours() + 24);
 
+        // Prepare insert data with explicit typing for LibSQL/Turso compatibility
+        const emailInsertData: any = {
+          userId,
+          subject,
+          senderEmail: from,
+          recipientEmail: to,
+          receivedAt,
+          slaDeadline,
+          status: 'pending' as const,
+          priority: 'medium' as const,
+          isResolved: false,
+          providerId: provider.id,
+          externalId: message.id!,
+          threadId: emailData.data.threadId || null,
+          createdAt: new Date(),
+        };
+        
+        // NOTE: bodyContent NOT added - column doesn't exist in Turso (migration failed)
+        // if (bodyContent) {
+        //   emailInsertData.bodyContent = bodyContent;
+        // }
+
         // Check if email already exists
         const existingEmail = await db
           .select()
@@ -306,34 +328,12 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         if (existingEmail.length === 0) {
           console.log(`💾 [Sync ${syncLogId}] Inserting NEW email - Subject: "${subject.substring(0, 50)}...", From: ${from}`);
           
-          // Prepare insert data with explicit typing for LibSQL/Turso compatibility
-          const emailInsertData: any = {
-            userId,
-            subject,
-            senderEmail: from,
-            recipientEmail: to,
-            receivedAt,
-            slaDeadline,
-            status: 'pending' as const,
-            priority: 'medium' as const,
-            isResolved: false,
-            providerId: provider.id,
-            externalId: message.id!,
-            threadId: emailData.data.threadId || null,
-            createdAt: new Date(),
-          };
-          
-          // Add bodyContent if it exists
-          if (bodyContent) {
-            emailInsertData.bodyContent = bodyContent;
-          }
-          
           console.log(`🔍 [Sync ${syncLogId}] Insert data:`, {
             userId: emailInsertData.userId,
             subject: emailInsertData.subject.substring(0, 30),
             from: emailInsertData.senderEmail.substring(0, 30),
             receivedAt: emailInsertData.receivedAt,
-            isResolved: emailInsertData.isResolved,
+            hasBody: !!emailInsertData.bodyContent,
           });
           
           await db.insert(emails).values(emailInsertData);
