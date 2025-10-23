@@ -7,7 +7,7 @@ interface EmailRendererProps {
   className?: string;
 }
 
-export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProps): JSX.Element {
+export function EmailRenderer({ htmlContent, className = "" }: EmailRendererProps): React.ReactElement {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
