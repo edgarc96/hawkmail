@@ -310,10 +310,10 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           createdAt: new Date(),
         };
         
-        // NOTE: bodyContent NOT added - column doesn't exist in Turso (migration failed)
-        // if (bodyContent) {
-        //   emailInsertData.bodyContent = bodyContent;
-        // }
+        // Add bodyContent if it exists
+        if (bodyContent) {
+          emailInsertData.bodyContent = bodyContent;
+        }
 
         // Check if email already exists
         const existingEmail = await db
