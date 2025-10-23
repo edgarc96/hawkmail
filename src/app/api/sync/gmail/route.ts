@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
             senderEmail: from,
             recipientEmail: to || emailProvider.email,
             subject,
-            // bodyContent: body, // Column doesn't exist in Turso DB yet
+            bodyContent: body,
             receivedAt: new Date(date),
             status: "pending",
             priority: "medium",

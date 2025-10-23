@@ -87,7 +87,7 @@ export const emails = sqliteTable('emails', {
   subject: text('subject').notNull(),
   senderEmail: text('sender_email').notNull(),
   recipientEmail: text('recipient_email').notNull(),
-  // bodyContent: text('body_content'), // TODO: Column doesn't exist in Turso DB yet - add migration first
+  bodyContent: text('body_content'), // Email body content - added via migration
   receivedAt: integer('received_at', { mode: 'timestamp' }).notNull(),
   firstReplyAt: integer('first_reply_at', { mode: 'timestamp' }),
   status: text('status').notNull().default('pending'), // pending/replied/overdue

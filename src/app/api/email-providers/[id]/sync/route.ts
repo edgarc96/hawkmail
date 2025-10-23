@@ -323,11 +323,10 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
             createdAt: new Date(),
           };
           
-          // NOTE: bodyContent NOT added - column doesn't exist in Turso DB
-          // TODO: Add migration to create body_content column, then uncomment:
-          // if (bodyContent) {
-          //   emailInsertData.bodyContent = bodyContent;
-          // }
+          // Add bodyContent if it exists
+          if (bodyContent) {
+            emailInsertData.bodyContent = bodyContent;
+          }
           
           console.log(`🔍 [Sync ${syncLogId}] Insert data:`, {
             userId: emailInsertData.userId,

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
             senderEmail: message.from?.emailAddress?.address || "",
             recipientEmail: message.toRecipients?.[0]?.emailAddress?.address || emailProvider.email,
             subject: message.subject || "",
-            // bodyContent: bodyContent, // Column doesn't exist in Turso DB yet
+            bodyContent: bodyContent,
             receivedAt: new Date(message.receivedDateTime),
             status: "pending",
             priority: message.importance === "high" ? "high" : "medium",
