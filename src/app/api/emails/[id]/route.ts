@@ -37,7 +37,7 @@ export async function GET(
         subject: emails.subject,
         senderEmail: emails.senderEmail,
         recipientEmail: emails.recipientEmail,
-        bodyContent: emails.bodyContent,
+        // bodyContent: emails.bodyContent,
         receivedAt: emails.receivedAt,
         firstReplyAt: emails.firstReplyAt,
         status: emails.status,

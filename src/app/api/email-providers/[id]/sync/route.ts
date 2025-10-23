@@ -310,10 +310,10 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           createdAt: new Date(),
         };
         
-        // Add bodyContent if it exists
-        if (bodyContent) {
-          emailInsertData.bodyContent = bodyContent;
-        }
+        // NOTE: bodyContent disabled - production DB doesn't have column
+        // if (bodyContent) {
+        //   emailInsertData.bodyContent = bodyContent;
+        // }
 
         // Check if email already exists
         const existingEmail = await db
