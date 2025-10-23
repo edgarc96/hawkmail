@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Clock, AlertCircle, CheckCircle, User, Calendar, XCircle, Reply, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-// Helper function to sanitize and prepare HTML for safe rendering
+// Helper function to sanitize and prepare HTML for safe rendering (Zendesk style)
 function sanitizeHtml(html: string): string {
   if (!html) return '';
   
@@ -17,17 +17,31 @@ function sanitizeHtml(html: string): string {
   temp.innerHTML = html;
   
   // Remove script tags and other dangerous elements
-  const scripts = temp.querySelectorAll('script, iframe, object, embed');
-  scripts.forEach(el => el.remove());
+  const dangerousTags = temp.querySelectorAll('script, iframe, object, embed, form');
+  dangerousTags.forEach(el => el.remove());
   
-  // Remove inline event handlers
+  // Remove inline event handlers but preserve safe attributes
   const allElements = temp.querySelectorAll('*');
   allElements.forEach(el => {
     Array.from(el.attributes).forEach(attr => {
+      // Remove event handlers
       if (attr.name.startsWith('on')) {
         el.removeAttribute(attr.name);
       }
+      // Remove javascript: links
+      if (attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:')) {
+        el.removeAttribute(attr.name);
+      }
     });
+    
+    // Ensure images have proper attributes
+    if (el.tagName === 'IMG') {
+      el.setAttribute('loading', 'lazy');
+      // Preserve original dimensions if they exist
+      if (!el.hasAttribute('style')) {
+        el.setAttribute('style', 'max-width: 100%; height: auto; display: block;');
+      }
+    }
   });
   
   return temp.innerHTML;
@@ -63,7 +77,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
   const [replyContent, setReplyContent] = useState("");
   const [showReplyForm, setShowReplyForm] = useState(false);
 
-  // Inject email content styles
+  // Inject email content styles - Zendesk style
   useEffect(() => {
     const styleId = 'email-content-styles';
     if (!document.getElementById(styleId)) {
@@ -73,9 +87,14 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
         .email-content {
           word-wrap: break-word;
           overflow-wrap: break-word;
+          line-height: 1.6;
+        }
+        .email-content * {
+          max-width: 100%;
         }
         .email-content p {
           margin: 0 0 1em 0;
+          line-height: 1.6;
         }
         .email-content p:last-child {
           margin-bottom: 0;
@@ -91,6 +110,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
         .email-content h4, .email-content h5, .email-content h6 {
           margin: 1em 0 0.5em 0;
           font-weight: 600;
+          line-height: 1.3;
         }
         .email-content ul, .email-content ol {
           margin: 0.5em 0;
@@ -98,6 +118,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
         }
         .email-content li {
           margin: 0.25em 0;
+          line-height: 1.6;
         }
         .email-content blockquote {
           margin: 1em 0;
@@ -106,22 +127,41 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
           color: #666;
         }
         .email-content img {
-          max-width: 100%;
-          height: auto;
+          max-width: 100% !important;
+          height: auto !important;
+          display: block;
+          margin: 1em auto;
         }
         .email-content table {
           border-collapse: collapse;
-          margin: 1em 0;
+          margin: 1em auto;
+          max-width: 100%;
         }
         .email-content table td, .email-content table th {
-          border: 1px solid #ddd;
           padding: 8px;
+          vertical-align: top;
         }
         .email-content strong, .email-content b {
           font-weight: 600;
         }
         .email-content em, .email-content i {
           font-style: italic;
+        }
+        /* Center aligned content */
+        .email-content center,
+        .email-content [align="center"] {
+          text-align: center;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        /* Responsive tables */
+        .email-content table[role="presentation"] {
+          width: 100% !important;
+        }
+        /* Email client specific fixes */
+        .email-content div,
+        .email-content td {
+          box-sizing: border-box;
         }
       `;
       document.head.appendChild(style);
@@ -324,24 +364,26 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
             <p className="text-white text-lg mt-1 font-medium">{email.subject}</p>
           </div>
 
-          {/* Email Content - Renderizado como Gmail con HTML */}
+          {/* Email Content - Renderizado tipo Zendesk con HTML completo */}
           {email.bodyContent && (
             <div>
               <label className="text-blue-400 text-sm font-semibold flex items-center gap-2 mb-3">
                 <Mail size={16} />
                 Email Content
               </label>
-              <div className="mt-2 p-6 bg-white rounded-xl border border-slate-300 max-h-[500px] overflow-y-auto shadow-lg">
-                <div 
-                  className="email-content"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent) }}
-                  style={{
-                    fontFamily: 'Arial, sans-serif',
-                    fontSize: '14px',
-                    lineHeight: '1.6',
-                    color: '#222',
-                  }}
-                />
+              <div className="mt-2 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-slate-200 max-h-[600px] overflow-y-auto shadow-lg">
+                <div className="p-8 bg-white rounded-lg">
+                  <div 
+                    className="email-content"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent) }}
+                    style={{
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                      fontSize: '14px',
+                      lineHeight: '1.6',
+                      color: '#333',
+                    }}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -464,23 +506,25 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
               </Button>
             ) : (
               <div className="space-y-4">
-                {/* Original Email Preview - Renderizado como Gmail */}
+                {/* Original Email Preview - Renderizado tipo Zendesk */}
                 <div>
                   <label className="text-[#4ECDC4] text-sm font-semibold flex items-center gap-2 mb-2">
                     <Mail size={16} />
                     Original Message
                   </label>
-                  <div className="p-4 bg-white rounded-lg border border-slate-300 max-h-[200px] overflow-y-auto shadow-md">
-                    <div 
-                      className="email-content"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent || '') }}
-                      style={{
-                        fontFamily: 'Arial, sans-serif',
-                        fontSize: '13px',
-                        lineHeight: '1.5',
-                        color: '#222',
-                      }}
-                    />
+                  <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg border border-slate-200 max-h-[200px] overflow-y-auto shadow-md">
+                    <div className="p-4 bg-white rounded-lg">
+                      <div 
+                        className="email-content"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent || '') }}
+                        style={{
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                          fontSize: '13px',
+                          lineHeight: '1.5',
+                          color: '#333',
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>
