@@ -121,7 +121,57 @@ export function EmailMessageRenderer({
         `;
       }
     } else {
-      // Clean up common email artifacts
+      // STEP 1: Detect and collapse forwarded messages (like Zendesk)
+      const forwardedRegex = /(-{5,}\s*Forwarded message\s*-{5,}|De:|Date:|Subject:|To:)/gi;
+      if (forwardedRegex.test(content)) {
+        // Extract forwarded metadata
+        const lines = content.split(/<br\s*\/?>/gi);
+        let forwardedStart = -1;
+        let mainContentStart = -1;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (/(-{5,}\s*Forwarded message\s*-{5,})/i.test(line)) {
+            forwardedStart = i;
+          } else if (forwardedStart >= 0 && mainContentStart < 0) {
+            // Check if this line is metadata (De:, Date:, Subject:, To:)
+            if (!/^(De|Date|Subject|To):/i.test(line.replace(/<[^>]+>/g, '').trim())) {
+              // First non-metadata line after forwarded header
+              mainContentStart = i;
+              break;
+            }
+          }
+        }
+        
+        if (forwardedStart >= 0 && mainContentStart > forwardedStart) {
+          // Extract metadata lines
+          const metadataLines = lines.slice(forwardedStart + 1, mainContentStart);
+          const mainContent = lines.slice(mainContentStart).join('<br>');
+          
+          // Create collapsed forwarded section
+          const metadataHtml = metadataLines
+            .map(line => line.replace(/<[^>]+>/g, '').trim())
+            .filter(line => line)
+            .join('<br>');
+          
+          content = `
+            <details class="forwarded-message" style="margin: 16px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+              <summary style="cursor: pointer; color: #5f6368; font-size: 13px; font-weight: 500; list-style: none; display: flex; align-items: center; gap: 6px;">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="transform: rotate(0deg); transition: transform 0.2s;">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </svg>
+                Forwarded message
+              </summary>
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #5f6368; line-height: 1.6;">
+                ${metadataHtml}
+              </div>
+            </details>
+            ${mainContent}
+          `;
+        }
+      }
+      
+      // STEP 2: Clean up common email artifacts
       content = content
         // Remove gmail_quote divs but keep the content
         .replace(/<div class="gmail_quote"[^>]*>/gi, '<blockquote class="email-quote">')

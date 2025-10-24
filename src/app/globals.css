@@ -593,6 +593,30 @@ nextjs-portal {
   overflow-wrap: break-word;
 }
 
+/* Custom scrollbar for email content */
+.prose::-webkit-scrollbar,
+.max-h-\[60vh\]::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.prose::-webkit-scrollbar-track,
+.max-h-\[60vh\]::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.prose::-webkit-scrollbar-thumb,
+.max-h-\[60vh\]::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.prose::-webkit-scrollbar-thumb:hover,
+.max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
 .email-content p {
   line-height: 1.5;
   margin: 0 0 0.75em 0;
@@ -752,6 +776,32 @@ nextjs-portal {
 
 .email-content .email-footer details summary::-webkit-details-marker {
   display: none;
+}
+
+/* Forwarded message styles */
+.email-content details.forwarded-message {
+  transition: all 0.2s ease;
+}
+
+.email-content details.forwarded-message[open] {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.email-content details.forwarded-message summary {
+  user-select: none;
+  outline: none;
+}
+
+.email-content details.forwarded-message summary:hover {
+  background: #f1f3f4;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: -8px -12px;
+}
+
+.email-content details.forwarded-message[open] summary svg {
+  transform: rotate(90deg) !important;
 }
 
 /* Remove excessive spacing from email clients */

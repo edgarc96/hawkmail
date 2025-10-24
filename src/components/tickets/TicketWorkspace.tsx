@@ -192,9 +192,9 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="border-t border-gray-100 pt-6">
+              <div className="border-t border-gray-100 pt-6 max-h-[60vh] overflow-y-auto">
                 {sanitizedBody ? (
-                  <div className="prose prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none pr-4">
                     <EmailMessageRenderer htmlContent={ticket.bodyHtml || ""} />
                   </div>
                 ) : (
