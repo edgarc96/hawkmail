@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { emails } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(
   req: NextRequest,
@@ -10,10 +11,23 @@ export async function GET(
   try {
     const { id: ticketId } = await params;
     
+    // Get current authenticated user
+    const user = await getCurrentUser(req);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Fetch ticket only if it belongs to the current user
     const ticket = await db
       .select()
       .from(emails)
-      .where(eq(emails.id, parseInt(ticketId)))
+      .where(
+        and(
+          eq(emails.id, parseInt(ticketId)),
+          eq(emails.userId, user.id)
+        )
+      )
       .limit(1);
       
     if (!ticket.length) {
@@ -38,14 +52,26 @@ export async function PATCH(
     const { id: ticketId } = await params;
     const updates = await req.json();
     
-    // Update ticket
+    // Get current authenticated user
+    const user = await getCurrentUser(req);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Update ticket only if it belongs to the current user
     const updated = await db
       .update(emails)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
-      .where(eq(emails.id, parseInt(ticketId)))
+      .where(
+        and(
+          eq(emails.id, parseInt(ticketId)),
+          eq(emails.userId, user.id)
+        )
+      )
       .returning();
     
     if (!updated.length) {
