@@ -31,18 +31,74 @@ export function EmailMessageRenderer({
     const isPlainText = !/<[^>]+>/.test(content);
     
     if (isPlainText) {
-      // Convert plain text to HTML with proper line breaks
-      content = content
-        .split('\n')
+      // Convert URLs to clickable links
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      
+      // Split content into main body and footer
+      const footerMarkers = [
+        'This email was sent to',
+        'Unsubscribe:',
+        'Email Preferences:',
+        'Contact support at:',
+        '© 202', // Copyright
+        'Use of the service',
+        'All rights reserved'
+      ];
+      
+      let lines = content.split('\n');
+      let footerStartIndex = lines.length;
+      
+      // Find where footer starts
+      for (let i = 0; i < lines.length; i++) {
+        if (footerMarkers.some(marker => lines[i].includes(marker))) {
+          footerStartIndex = i;
+          break;
+        }
+      }
+      
+      // Process only body content (before footer)
+      const bodyLines = lines.slice(0, footerStartIndex);
+      
+      content = bodyLines
         .map(line => {
           if (!line.trim()) return '<br/>';
+          
           // Detect quoted lines (starts with >)
           if (line.trim().startsWith('>')) {
             return `<blockquote class="email-quote">${line.replace(/^>\s*/, '')}</blockquote>`;
           }
-          return `<p>${line}</p>`;
+          
+          // Detect headers (ALL CAPS lines or lines ending with :)
+          if (line.trim().length > 0 && (
+            line.trim() === line.trim().toUpperCase() && line.trim().length < 100 ||
+            (line.trim().endsWith(':') && !line.includes('http'))
+          )) {
+            return `<h3 class="email-heading">${line.trim()}</h3>`;
+          }
+          
+          // Convert URLs to links
+          let processedLine = line.replace(urlRegex, (url) => {
+            // Clean up trailing parentheses
+            let cleanUrl = url.replace(/[\)\s]+$/, '');
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
+          });
+          
+          return `<p>${processedLine}</p>`;
         })
         .join('');
+        
+      // Add collapsed footer if exists
+      if (footerStartIndex < lines.length) {
+        const footerContent = lines.slice(footerStartIndex).join('\n');
+        content += `
+          <div class="email-footer" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+            <details style="cursor: pointer;">
+              <summary style="color: #5f6368; font-size: 12px;">Ver información del email</summary>
+              <div style="margin-top: 10px; color: #5f6368; font-size: 11px; white-space: pre-wrap;">${footerContent}</div>
+            </details>
+          </div>
+        `;
+      }
     } else {
       // Clean up common email artifacts
       content = content

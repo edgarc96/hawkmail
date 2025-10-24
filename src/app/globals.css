@@ -673,6 +673,41 @@ nextjs-portal {
   margin: 15px 0;
 }
 
+.email-content h1,
+.email-content h2,
+.email-content h3,
+.email-content .email-heading {
+  font-weight: 600;
+  color: #202124;
+  margin: 12px 0 8px 0;
+}
+
+.email-content h1 {
+  font-size: 20px;
+}
+
+.email-content h2 {
+  font-size: 18px;
+}
+
+.email-content h3,
+.email-content .email-heading {
+  font-size: 15px;
+}
+
+.email-content .email-footer {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.email-content .email-footer details summary {
+  list-style: none;
+}
+
+.email-content .email-footer details summary::-webkit-details-marker {
+  display: none;
+}
+
 /* Remove excessive spacing from email clients */
 .email-content > div {
   margin: 0;
