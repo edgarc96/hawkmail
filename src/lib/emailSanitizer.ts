@@ -132,16 +132,64 @@ function convertPlainTextToHTML(
 }
 
 /**
+ * Remove email client wrapper tables and divs
+ * Extracts only the actual content from nested layout tables
+ */
+function removeEmailWrappers(html: string): string {
+  // Remove outer wrapper tables that are just for layout
+  // Common patterns:
+  // - width="100%" tables
+  // - tables with align="center"
+  // - nested divs with only layout purposes
+  
+  let cleaned = html;
+  
+  // 1. Remove tables that are 100% width with center alignment (layout tables)
+  cleaned = cleaned.replace(/<table[^>]*width="100%"[^>]*>/gi, '<div class="email-layout">');
+  cleaned = cleaned.replace(/<table[^>]*width="600"[^>]*>/gi, '<div class="email-content-block">');
+  cleaned = cleaned.replace(/<\/table>/gi, '</div>');
+  
+  // 2. Remove tbody tags (not needed for content)
+  cleaned = cleaned.replace(/<\/?tbody[^>]*>/gi, '');
+  
+  // 3. Remove tr and td that are just wrappers (keep content)
+  cleaned = cleaned.replace(/<tr[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<\/tr>/gi, '');
+  cleaned = cleaned.replace(/<td[^>]*>/gi, '<div class="email-cell">');
+  cleaned = cleaned.replace(/<\/td>/gi, '</div>');
+  
+  // 4. Remove excessive nested divs (more than 2 levels deep with no content)
+  cleaned = cleaned.replace(/<div[^>]*>\s*<div[^>]*>\s*<div[^>]*>/gi, '<div>');
+  cleaned = cleaned.replace(/<\/div>\s*<\/div>\s*<\/div>/gi, '</div>');
+  
+  // 5. Remove empty divs
+  cleaned = cleaned.replace(/<div[^>]*>\s*<\/div>/gi, '');
+  
+  // 6. Remove style attributes from layout divs (keep only semantic content styles)
+  cleaned = cleaned.replace(/<div class="email-layout"[^>]*>/gi, '<div>');
+  cleaned = cleaned.replace(/<div class="email-content-block"[^>]*>/gi, '<div>');
+  cleaned = cleaned.replace(/<div class="email-cell"[^>]*>/gi, '<div>');
+  
+  // 7. Collapse multiple consecutive <br> tags
+  cleaned = cleaned.replace(/(<br\s*\/?>\s*){3,}/gi, '<br/><br/>');
+  
+  return cleaned;
+}
+
+/**
  * Sanitize HTML content (not plain text)
  */
 function sanitizeHTMLContent(
   html: string,
   options: SanitizeOptions
 ): string {
-  // Step 1: Detect and collapse forwarded messages
+  // Step 1: Remove email client wrapper tables (Gmail, Outlook, Vercel, etc.)
+  html = removeEmailWrappers(html);
+
+  // Step 2: Detect and collapse forwarded messages
   html = detectAndCollapseForwarded(html);
 
-  // Step 2: Clean with sanitize-html
+  // Step 3: Clean with sanitize-html
   let cleanHtml = sanitizeHtml(html, {
     allowedTags: [
       'p', 'div', 'span', 'br', 'strong', 'em', 'u', 'a', 'img',
@@ -209,10 +257,11 @@ function sanitizeHTMLContent(
     },
   });
 
-  // Step 3: Remove dangerous inline styles
+  // Step 4: Remove dangerous inline styles and layout styles
   cleanHtml = removeDangerousStyles(cleanHtml);
+  cleanHtml = removeLayoutStyles(cleanHtml);
 
-  // Step 4: Normalize Gmail-specific classes
+  // Step 5: Normalize Gmail-specific classes
   cleanHtml = cleanHtml.replace(/<div class="gmail_quote"[^>]*>/gi, '<blockquote class="email-quote">');
   cleanHtml = cleanHtml.replace(/<div class="gmail_signature"[^>]*>/gi, '<div class="email-signature">');
 
@@ -407,6 +456,42 @@ function removeDangerousStyles(html: string): string {
 }
 
 /**
+ * Remove layout styles that create visual containers
+ * (borders, backgrounds, padding that make it look like nested boxes)
+ */
+function removeLayoutStyles(html: string): string {
+  let cleaned = html;
+  
+  // Remove common layout styles from divs
+  const layoutProps = [
+    'border:',
+    'border-collapse:',
+    'width: 100%',
+    'width:100%',
+    'cellpadding',
+    'cellspacing',
+    'align="center"',
+    'align="left"',
+    'align="right"',
+  ];
+  
+  layoutProps.forEach(prop => {
+    const regex = new RegExp(`${prop.replace(':', '\\s*:')}[^;"]*;?`, 'gi');
+    cleaned = cleaned.replace(regex, '');
+  });
+  
+  // Remove inline styles that create box-like appearance
+  cleaned = cleaned.replace(/style="[^"]*margin:\s*\d+px[^"]*"/gi, '');
+  cleaned = cleaned.replace(/style="[^"]*padding:\s*\d+px[^"]*"/gi, '');
+  
+  // Remove empty style attributes
+  cleaned = cleaned.replace(/style=""\s*/gi, '');
+  cleaned = cleaned.replace(/style="\s*"\s*/gi, '');
+  
+  return cleaned;
+}
+
+/**
  * Escape HTML special characters
  */
 function escapeHtml(text: string): string {
@@ -435,6 +520,20 @@ function injectEmailStyles(content: string): string {
   max-width: 100%;
   overflow-wrap: break-word;
   word-wrap: break-word;
+}
+
+/* Remove borders and excessive padding from nested elements */
+.email-content > div,
+.email-content > div > div {
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Only add spacing to content elements, not layout containers */
+.email-content > div > p,
+.email-content > div > div > p {
+  margin: 0 0 0.75em 0;
 }
 
 .email-content p {

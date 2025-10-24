@@ -804,11 +804,33 @@ nextjs-portal {
   transform: rotate(90deg) !important;
 }
 
-/* Remove excessive spacing from email clients */
+/* Remove excessive spacing and borders from email clients */
 .email-content > div {
-  margin: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
 .email-content > div > div {
-  margin: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Remove table borders and spacing */
+.email-content table {
+  border: none !important;
+  border-collapse: collapse !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.email-content table td {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.email-content table tr {
+  border: none !important;
 }
