@@ -31,7 +31,7 @@ export function EmailMessageRenderer({
     const isPlainText = !/<[^>]+>/.test(content);
     
     if (isPlainText) {
-      // Convert URLs to clickable links
+      // Convert URLs to clickable links with smart truncation
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       
       // Split content into main body and footer
@@ -40,7 +40,7 @@ export function EmailMessageRenderer({
         'Unsubscribe:',
         'Email Preferences:',
         'Contact support at:',
-        '© 202', // Copyright
+        ' 202', // Copyright
         'Use of the service',
         'All rights reserved'
       ];
@@ -76,11 +76,32 @@ export function EmailMessageRenderer({
             return `<h3 class="email-heading">${line.trim()}</h3>`;
           }
           
-          // Convert URLs to links
+          // Convert URLs to links with smart display
           let processedLine = line.replace(urlRegex, (url) => {
-            // Clean up trailing parentheses
+            // Clean up trailing characters
             let cleanUrl = url.replace(/[\)\s]+$/, '');
-            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
+            
+            // Truncate long tracking URLs for display
+            let displayUrl = cleanUrl;
+            if (cleanUrl.length > 60) {
+              // Check if it's a tracking URL (sendgrid, mailchimp, etc.)
+              if (cleanUrl.includes('sendgrid.net') || 
+                  cleanUrl.includes('click.') || 
+                  cleanUrl.includes('/click?') ||
+                  cleanUrl.includes('upn=')) {
+                // Extract domain for display
+                try {
+                  const urlObj = new URL(cleanUrl);
+                  displayUrl = `${urlObj.hostname}...`;
+                } catch {
+                  displayUrl = cleanUrl.substring(0, 40) + '...';
+                }
+              } else {
+                displayUrl = cleanUrl.substring(0, 60) + '...';
+              }
+            }
+            
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" title="${cleanUrl}">${displayUrl}</a>`;
           });
           
           return `<p>${processedLine}</p>`;
@@ -109,9 +130,23 @@ export function EmailMessageRenderer({
         .replace(/\s{2,}/g, ' ')
         // Remove empty paragraphs
         .replace(/<p>\s*<\/p>/gi, '')
-        // Clean inline styles that break layout
-        .replace(/style="[^"]*font-family:[^;"]*;?/gi, 'style="')
-        .replace(/style="[^"]*font-size:[^;"]*;?/gi, 'style="');
+        // Clean inline styles that break layout but preserve important ones
+        .replace(/style="([^"]*?)font-family:[^;"]*;?/gi, 'style="$1')
+        .replace(/style="([^"]*?)font-size:[^;"]*;?/gi, 'style="$1')
+        // Ensure images have proper classes
+        .replace(/<img([^>]*)>/gi, '<img$1 class="email-inline-image">')
+        // Convert tracking URLs in HTML to display versions
+        .replace(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, (match, href, text) => {
+          if (href.length > 60 && (href.includes('sendgrid.net') || href.includes('click.') || href.includes('/click?'))) {
+            try {
+              const urlObj = new URL(href);
+              return `<a href="${href}" target="_blank" rel="noopener noreferrer" title="${href}">${urlObj.hostname}</a>`;
+            } catch {
+              return match;
+            }
+          }
+          return match;
+        });
     }
 
     // DOMPurify configuration for email content

@@ -604,10 +604,23 @@ nextjs-portal {
 .email-content a {
   color: #1a73e8;
   text-decoration: none;
+  word-break: break-all;
 }
 
 .email-content a:hover {
   text-decoration: underline;
+}
+
+/* Truncate very long URLs visually */
+.email-content a[href*="sendgrid"],
+.email-content a[href*="click."],
+.email-content a[href*="/click?"] {
+  display: inline-block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .email-content blockquote,
@@ -642,10 +655,23 @@ nextjs-portal {
   padding: 8px;
 }
 
-.email-content img {
+.email-content img,
+.email-content .email-inline-image {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+/* Smaller inline images */
+.email-content img[width],
+.email-content img[height] {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+  margin: 4px 0;
 }
 
 .email-content pre,
