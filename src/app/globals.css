@@ -594,11 +594,17 @@ nextjs-portal {
 }
 
 .email-content p {
-  margin: 0 0 1em 0;
+  line-height: 1.5;
+  margin: 0 0 0.75em 0;
+  font-size: 14px;
 }
 
 .email-content p:last-child {
   margin-bottom: 0;
+}
+
+.email-content p:first-child {
+  margin-top: 0;
 }
 
 .email-content a {
@@ -659,9 +665,9 @@ nextjs-portal {
 .email-content .email-inline-image {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
-  margin: 16px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  margin: 12px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   display: block;
 }
 
@@ -672,6 +678,20 @@ nextjs-portal {
   height: auto;
   display: inline-block;
   margin: 4px 0;
+}
+
+/* Compact image containers */
+.email-content > div {
+  margin: 8px 0;
+}
+
+/* Remove excessive padding from email containers */
+.email-content table {
+  margin: 8px 0 !important;
+}
+
+.email-content table td {
+  padding: 4px 8px !important;
 }
 
 .email-content pre,

@@ -157,58 +157,53 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
           </Card>
         </aside>
 
-        <section className="space-y-4">
-          <Card className="border-zd-border-neutral-200">
-            <CardHeader className="space-y-4">
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide zd-text-neutral-500">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        Via Email
-                      </span>
-                      <span className="rounded-full bg-zd-border-neutral-200 px-2 py-0.5">
-                        {createdAtFormatted}
-                      </span>
-                    </div>
-                    <h1 className="text-2xl font-semibold zd-text-neutral-900">
-                      {ticket.ticket.subject}
-                    </h1>
+        <section className="space-y-3">
+          <Card className="border-zd-border-neutral-200 shadow-sm">
+            <CardHeader className="pb-4 space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
+                      <Mail className="h-3 w-3" />
+                      VIA EMAIL
+                    </span>
+                    <span className="text-xs text-gray-500">{createdAtFormatted}</span>
                   </div>
-                  <div className="text-right text-sm zd-text-neutral-500">
-                    Received {receivedRelative}
-                  </div>
+                  <h1 className="text-xl font-semibold text-gray-900 leading-tight">
+                    {ticket.ticket.subject}
+                  </h1>
                 </div>
-                <div className="flex flex-wrap gap-4 text-sm zd-text-neutral-600">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 zd-text-neutral-400" />
-                    <span className="font-medium zd-text-neutral-800">
-                      From:
-                    </span>
-                    <span>
-                      {customer.name} &lt;{customer.email}&gt;
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 zd-text-neutral-400" />
-                    <span className="font-medium zd-text-neutral-800">
-                      To:
-                    </span>
-                    <span>{ticket.recipientEmail}</span>
-                  </div>
+                <span className="text-xs text-gray-500 whitespace-nowrap">
+                  Received {receivedRelative}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-6 text-sm pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <User className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="font-medium">From:</span>
+                  <span className="text-gray-600">{customer.name} &lt;{customer.email}&gt;</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Mail className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="font-medium">To:</span>
+                  <span className="text-gray-600">{ticket.recipientEmail}</span>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {sanitizedBody ? (
-                <EmailMessageRenderer htmlContent={ticket.bodyHtml || ""} />
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm">No email content available</p>
-                </div>
-              )}
+            <CardContent className="pt-0">
+              <div className="border-t border-gray-100 pt-6">
+                {sanitizedBody ? (
+                  <div className="prose prose-sm max-w-none">
+                    <EmailMessageRenderer htmlContent={ticket.bodyHtml || ""} />
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <Mail className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                    <p className="text-sm">No email content available</p>
+                  </div>
+                )}
+              </div>
 
               {attachments.length > 0 && (
                 <div className="space-y-3">
