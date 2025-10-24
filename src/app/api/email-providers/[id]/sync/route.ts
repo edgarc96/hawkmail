@@ -266,19 +266,20 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         const to = decodeMimeHeader(toRaw);
 
         // Extract email body content
+        // PRIORITY: text/html first (for rich formatting), fallback to text/plain
         let bodyContent = '';
         if (emailData.data.payload?.parts) {
-          // Multipart email - find text/plain part
+          // Multipart email - PRIORITIZE text/html for better formatting
           for (const part of emailData.data.payload.parts) {
-            if (part.mimeType === 'text/plain' && part.body?.data) {
+            if (part.mimeType === 'text/html' && part.body?.data) {
               bodyContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
               break;
             }
           }
-          // If no text/plain found, try text/html
+          // Fallback to text/plain if no HTML found
           if (!bodyContent) {
             for (const part of emailData.data.payload.parts) {
-              if (part.mimeType === 'text/html' && part.body?.data) {
+              if (part.mimeType === 'text/plain' && part.body?.data) {
                 bodyContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
                 break;
               }
