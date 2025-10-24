@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DOMPurify from "dompurify";
+import { EmailMessageRenderer } from "@/components/emails/EmailMessageRenderer";
 import {
   ArrowLeft,
   Mail,
@@ -59,6 +60,8 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
 
   const sanitizedBody = useMemo(() => {
     const html = ticket.bodyHtml || "";
+    console.log('[TicketWorkspace] bodyHtml length:', html.length);
+    console.log('[TicketWorkspace] bodyHtml preview:', html.substring(0, 200));
     return DOMPurify.sanitize(html, {
       ADD_ATTR: ["style", "target", "rel"],
       ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|data:image\/)/i,
@@ -148,10 +151,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
             </CardHeader>
             <CardContent className="p-0">
               <div className="max-h-[70vh] overflow-y-auto">
-                <TicketList
-                  onTicketSelect={handleTicketSelect}
-                  selectedTicketId={selectedTicketId ?? ticket.ticket.id}
-                />
+                <TicketList onTicketSelect={handleTicketSelect} />
               </div>
             </CardContent>
           </Card>
@@ -201,15 +201,14 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div
-                className={cn(
-                  "prose max-w-none text-base zd-text-neutral-700",
-                  "[&>blockquote]:rounded-md [&>blockquote]:bg-zd-border-neutral-100 [&>blockquote]:p-4",
-                  "[&>a]:text-zd-primary hover:[&>a]:underline",
-                  "prose-headings:zd-text-neutral-900"
-                )}
-                dangerouslySetInnerHTML={{ __html: sanitizedBody }}
-              />
+              {sanitizedBody ? (
+                <EmailMessageRenderer htmlContent={ticket.bodyHtml || ""} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm">No email content available</p>
+                </div>
+              )}
 
               {attachments.length > 0 && (
                 <div className="space-y-3">
