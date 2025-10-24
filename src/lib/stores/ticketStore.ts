@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Ticket, FilterState, TicketStatus, TicketPriority } from '@/types/ticket';
+import {
+  DEFAULT_TICKET_PRIORITIES,
+  DEFAULT_TICKET_STATUSES,
+} from '@/lib/constants/ticketDefaults';
+import { EmailRecord, mapEmailRecordToTicket } from '@/lib/utils/ticket-mapper';
 
 interface TicketStore {
   // State
@@ -37,6 +42,7 @@ interface TicketStore {
   // Utility actions
   clearError: () => void;
   refreshTickets: () => Promise<void>;
+  initializeDefaults: () => void;
 }
 
 const defaultFilters: FilterState = {
@@ -59,8 +65,8 @@ export const useTicketStore = create<TicketStore>()(
         filters: defaultFilters,
         isLoading: false,
         error: null,
-        ticketStatuses: [],
-        ticketPriorities: [],
+        ticketStatuses: DEFAULT_TICKET_STATUSES.map((status) => ({ ...status })),
+        ticketPriorities: DEFAULT_TICKET_PRIORITIES.map((priority) => ({ ...priority })),
         
         // Ticket actions
         setTickets: (tickets) => set({ tickets }),
@@ -145,19 +151,29 @@ export const useTicketStore = create<TicketStore>()(
         
         // Utility actions
         clearError: () => set({ error: null }),
+        initializeDefaults: () =>
+          set({
+            ticketStatuses: DEFAULT_TICKET_STATUSES.map((status) => ({ ...status })),
+            ticketPriorities: DEFAULT_TICKET_PRIORITIES.map((priority) => ({ ...priority })),
+          }),
         
         refreshTickets: async () => {
-          const { setLoading, setError, setTickets } = get();
+          const { setLoading, setError, setTickets, ticketStatuses, ticketPriorities } = get();
           setLoading(true);
           setError(null);
           
           try {
-            const response = await fetch('/api/tickets');
+            const response = await fetch('/api/tickets/list', {
+              cache: 'no-store',
+            });
             if (!response.ok) {
               throw new Error('Failed to fetch tickets');
             }
-            const tickets = await response.json();
-            setTickets(tickets);
+            const emails = (await response.json()) as EmailRecord[];
+            const statuses = ticketStatuses.length ? ticketStatuses : DEFAULT_TICKET_STATUSES;
+            const priorities = ticketPriorities.length ? ticketPriorities : DEFAULT_TICKET_PRIORITIES;
+            const mappedTickets = emails.map((email) => mapEmailRecordToTicket(email, statuses, priorities));
+            setTickets(mappedTickets);
           } catch (error) {
             setError(error instanceof Error ? error.message : 'An error occurred');
           } finally {

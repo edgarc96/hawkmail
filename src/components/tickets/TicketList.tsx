@@ -15,9 +15,10 @@ import { cn } from '@/lib/utils';
 
 interface TicketListProps {
   onTicketSelect: (ticketId: string) => void;
+  selectedTicketId?: string;
 }
 
-export function TicketList({ onTicketSelect }: TicketListProps) {
+export function TicketList({ onTicketSelect, selectedTicketId }: TicketListProps) {
   const tickets = useFilteredTickets();
   const filters = useTicketFilters();
   const isLoading = useTicketLoading();
@@ -260,7 +261,10 @@ export function TicketList({ onTicketSelect }: TicketListProps) {
           tickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className="zd-bg-white border-zd-border-neutral-200 hover:border-zd-primary transition-colors cursor-pointer"
+              className={cn(
+                "zd-bg-white border-zd-border-neutral-200 hover:border-zd-primary transition-colors cursor-pointer",
+                selectedTicketId === ticket.id && "border-zd-primary ring-1 ring-zd-primary/20 bg-zd-primary/5"
+              )}
               onClick={() => onTicketSelect(ticket.id)}
             >
               <CardHeader className="pb-3">
