@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DOMPurify from "dompurify";
 import { EmailMessageRenderer } from "@/components/emails/EmailMessageRenderer";
+import { TicketHTMLRenderer } from "@/components/tickets/TicketHTMLRenderer";
 import {
   ArrowLeft,
   Mail,
@@ -15,6 +16,17 @@ import {
   Building2,
   Globe,
   Star,
+  Reply,
+  Forward,
+  Archive,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  Menu,
+  Filter,
+  Tag,
+  CheckCircle,
+  MoreVertical,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,10 +34,17 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTicketStore } from "@/lib/stores/ticketStore";
 import { TicketList } from "@/components/tickets/TicketList";
 import { formatDate, formatRelativeTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   CustomerSummary,
   TicketStatistics,
@@ -43,217 +62,383 @@ interface AttachmentPreview {
 
 export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWorkspaceProps) {
   const router = useRouter();
-  const refreshTickets = useTicketStore((state) => state.refreshTickets);
-  const initializeDefaults = useTicketStore((state) => state.initializeDefaults);
-  const setSelectedTicket = useTicketStore((state) => state.setSelectedTicket);
-  const selectedTicketId = useTicketStore((state) => state.selectedTicketId);
   const [activeReplyTab, setActiveReplyTab] = useState<"public" | "internal">("public");
-
-  useEffect(() => {
-    initializeDefaults();
-    refreshTickets();
-  }, [initializeDefaults, refreshTickets]);
-
-  useEffect(() => {
-    setSelectedTicket(ticket.ticket.id);
-  }, [setSelectedTicket, ticket.ticket.id]);
+  const [replyText, setReplyText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const sanitizedBody = useMemo(() => {
     const html = ticket.bodyHtml || "";
-    console.log('[TicketWorkspace] bodyHtml length:', html.length);
-    console.log('[TicketWorkspace] bodyHtml preview:', html.substring(0, 200));
     return DOMPurify.sanitize(html, {
       ADD_ATTR: ["style", "target", "rel"],
       ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|data:image\/)/i,
     });
   }, [ticket.bodyHtml]);
 
-  const attachments = useMemo<AttachmentPreview[]>(() => {
-    if (typeof window === "undefined" || !sanitizedBody) {
-      return [];
+  const attachments: AttachmentPreview[] = [];
+
+  const getTicketSnippet = () => {
+    const text = ticket.ticket.description || "";
+    return text.substring(0, 150) + (text.length > 150 ? "..." : "");
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) {
+      toast.error("Por favor escribe un mensaje antes de enviar");
+      return;
     }
+
+    setIsSending(true);
     try {
-      const parser = new window.DOMParser();
-      const doc = parser.parseFromString(sanitizedBody, "text/html");
-      const images = Array.from(doc.querySelectorAll("img"));
-      return images
-        .map((img, index) => {
-          const src = img.getAttribute("src");
-          if (!src) {
-            return null;
-          }
-          const alt = img.getAttribute("alt") ?? `Attachment ${index + 1}`;
-          return {
-            id: `${ticket.ticket.id}-attachment-${index}`,
-            src,
-            alt,
-          };
-        })
-        .filter(Boolean) as AttachmentPreview[];
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: replyText,
+          isInternal: activeReplyTab === "internal",
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("✅ Respuesta enviada exitosamente");
+        setReplyText("");
+      } else {
+        toast.error(`Error: ${data.error || "No se pudo enviar la respuesta"}`);
+      }
     } catch (error) {
-      console.error("Error parsing attachments", error);
-      return [];
+      console.error("Error sending reply:", error);
+      toast.error("Error al enviar la respuesta. Verifica tu conexión.");
+    } finally {
+      setIsSending(false);
     }
-  }, [sanitizedBody, ticket.ticket.id]);
+  };
 
-  const receivedRelative = formatRelativeTime(ticket.receivedAt);
-  const slaDeadlineRelative = formatRelativeTime(ticket.ticket.slaDeadline);
-  const createdAtFormatted = formatDate(ticket.ticket.createdAt, {
-    includeTime: true,
-  });
+  const handleArchive = async () => {
+    try {
+      setIsArchiving(true);
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}/archive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Ticket archivado correctamente");
+        router.push("/tickets");
+      } else {
+        toast.error(data.error || "Error al archivar el ticket");
+      }
+    } catch (error) {
+      toast.error("Error al archivar el ticket");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
 
-  const handleTicketSelect = (ticketId: string) => {
-    router.push(`/tickets/${ticketId}`);
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Ticket eliminado");
+        router.push("/tickets");
+      } else {
+        toast.error(data.error || "Error al eliminar el ticket");
+      }
+    } catch (error) {
+      toast.error("Error al eliminar el ticket");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="px-0 text-sm zd-text-neutral-600 hover:zd-text-neutral-900"
-          onClick={() => router.push("/tickets")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to tickets
-        </Button>
-        <Badge variant="secondary" className="text-xs uppercase tracking-wide">
-          #{ticket.ticket.id}
-        </Badge>
-        <Badge
-          variant="outline"
-          style={{
-            borderColor: ticket.ticket.status.color,
-            color: ticket.ticket.status.color,
-          }}
-        >
-          {ticket.ticket.status.name}
-        </Badge>
-        <Badge
-          variant="outline"
-          style={{
-            borderColor: ticket.ticket.priority.color,
-            color: ticket.ticket.priority.color,
-          }}
-        >
-          {ticket.ticket.priority.name}
-        </Badge>
+    <div className="h-screen w-full flex flex-col bg-white overflow-hidden">
+      {/* Header superior - ESTILO ZENDESK/GMAIL */}
+      <div className="shrink-0 bg-white border-b">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 hover:zd-bg-neutral-100"
+              onClick={() => router.push("/tickets")}
+            >
+              <ArrowLeft className="w-5 h-5 zd-text-neutral-600" />
+            </Button>
+            <h1 className="text-xl font-normal zd-text-neutral-900 truncate">
+              {ticket.ticket.subject}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <Badge
+              variant="outline"
+              className="text-xs"
+              style={{
+                borderColor: ticket.ticket.status.color,
+                color: ticket.ticket.status.color,
+                backgroundColor: `${ticket.ticket.status.color}10`,
+              }}
+            >
+              {ticket.ticket.status.name}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="text-xs ml-2"
+              style={{
+                borderColor: ticket.ticket.priority.color,
+                color: ticket.ticket.priority.color,
+                backgroundColor: `${ticket.ticket.priority.color}10`,
+              }}
+            >
+              {ticket.ticket.priority.name}
+            </Badge>
+            <Button variant="ghost" size="icon" className="h-9 w-9 ml-2 hover:zd-bg-neutral-100">
+              <Filter className="w-5 h-5 zd-text-neutral-600" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
+              <Clock className="w-5 h-5 zd-text-neutral-600" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
+              <MoreVertical className="w-5 h-5 zd-text-neutral-600" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Snippet/Preview line */}
+        <div className="px-4 pb-3 border-b">
+          <p className="text-sm zd-text-neutral-600 leading-relaxed">
+            {getTicketSnippet()}
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_320px]">
-        <aside className="space-y-4 lg:max-xl:order-first xl:sticky xl:top-20 h-fit">
-          <Card className="zd-bg-neutral-50 border-zd-border-neutral-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold zd-text-neutral-700">
-                Ticket Queue
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-[70vh] overflow-y-auto">
-                <TicketList onTicketSelect={handleTicketSelect} />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Layout de 3 columnas con scroll independiente */}
+      <div className="flex-1 flex relative overflow-hidden">
+        {/* Sidebar izquierda - LISTA DE TICKETS */}
+        <aside className="hidden lg:block w-80 xl:w-96 shrink-0 border-r bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="p-2">
+              <h2 className="text-sm font-semibold zd-text-neutral-700 px-2 py-2">Tickets</h2>
+            </div>
+          </div>
         </aside>
 
-        <section className="space-y-3">
-          <Card className="border-zd-border-neutral-200 shadow-sm">
-            <CardHeader className="pb-4 space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
-                      <Mail className="h-3 w-3" />
-                      VIA EMAIL
-                    </span>
-                    <span className="text-xs text-gray-500">{createdAtFormatted}</span>
+        {/* Área central - CONTENIDO DEL TICKET */}
+        <main className="flex-1 overflow-hidden flex flex-col">
+          {/* Contenido scrolleable */}
+          <div className="flex-1 overflow-y-auto bg-white">
+            <div className="max-w-5xl mx-auto">
+              {/* Card del mensaje principal */}
+              <div className="bg-white border-b zd-border-neutral-200 overflow-hidden">
+                <div className="px-6 py-4 bg-gray-50 border-b zd-border-neutral-200 flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Avatar className="w-10 h-10 shrink-0">
+                      <AvatarFallback className="zd-bg-primary-light text-white text-sm font-semibold">
+                        {customer.avatarInitials}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-base zd-text-neutral-900">
+                          {customer.name}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs zd-text-neutral-500">
+                          <span>•</span>
+                          <span>{formatRelativeTime(ticket.receivedAt)}</span>
+                        </span>
+                      </div>
+
+                      <div className="text-sm zd-text-neutral-600">
+                        <span className="font-medium">Para:</span> {ticket.recipientEmail}
+                      </div>
+
+                      <Button variant="ghost" className="h-auto p-0 zd-text-primary-light text-sm mt-1 hover:underline">
+                        Mostrar más
+                      </Button>
+                    </div>
                   </div>
-                  <h1 className="text-xl font-semibold text-gray-900 leading-tight">
-                    {ticket.ticket.subject}
-                  </h1>
-                </div>
-                <span className="text-xs text-gray-500 whitespace-nowrap">
-                  Received {receivedRelative}
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-6 text-sm pt-2 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <User className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="font-medium">From:</span>
-                  <span className="text-gray-600">{customer.name} &lt;{customer.email}&gt;</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <Mail className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="font-medium">To:</span>
-                  <span className="text-gray-600">{ticket.recipientEmail}</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="border-t border-gray-100 pt-6 max-h-[60vh] overflow-y-auto">
-                {sanitizedBody ? (
-                  <div className="prose prose-sm max-w-none pr-4">
-                    <EmailMessageRenderer htmlContent={ticket.bodyHtml || ""} />
+
+                  {/* Botones de acción */}
+                  <div className="flex items-center gap-1 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Responder"
+                    >
+                      <Reply className="w-4 h-4 zd-text-neutral-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Reenviar"
+                    >
+                      <Forward className="w-4 h-4 zd-text-neutral-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleArchive}
+                      disabled={isArchiving}
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Archivar"
+                    >
+                      {isArchiving ? (
+                        <Loader2 className="w-4 h-4 animate-spin zd-text-neutral-600" />
+                      ) : (
+                        <Archive className="w-4 h-4 zd-text-neutral-600" />
+                      )}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:zd-bg-neutral-200">
+                          <MoreVertical className="w-4 h-4 zd-text-neutral-600" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="zd-text-danger">
+                          {isDeleting ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4 mr-2" />
+                          )}
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-400">
-                    <Mail className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">No email content available</p>
+                </div>
+
+                {/* Contenido del mensaje */}
+                <div className="px-6 py-6">
+                  {ticket.bodyHtml ? (
+                    <TicketHTMLRenderer html={ticket.bodyHtml} />
+                  ) : (
+                    <div className="text-sm zd-text-neutral-800 leading-relaxed email-content">
+                      <pre className="whitespace-pre-wrap font-sans">
+                        {ticket.ticket.description}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                {/* Attachments */}
+                {attachments.length > 0 && (
+                  <div className="px-6 pb-6">
+                    <div className="flex items-center gap-2 text-sm font-semibold zd-text-neutral-800 mb-3">
+                      <Paperclip className="h-4 w-4" />
+                      Adjuntos ({attachments.length})
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                      {attachments.map((attachment) => (
+                        <div
+                          key={attachment.id}
+                          className="overflow-hidden rounded-md border zd-border-neutral-200 zd-bg-neutral-50"
+                        >
+                          <img
+                            src={attachment.src}
+                            alt={attachment.alt}
+                            className="h-32 w-full object-cover"
+                          />
+                          <div className="px-3 py-2 text-xs zd-text-neutral-600 truncate">
+                            {attachment.alt}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
+            </div>
+          </div>
 
-              {attachments.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-semibold zd-text-neutral-800">
-                    <Paperclip className="h-4 w-4" />
-                    Attachments ({attachments.length})
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                    {attachments.map((attachment) => (
-                      <div
-                        key={attachment.id}
-                        className="overflow-hidden rounded-md border border-zd-border-neutral-200 bg-zd-neutral-50"
-                      >
-                        <img
-                          src={attachment.src}
-                          alt={attachment.alt}
-                          className="h-32 w-full object-cover"
-                        />
-                        <div className="px-3 py-2 text-xs zd-text-neutral-600 truncate">
-                          {attachment.alt}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* Área de respuesta FIJA */}
+          <div className="shrink-0 border-t bg-white shadow-lg">
+            <div className="px-4 py-4">
+              <div className="mb-3 flex items-center justify-between">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1 text-sm font-medium hover:zd-bg-neutral-100 px-3 py-1.5 rounded">
+                      {activeReplyTab === "public" ? "Respuesta pública" : "Nota interna"}
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("public")}>
+                      <Reply className="w-4 h-4 mr-2" />
+                      Respuesta pública
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("internal")}>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Nota interna
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-wide zd-text-neutral-500 border-t border-dashed border-zd-border-neutral-200 pt-4">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  SLA {slaDeadlineRelative}
+                <span className="text-xs zd-text-neutral-600">
+                  Para: {customer.email}
+                </span>
+              </div>
+
+              <Textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Escribir respuesta..."
+                className="min-h-[100px] mb-3 resize-none"
+                disabled={isSending}
+              />
+
+              <div className="flex justify-between items-center">
+                <div className="text-xs zd-text-neutral-500">
+                  Ctrl+Enter para enviar
                 </div>
-                <div className="rounded-full bg-zd-border-neutral-200 px-2 py-0.5">
-                  Thread ID: {ticket.ticket.threadId}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setReplyText("")}
+                    className="hover:zd-bg-neutral-100"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSendReply}
+                    disabled={isSending || !replyText.trim()}
+                    size="sm"
+                    className="zd-bg-primary-light hover:zd-bg-primary-hover text-white"
+                  >
+                    {isSending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      "Enviar"
+                    )}
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </main>
 
-          <ReplyComposer
-            activeTab={activeReplyTab}
-            onTabChange={setActiveReplyTab}
-            customer={customer}
-          />
-        </section>
-
-        <aside className="space-y-4 xl:sticky xl:top-20 h-fit">
-          <CustomerProfileCard customer={customer} />
-          <TicketStatisticsCard stats={stats} />
-          <TimelineCard events={timeline} />
+        {/* Sidebar derecha - INFO DEL CLIENTE */}
+        <aside className="hidden xl:block w-80 shrink-0 border-l bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="p-4 space-y-4">
+              <CustomerProfileCard customer={customer} />
+              <TicketStatisticsCard stats={stats} />
+              <TimelineCard events={timeline} />
+            </div>
+          </div>
         </aside>
       </div>
     </div>

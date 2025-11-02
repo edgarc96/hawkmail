@@ -372,7 +372,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                 Email Content
               </label>
               <div className="mt-2 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-slate-200 max-h-[600px] overflow-y-auto shadow-lg">
-                <div className="p-8 bg-white rounded-lg">
+                <div className="px-6 py-6 bg-white rounded-lg">
                   <div 
                     className="email-content"
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent) }}
@@ -513,7 +513,7 @@ export function EmailDetailsDialog({ email, open, onOpenChange, onUpdate }: Emai
                     Original Message
                   </label>
                   <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg border border-slate-200 max-h-[200px] overflow-y-auto shadow-md">
-                    <div className="p-4 bg-white rounded-lg">
+                    <div className="px-4 py-4 bg-white rounded-lg">
                       <div 
                         className="email-content"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyContent || '') }}

@@ -134,17 +134,12 @@ function convertPlainTextToHTML(
 /**
  * Remove email client wrapper tables and divs
  * Extracts only the actual content from nested layout tables
+ * BUT preserves padding on content-containing cells
  */
 function removeEmailWrappers(html: string): string {
-  // Remove outer wrapper tables that are just for layout
-  // Common patterns:
-  // - width="100%" tables
-  // - tables with align="center"
-  // - nested divs with only layout purposes
-  
   let cleaned = html;
   
-  // 1. Remove tables that are 100% width with center alignment (layout tables)
+  // 1. Convert layout tables to divs, but PRESERVE padding from td elements
   cleaned = cleaned.replace(/<table[^>]*width="100%"[^>]*>/gi, '<div class="email-layout">');
   cleaned = cleaned.replace(/<table[^>]*width="600"[^>]*>/gi, '<div class="email-content-block">');
   cleaned = cleaned.replace(/<\/table>/gi, '</div>');
@@ -152,23 +147,34 @@ function removeEmailWrappers(html: string): string {
   // 2. Remove tbody tags (not needed for content)
   cleaned = cleaned.replace(/<\/?tbody[^>]*>/gi, '');
   
-  // 3. Remove tr and td that are just wrappers (keep content)
+  // 3. Remove tr tags (just wrappers)
   cleaned = cleaned.replace(/<tr[^>]*>/gi, '');
   cleaned = cleaned.replace(/<\/tr>/gi, '');
-  cleaned = cleaned.replace(/<td[^>]*>/gi, '<div class="email-cell">');
-  cleaned = cleaned.replace(/<\/td>/gi, '</div>');
   
-  // 4. Remove excessive nested divs (more than 2 levels deep with no content)
-  cleaned = cleaned.replace(/<div[^>]*>\s*<div[^>]*>\s*<div[^>]*>/gi, '<div>');
-  cleaned = cleaned.replace(/<\/div>\s*<\/div>\s*<\/div>/gi, '</div>');
+  // 4. Convert td to div BUT PRESERVE padding/margin styles
+  cleaned = cleaned.replace(/<td([^>]*)>/gi, (match, attrs) => {
+    // Extract padding and margin from style attribute if present
+    const styleMatch = attrs.match(/style="([^"]*)"/i);
+    if (styleMatch) {
+      const style = styleMatch[1];
+      // Keep only padding and margin
+      const paddingMatch = style.match(/padding[^;]*(;|$)/gi);
+      const marginMatch = style.match(/margin[^;]*(;|$)/gi);
+      const preservedStyles = [...(paddingMatch || []), ...(marginMatch || [])].join(' ');
+      if (preservedStyles) {
+        return `<div style="${preservedStyles}">`;
+      }
+    }
+    return '<div class="email-cell">';
+  });
+  cleaned = cleaned.replace(/<\/td>/gi, '</div>');
   
   // 5. Remove empty divs
   cleaned = cleaned.replace(/<div[^>]*>\s*<\/div>/gi, '');
   
-  // 6. Remove style attributes from layout divs (keep only semantic content styles)
-  cleaned = cleaned.replace(/<div class="email-layout"[^>]*>/gi, '<div>');
-  cleaned = cleaned.replace(/<div class="email-content-block"[^>]*>/gi, '<div>');
-  cleaned = cleaned.replace(/<div class="email-cell"[^>]*>/gi, '<div>');
+  // 6. Remove class attributes from converted layout divs
+  cleaned = cleaned.replace(/<div class="email-layout">/gi, '<div>');
+  cleaned = cleaned.replace(/<div class="email-content-block">/gi, '<div>');
   
   // 7. Collapse multiple consecutive <br> tags
   cleaned = cleaned.replace(/(<br\s*\/?>\s*){3,}/gi, '<br/><br/>');
@@ -189,7 +195,7 @@ function sanitizeHTMLContent(
   // Step 2: Detect and collapse forwarded messages
   html = detectAndCollapseForwarded(html);
 
-  // Step 3: Clean with sanitize-html
+  // Step 4: Clean with sanitize-html
   let cleanHtml = sanitizeHtml(html, {
     allowedTags: [
       'p', 'div', 'span', 'br', 'strong', 'em', 'u', 'a', 'img',
@@ -220,8 +226,16 @@ function sanitizeHTMLContent(
         'font-weight': [/^\d+$/, /^bold$/i, /^normal$/i],
         'font-style': [/^italic$/i, /^normal$/i],
         'text-decoration': [/^underline$/i, /^none$/i],
-        'margin': [/^\d+px$/i],
-        'padding': [/^\d+px$/i],
+        'margin': [/.*/], // Allow all margin formats (top, bottom, left, right, shorthand)
+        'margin-top': [/.*/],
+        'margin-bottom': [/.*/],
+        'margin-left': [/.*/],
+        'margin-right': [/.*/],
+        'padding': [/.*/], // Allow all padding formats
+        'padding-top': [/.*/],
+        'padding-bottom': [/.*/],
+        'padding-left': [/.*/],
+        'padding-right': [/.*/],
         'border': [/.*/],
         'border-left': [/.*/],
         'border-radius': [/^\d+px$/i],
@@ -257,20 +271,20 @@ function sanitizeHTMLContent(
     },
   });
 
-  // Step 4: Remove dangerous inline styles and layout styles
+  // Step 5: Remove dangerous inline styles and layout styles
   cleanHtml = removeDangerousStyles(cleanHtml);
   cleanHtml = removeLayoutStyles(cleanHtml);
 
-  // Step 5: Normalize Gmail-specific classes
+  // Step 6: Normalize Gmail-specific classes
   cleanHtml = cleanHtml.replace(/<div class="gmail_quote"[^>]*>/gi, '<blockquote class="email-quote">');
   cleanHtml = cleanHtml.replace(/<div class="gmail_signature"[^>]*>/gi, '<div class="email-signature">');
 
-  // Step 5: Truncate tracking URLs if enabled
+  // Step 7: Truncate tracking URLs if enabled
   if (options.truncateTrackingUrls) {
     cleanHtml = truncateTrackingUrls(cleanHtml);
   }
 
-  // Step 6: Remove excessive whitespace
+  // Step 8: Remove excessive whitespace
   cleanHtml = cleanHtml.replace(/\s{2,}/g, ' ');
   cleanHtml = cleanHtml.replace(/<p>\s*<\/p>/gi, '');
   cleanHtml = cleanHtml.replace(/<br\s*\/?>\s*<br\s*\/?>/gi, '<br/>');
@@ -373,7 +387,7 @@ function truncateTrackingUrls(html: string): string {
 }
 
 /**
- * Detect and collapse forwarded messages
+ * Detect and remove forwarded message headers
  */
 function detectAndCollapseForwarded(html: string): string {
   const forwardedRegex = /(-{5,}\s*Forwarded message\s*-{5,})/gi;
@@ -401,29 +415,13 @@ function detectAndCollapseForwarded(html: string): string {
     }
   }
 
+  // Remove forwarded header and metadata, keep only main content
   if (forwardedStart >= 0 && mainContentStart > forwardedStart) {
-    const metadataLines = lines.slice(forwardedStart + 1, mainContentStart);
+    const beforeForwarded = lines.slice(0, forwardedStart).join('<br>');
     const mainContent = lines.slice(mainContentStart).join('<br>');
-
-    const metadataHtml = metadataLines
-      .map(line => line.replace(/<[^>]+>/g, '').trim())
-      .filter(line => line)
-      .join('<br>');
-
-    return `
-      <details class="forwarded-message">
-        <summary>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          </svg>
-          Forwarded message
-        </summary>
-        <div class="forwarded-metadata">
-          ${metadataHtml}
-        </div>
-      </details>
-      ${mainContent}
-    `;
+    
+    // Combine content before forwarded section (if any) with main content
+    return beforeForwarded ? `${beforeForwarded}<br>${mainContent}` : mainContent;
   }
 
   return html;
@@ -457,22 +455,16 @@ function removeDangerousStyles(html: string): string {
 
 /**
  * Remove layout styles that create visual containers
- * (borders, backgrounds, padding that make it look like nested boxes)
+ * But preserve padding/margins on actual content containers
  */
 function removeLayoutStyles(html: string): string {
   let cleaned = html;
   
-  // Remove common layout styles from divs
+  // Remove only specific non-content layout styles
   const layoutProps = [
-    'border:',
     'border-collapse:',
-    'width: 100%',
-    'width:100%',
     'cellpadding',
     'cellspacing',
-    'align="center"',
-    'align="left"',
-    'align="right"',
   ];
   
   layoutProps.forEach(prop => {
@@ -480,9 +472,9 @@ function removeLayoutStyles(html: string): string {
     cleaned = cleaned.replace(regex, '');
   });
   
-  // Remove inline styles that create box-like appearance
-  cleaned = cleaned.replace(/style="[^"]*margin:\s*\d+px[^"]*"/gi, '');
-  cleaned = cleaned.replace(/style="[^"]*padding:\s*\d+px[^"]*"/gi, '');
+  // Only remove zero borders and 100% widths from layout tables
+  cleaned = cleaned.replace(/border:\s*0[px]*[^;]*/gi, '');
+  cleaned = cleaned.replace(/border:\s*none[^;]*/gi, '');
   
   // Remove empty style attributes
   cleaned = cleaned.replace(/style=""\s*/gi, '');
@@ -522,18 +514,37 @@ function injectEmailStyles(content: string): string {
   word-wrap: break-word;
 }
 
-/* Remove borders and excessive padding from nested elements */
-.email-content > div,
-.email-content > div > div {
-  border: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
+/* Preserve spacing on content containers */
+.email-content > div {
+  border: none;
 }
 
-/* Only add spacing to content elements, not layout containers */
+/* Don't override inline padding/margin styles from the email */
+.email-content div[style*="padding"],
+.email-content div[style*="margin"] {
+  /* Keep the inline styles - don't override */
+}
+
+/* Only add spacing to content elements that don't have their own */
 .email-content > div > p,
 .email-content > div > div > p {
   margin: 0 0 0.75em 0;
+}
+
+/* Preserve top spacing for first content element (like titles in TripleTen emails) */
+.email-content > div:first-child,
+.email-content > div > div:first-child {
+  margin-top: 0;
+}
+
+/* Email cells should preserve their padding, or get default spacing */
+.email-content .email-cell {
+  /* Will inherit padding from inline styles if present */
+  /* Default padding if none specified */
+}
+
+.email-content .email-cell:not([style*="padding"]) {
+  padding: 12px 0;
 }
 
 .email-content p {

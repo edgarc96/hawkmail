@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { 
-  Home, 
-  BarChart3, 
-  Settings, 
-  Users, 
-  LogOut, 
+import {
+  Home,
+  BarChart3,
+  Settings,
+  Users,
+  LogOut,
   Loader2,
   Menu,
-  X 
+  X,
+  Mail
 } from "lucide-react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -52,6 +53,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: Mail, label: "Tickets", href: "/tickets" },
     { icon: BarChart3, label: "Analytics", href: "/analytics" },
     { icon: Users, label: "Team", href: "/team" },
     { icon: Settings, label: "Settings", href: "/settings" },

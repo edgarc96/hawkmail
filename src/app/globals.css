@@ -676,12 +676,11 @@ nextjs-portal {
 .email-content table {
   border-collapse: collapse;
   width: 100%;
-  margin: 10px 0;
+  margin: 0;
 }
 
 .email-content table td,
 .email-content table th {
-  border: 1px solid #e0e0e0;
   padding: 8px;
 }
 
@@ -704,18 +703,14 @@ nextjs-portal {
   margin: 4px 0;
 }
 
-/* Compact image containers */
-.email-content > div {
-  margin: 8px 0;
+/* Preserve spacing for direct child divs without inline styles */
+.email-content > div:not([style*="margin"]):not([style*="padding"]) {
+  margin: 0;
 }
 
-/* Remove excessive padding from email containers */
-.email-content table {
-  margin: 8px 0 !important;
-}
-
-.email-content table td {
-  padding: 4px 8px !important;
+/* Preserve original table spacing from emails */
+.email-content table:not([cellpadding]):not([style*="padding"]) td {
+  padding: 4px 8px;
 }
 
 .email-content pre,
@@ -804,33 +799,36 @@ nextjs-portal {
   transform: rotate(90deg) !important;
 }
 
-/* Remove excessive spacing and borders from email clients */
-.email-content > div {
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-}
-
-.email-content > div > div {
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-}
-
-/* Remove table borders and spacing */
+/* Preserve original email spacing and layout */
 .email-content table {
+  border-collapse: collapse;
   border: none !important;
-  border-collapse: collapse !important;
-  margin: 0 !important;
-  padding: 0 !important;
 }
 
-.email-content table td {
+.email-content table tr,
+.email-content table td,
+.email-content table th {
   border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
 }
 
-.email-content table tr {
+.email-content table[role="presentation"] {
+  border: none;
+}
+
+/* Hide all email layout borders but preserve spacing */
+.email-content div[style*="border"] {
+  border-color: transparent !important;
+}
+
+/* Remove visible borders from divs and nested elements */
+.email-content div,
+.email-content span,
+.email-content p {
   border: none !important;
+}
+
+/* Remove background colors from layout containers */
+.email-content > div[style*="background"],
+.email-content > div > div[style*="background"] {
+  background: transparent !important;
 }

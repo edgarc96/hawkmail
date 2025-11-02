@@ -15,6 +15,7 @@ import { ProgressiveTeamOverview } from "@/features/team/components/ProgressiveT
 import { PerformanceTrendChart } from "@/features/analytics/components/PerformanceTrendChart";
 import { EmailDistributionChart } from "@/features/analytics/components/EmailDistributionChart";
 import { TeamPerformanceHeatmap } from "@/features/analytics/components/TeamPerformanceHeatmap";
+import { TicketsSection } from "@/features/tickets/components/TicketsSection";
 import { NotificationDropdown } from "@/features/notifications/components/NotificationDropdown";
 import { SettingsContent } from "@/features/settings/components/SettingsContent";
 import { toast } from "sonner";
@@ -155,7 +156,7 @@ export default function DashboardPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamPerformance, setTeamPerformance] = useState<TeamPerformance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'analytics' | 'alerts' | 'team' | 'configuration' | 'settings'>('dashboard');
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'tickets' | 'analytics' | 'alerts' | 'team' | 'configuration' | 'settings'>('dashboard');
   const [activeConfigSection, setActiveConfigSection] = useState<'templates' | 'sla' | 'webhooks' | 'business-hours' | 'customer-tiers' | 'email-providers' | 'performance-goals'>('templates');
   const [activeSettingsSection, setActiveSettingsSection] = useState<'profile' | 'billing' | 'notifications' | 'preferences'>('profile');
   const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
@@ -1306,7 +1307,7 @@ export default function DashboardPage() {
     toast.success('Customer tier removed!');
   };
 
-  const handleSectionClick = (section: 'dashboard' | 'analytics' | 'alerts' | 'team' | 'settings') => {
+  const handleSectionClick = (section: 'dashboard' | 'tickets' | 'analytics' | 'alerts' | 'team' | 'settings') => {
     setActiveSection(section);
     
     // Fetch webhooks when opening settings
@@ -1426,14 +1427,33 @@ export default function DashboardPage() {
             aria-label="Dashboard"
             aria-current={activeSection === 'dashboard' ? 'page' : undefined}
           >
-            <Home className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Home</span>
-          </button>
+          <Home className="transition-colors" size={24} />
+          <span className="text-[10px] font-medium tracking-wide transition-colors">Home</span>
+        </button>
 
-          <button
-            onClick={() => {
-              handleSectionClick('analytics');
-              setIsConfigMenuOpen(false);
+        <button
+          onClick={() => {
+            handleSectionClick('tickets');
+            setIsConfigMenuOpen(false);
+            setIsSettingsMenuOpen(false);
+          }}
+          className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+            activeSection === 'tickets'
+              ? 'bg-primary/15 text-primary'
+              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+          }`}
+          title="Tickets"
+          aria-label="Tickets"
+          aria-current={activeSection === 'tickets' ? 'page' : undefined}
+        >
+          <Mail className="transition-colors" size={24} />
+          <span className="text-[10px] font-medium tracking-wide transition-colors">Tickets</span>
+        </button>
+
+        <button
+          onClick={() => {
+            handleSectionClick('analytics');
+            setIsConfigMenuOpen(false);
               setIsSettingsMenuOpen(false);
             }}
             className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
@@ -1847,6 +1867,10 @@ export default function DashboardPage() {
               onBulkAutoAssign={handleBulkAutoAssign}
               isAutoAssigning={isAutoAssigning}
             />
+          )}
+
+          {activeSection === 'tickets' && (
+            <TicketsSection showHeader={false} />
           )}
 
           {activeSection === 'analytics' && dashboardData && (
