@@ -11,6 +11,7 @@ import {
 import { db } from '@/db/index';
 import { user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { sendEmailNotification } from '@/lib/notifications';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -53,8 +54,14 @@ export async function POST(req: NextRequest) {
         console.log(`Subscription trial will end: ${subscription.id}`);
         console.log(`Status: ${subscription.status}`);
         
-        // Send notification to user about trial ending
-        // TODO: Implement email notification service
+        const userData = await findUserByStripeCustomerId(subscription.customer as string);
+        if (userData) {
+          await sendEmailNotification({
+            to: userData.email,
+            subject: 'Your trial is ending soon!',
+            body: `Hi ${userData.name}, your trial for HawkMail is ending in 3 days. Please upgrade to a paid plan to continue using our service.`
+          });
+        }
         break;
       }
 
@@ -185,8 +192,21 @@ export async function POST(req: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`Invoice payment failed: ${invoice.id}`);
         
-        // TODO: Implement payment failed notification
-        // This could update the subscription status or send notifications
+        const subscriptionId = invoice.subscription as string;
+        if (subscriptionId) {
+          await db.update(user).set({
+            status: 'past_due'
+          }).where(eq(user.stripeSubscriptionId, subscriptionId));
+
+          const userData = await findUserByStripeCustomerId(invoice.customer as string);
+          if (userData) {
+            await sendEmailNotification({
+              to: userData.email,
+              subject: 'Your payment failed',
+              body: `Hi ${userData.name}, we were unable to process your payment for your HawkMail subscription. Please update your payment information to avoid service interruption.`
+            });
+          }
+        }
         break;
       }
 
