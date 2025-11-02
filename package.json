@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "next dev --turbopack",
         "build": "next build",
+        "build:optimized": "NODE_OPTIONS='--max-old-space-size=3072' next build",
         "start": "next start",
         "lint": "next lint",
         "deploy": "./scripts/deploy.sh",
@@ -107,6 +108,7 @@
         "react-responsive-masonry": "^2.7.1",
         "react-rough-notation": "^1.0.5",
         "react-syntax-highlighter": "^15.6.1",
+        "react-window": "^2.2.2",
         "react-wrap-balancer": "^1.1.1",
         "recharts": "^3.2.1",
         "sanitize-html": "^2.17.0",
@@ -133,6 +135,7 @@
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "@types/react-syntax-highlighter": "^15.5.13",
+        "@types/react-window": "^1.8.8",
         "@types/sanitize-html": "^2.16.0",
         "@types/three": "^0.178.0",
         "eslint": "^9.35.0",

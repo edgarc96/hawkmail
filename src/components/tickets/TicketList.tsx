@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, CSSProperties } from 'react';
+// @ts-ignore - react-window types issue
+import { FixedSizeList as List } from 'react-window';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,72 +30,90 @@ export function TicketList({ onTicketSelect, selectedTicketId }: TicketListProps
   const { setFilters, resetFilters } = useTicketStore();
   
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(filters.search || '');
   const [statusFilter, setStatusFilter] = useState(filters.status || []);
   const [priorityFilter, setPriorityFilter] = useState(filters.priority || []);
   const [assigneeFilter, setAssigneeFilter] = useState(filters.assignee || []);
   const [dateRangeFilter, setDateRangeFilter] = useState(filters.dateRange || null);
+  const listRef = useRef<List>(null);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Apply filters when they change
   useEffect(() => {
     setFilters({
-      search: searchTerm,
+      search: debouncedSearchTerm,
       status: statusFilter,
       priority: priorityFilter,
       assignee: assigneeFilter,
       dateRange: dateRangeFilter,
     });
-  }, [searchTerm, statusFilter, priorityFilter, assigneeFilter, dateRangeFilter]);
+  }, [debouncedSearchTerm, statusFilter, priorityFilter, assigneeFilter, dateRangeFilter, setFilters]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-  };
+  }, []);
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = useCallback((value: string) => {
     if (statusFilter.includes(value)) {
       setStatusFilter(statusFilter.filter((status) => status !== value));
     } else {
       setStatusFilter([...statusFilter, value]);
     }
-  };
+  }, [statusFilter]);
 
-  const handlePriorityChange = (value: string) => {
+  const handlePriorityChange = useCallback((value: string) => {
     if (priorityFilter.includes(value)) {
       setPriorityFilter(priorityFilter.filter((priority) => priority !== value));
     } else {
       setPriorityFilter([...priorityFilter, value]);
     }
-  };
+  }, [priorityFilter]);
 
-  const handleAssigneeChange = (value: string) => {
+  const handleAssigneeChange = useCallback((value: string) => {
     if (assigneeFilter.includes(value)) {
       setAssigneeFilter(assigneeFilter.filter((assignee) => assignee !== value));
     } else {
       setAssigneeFilter([...assigneeFilter, value]);
     }
-  };
+  }, [assigneeFilter]);
 
-  const handleDateRangeChange = (range: [Date, Date] | null) => {
+  const handleDateRangeChange = useCallback((range: [Date, Date] | null) => {
     setDateRangeFilter(range);
-  };
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSearchTerm('');
+    setDebouncedSearchTerm('');
     setStatusFilter([]);
     setPriorityFilter([]);
     setAssigneeFilter([]);
     setDateRangeFilter(null);
     resetFilters();
-  };
+  }, [resetFilters]);
 
-  const getStatusColor = (statusId: string) => {
-    const status = ticketStatuses.find((s) => s.id === statusId);
-    return status?.color || '#6c757d';
-  };
+  // Memoize color lookups
+  const statusColorMap = useMemo(() => {
+    return new Map(ticketStatuses.map(s => [s.id, s.color || '#6c757d']));
+  }, [ticketStatuses]);
 
-  const getPriorityColor = (priorityId: string) => {
-    const priority = ticketPriorities.find((p) => p.id === priorityId);
-    return priority?.color || '#6c757d';
-  };
+  const priorityColorMap = useMemo(() => {
+    return new Map(ticketPriorities.map(p => [p.id, p.color || '#6c757d']));
+  }, [ticketPriorities]);
+
+  const getStatusColor = useCallback((statusId: string) => {
+    return statusColorMap.get(statusId) || '#6c757d';
+  }, [statusColorMap]);
+
+  const getPriorityColor = useCallback((priorityId: string) => {
+    return priorityColorMap.get(priorityId) || '#6c757d';
+  }, [priorityColorMap]);
 
   const formatTicketDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -225,8 +245,8 @@ export function TicketList({ onTicketSelect, selectedTicketId }: TicketListProps
         </CardContent>
       </Card>
 
-      {/* Tickets List */}
-      <div className="space-y-4">
+      {/* Tickets List with Virtualization */}
+      <div>
         {tickets.length === 0 ? (
           <Card className="zd-bg-neutral-100 border-zd-border-neutral-200">
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -240,100 +260,113 @@ export function TicketList({ onTicketSelect, selectedTicketId }: TicketListProps
             </CardContent>
           </Card>
         ) : (
-          tickets.map((ticket) => (
-            <Card
-              key={ticket.id}
-              className="zd-bg-white border-zd-border-neutral-200 hover:border-zd-primary transition-colors cursor-pointer"
-              onClick={() => onTicketSelect(ticket.id)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: getStatusColor(ticket.status.id) }}
-                      ></div>
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: getPriorityColor(ticket.priority.id) }}
-                      ></div>
-                      <span className="text-sm zd-text-neutral-500">
-                        #{ticket.id.slice(-6)}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold zd-text-neutral-800 mb-1">{ticket.subject}</h3>
-                    <p className="text-sm zd-text-neutral-600 line-clamp-2">
-                      {ticket.description}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <Badge
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        borderColor: getStatusColor(ticket.status.id),
-                        color: getStatusColor(ticket.status.id),
-                      }}
-                    >
-                      {ticket.status.name}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        borderColor: getPriorityColor(ticket.priority.id),
-                        color: getPriorityColor(ticket.priority.id),
-                      }}
-                    >
-                      {ticket.priority.name}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src="" />
-                      <AvatarFallback className="text-xs">
-                        {ticket.customerId.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs zd-text-neutral-500">
-                      Customer ID: {ticket.customerId.slice(-6)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs zd-text-neutral-500">
-                    <Clock size={12} />
-                    {formatRelativeTime(typeof ticket.createdAt === 'string' ? ticket.createdAt : ticket.createdAt.toISOString())}
-                  </div>
-                </div>
-                {ticket.slaDeadline && (
-                  <div className="mt-2 flex items-center gap-1">
-                    <AlertCircle
-                      size={12}
-                      className={cn(
-                        new Date(ticket.slaDeadline) > new Date()
-                          ? "zd-text-warning"
-                          : "zd-text-danger"
+          <List
+            ref={listRef}
+            height={Math.min(tickets.length * 200, 800)} // Max height of 800px
+            itemCount={tickets.length}
+            itemSize={200} // Height of each ticket card
+            width="100%"
+            className="space-y-4"
+          >
+            {({ index, style }: { index: number; style: CSSProperties }) => {
+              const ticket = tickets[index];
+              return (
+                <div style={{ ...style, paddingBottom: '16px' }}>
+                  <Card
+                    className="zd-bg-white border-zd-border-neutral-200 hover:border-zd-primary transition-colors cursor-pointer"
+                    onClick={() => onTicketSelect(ticket.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: getStatusColor(ticket.status.id) }}
+                            ></div>
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: getPriorityColor(ticket.priority.id) }}
+                            ></div>
+                            <span className="text-sm zd-text-neutral-500">
+                              #{ticket.id.slice(-6)}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold zd-text-neutral-800 mb-1">{ticket.subject}</h3>
+                          <p className="text-sm zd-text-neutral-600 line-clamp-2">
+                            {ticket.description}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge
+                            variant="outline"
+                            className="text-xs"
+                            style={{
+                              borderColor: getStatusColor(ticket.status.id),
+                              color: getStatusColor(ticket.status.id),
+                            }}
+                          >
+                            {ticket.status.name}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-xs"
+                            style={{
+                              borderColor: getPriorityColor(ticket.priority.id),
+                              color: getPriorityColor(ticket.priority.id),
+                            }}
+                          >
+                            {ticket.priority.name}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="text-xs">
+                              {ticket.customerId.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs zd-text-neutral-500">
+                            Customer ID: {ticket.customerId.slice(-6)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs zd-text-neutral-500">
+                          <Clock size={12} />
+                          {formatRelativeTime(typeof ticket.createdAt === 'string' ? ticket.createdAt : ticket.createdAt.toISOString())}
+                        </div>
+                      </div>
+                      {ticket.slaDeadline && (
+                        <div className="mt-2 flex items-center gap-1">
+                          <AlertCircle
+                            size={12}
+                            className={cn(
+                              new Date(ticket.slaDeadline) > new Date()
+                                ? "zd-text-warning"
+                                : "zd-text-danger"
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "text-xs",
+                              new Date(ticket.slaDeadline) > new Date()
+                                ? "zd-text-warning"
+                                : "zd-text-danger"
+                            )}
+                          >
+                            SLA: {formatRelativeTime(typeof ticket.slaDeadline === 'string' ? ticket.slaDeadline : ticket.slaDeadline.toISOString())}
+                          </span>
+                        </div>
                       )}
-                    />
-                    <span
-                      className={cn(
-                        "text-xs",
-                        new Date(ticket.slaDeadline) > new Date()
-                          ? "zd-text-warning"
-                          : "zd-text-danger"
-                      )}
-                    >
-                      SLA: {formatRelativeTime(typeof ticket.slaDeadline === 'string' ? ticket.slaDeadline : ticket.slaDeadline.toISOString())}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            }}
+          </List>
         )}
       </div>
     </div>
