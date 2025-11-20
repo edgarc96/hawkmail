@@ -22,9 +22,10 @@ import { toast } from "sonner";
 
 type TicketsSectionProps = {
   showHeader?: boolean;
+  onTicketSelect?: (ticketId: string) => void;
 };
 
-export function TicketsSection({ showHeader = true }: TicketsSectionProps) {
+export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSectionProps) {
   const router = useRouter();
   const refreshTickets = useTicketStore((state) => state.refreshTickets);
   const initializeDefaults = useTicketStore((state) => state.initializeDefaults);
@@ -48,10 +49,10 @@ export function TicketsSection({ showHeader = true }: TicketsSectionProps) {
     refreshTickets();
   }, [initializeDefaults, refreshTickets, setSelectedTicket]);
 
-  const totalTickets = tickets.length;
-  const openTickets = tickets.filter((ticket) => !ticket.status.isResolved).length;
-  const pendingTickets = tickets.filter((ticket) => ticket.status.id === "pending").length;
-  const resolvedTickets = tickets.filter((ticket) => ticket.isResolved || ticket.status.isResolved).length;
+  const totalTickets = tickets?.length || 0;
+  const openTickets = tickets?.filter((ticket) => !ticket.status?.isResolved).length || 0;
+  const pendingTickets = tickets?.filter((ticket) => ticket.status?.id === "pending").length || 0;
+  const resolvedTickets = tickets?.filter((ticket) => ticket.isResolved || ticket.status?.isResolved).length || 0;
 
   const resetForm = () => {
     setForm({
@@ -63,8 +64,12 @@ export function TicketsSection({ showHeader = true }: TicketsSectionProps) {
     });
   };
 
-  const handleTicketSelect = (ticketId: string) => {
+  const handleTicketSelectInternal = (ticketId: string) => {
     setSelectedTicket(ticketId);
+    if (onTicketSelect) {
+      onTicketSelect(ticketId);
+      return;
+    }
     router.push(`/tickets/${ticketId}`);
   };
 
@@ -135,17 +140,17 @@ export function TicketsSection({ showHeader = true }: TicketsSectionProps) {
         <div>
           {showHeader && (
             <>
-              <h1 className="text-3xl font-bold zd-text-neutral-900">Tickets</h1>
-              <p className="zd-text-neutral-600 mt-1">Manage and track customer support tickets</p>
+              <h1 className="text-3xl font-bold text-white">Tickets</h1>
+              <p className="text-gray-400 mt-1">Manage and track customer support tickets</p>
             </>
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="bg-transparent text-white border-white/20 hover:bg-white/10">
             <Settings size={16} className="mr-2" />
             Settings
           </Button>
-          <Button onClick={handleCreateTicket} className="zd-bg-primary hover:zd-bg-primary-hover text-white">
+          <Button onClick={handleCreateTicket} className="bg-violet-600 hover:bg-violet-700 text-white">
             <Plus size={16} className="mr-2" />
             New Ticket
           </Button>
@@ -154,33 +159,33 @@ export function TicketsSection({ showHeader = true }: TicketsSectionProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
-          <Card className="zd-bg-neutral-100 border-zd-border-neutral-200">
+          <Card className="bg-[#12111a] border-white/10">
             <CardHeader>
-              <CardTitle className="zd-text-neutral-800">Quick Stats</CardTitle>
+              <CardTitle className="text-white">Quick Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="zd-text-neutral-600">Total Tickets</span>
-                <span className="font-semibold zd-text-neutral-800">{totalTickets}</span>
+                <span className="text-gray-400">Total Tickets</span>
+                <span className="font-semibold text-white">{totalTickets}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="zd-text-neutral-600">Open</span>
-                <span className="font-semibold zd-text-primary">{openTickets}</span>
+                <span className="text-gray-400">Open</span>
+                <span className="font-semibold text-primary">{openTickets}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="zd-text-neutral-600">Pending</span>
-                <span className="font-semibold zd-text-warning">{pendingTickets}</span>
+                <span className="text-gray-400">Pending</span>
+                <span className="font-semibold text-yellow-500">{pendingTickets}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="zd-text-neutral-600">Resolved</span>
-                <span className="font-semibold zd-text-success">{resolvedTickets}</span>
+                <span className="text-gray-400">Resolved</span>
+                <span className="font-semibold text-green-500">{resolvedTickets}</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="lg:col-span-3">
-          <TicketList onTicketSelect={handleTicketSelect} selectedTicketId={selectedTicketId ?? undefined} />
+          <TicketList onTicketSelect={handleTicketSelectInternal} selectedTicketId={selectedTicketId ?? undefined} />
         </div>
       </div>
 

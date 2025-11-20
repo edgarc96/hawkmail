@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { authClient, useSession } from "@/lib/auth-client";
-import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, Bell, LogOut, BarChart3, Settings, Home, XCircle, Search, Send, Filter, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Zap, Shuffle, Database, Download, FileSpreadsheet, Info, Sparkles, ChevronRight, ChevronDown, Sliders, User, CreditCard, BellRing, Palette, FileText, Timer, Webhook, Calendar, Crown, Server, Target } from "lucide-react";
+import { Loader2, Mail, Clock, AlertCircle, CheckCircle, Users, TrendingUp, BarChart3, Settings, XCircle, Send, X, Eye, Reply, CheckCheck, RefreshCw, Plus, Trash2, Database, Download, FileSpreadsheet, Sparkles, Webhook, Target, Bell } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -18,6 +18,22 @@ import { TeamPerformanceHeatmap } from "@/features/analytics/components/TeamPerf
 import { TicketsSection } from "@/features/tickets/components/TicketsSection";
 import { NotificationDropdown } from "@/features/notifications/components/NotificationDropdown";
 import { SettingsContent } from "@/features/settings/components/SettingsContent";
+import {
+  ZendeskDashboardMetrics,
+  ZendeskHeader,
+  ZendeskResponseTimeAnalytics,
+  ZendeskSidebar,
+  ZendeskTicketsTable,
+  ZendeskSLASection,
+} from "@/features/dashboard/components/zendesk";
+import type {
+  DashboardView,
+  DashboardMetric,
+  ResponseTrendDatum,
+  AgentPerformanceDatum,
+  SlaComplianceDatum,
+  TicketRow,
+} from "@/features/dashboard/components/zendesk";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +41,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer } from "recharts";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { TicketWorkspaceZendesk } from "@/components/tickets/TicketWorkspaceZendesk";
+import { mapEmailRecordToSerializable } from "@/lib/utils/ticket-mapper";
+import { useTicketStore } from "@/lib/stores/ticketStore";
+import { CustomerSummary, TicketStatistics, TicketTimelineEntry, TicketWorkspaceData } from "@/types/ticket-detail";
+import { DEFAULT_TICKET_PRIORITIES, DEFAULT_TICKET_STATUSES } from "@/lib/constants/ticketDefaults";
 
 // Helper function to convert HTML to plain text
 function htmlToPlainText(html: string): string {
@@ -90,6 +112,8 @@ interface Email {
   firstReplyAt: string | null;
   status: string;
   priority: string;
+  category?: string | null;
+  sentiment?: string | null;
   isResolved: boolean;
   assignedTo: number | null;
 }
@@ -156,12 +180,139 @@ export default function DashboardPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamPerformance, setTeamPerformance] = useState<TeamPerformance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'tickets' | 'analytics' | 'alerts' | 'team' | 'configuration' | 'settings'>('dashboard');
+  const [activeView, setActiveView] = useState<DashboardView>("dashboard");
   const [activeConfigSection, setActiveConfigSection] = useState<'templates' | 'sla' | 'webhooks' | 'business-hours' | 'customer-tiers' | 'email-providers' | 'performance-goals'>('templates');
   const [activeSettingsSection, setActiveSettingsSection] = useState<'profile' | 'billing' | 'notifications' | 'preferences'>('profile');
-  const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
-  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const ticketStatuses = useTicketStore((state) => state.ticketStatuses);
+  const ticketPriorities = useTicketStore((state) => state.ticketPriorities);
+  const refreshTickets = useTicketStore((state) => state.refreshTickets);
+  const [isTicketSheetOpen, setIsTicketSheetOpen] = useState(false);
+  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+  const [ticketWorkspaceData, setTicketWorkspaceData] = useState<TicketWorkspaceData | null>(null);
+  const [ticketWorkspaceLoading, setTicketWorkspaceLoading] = useState(false);
+  const [ticketWorkspaceError, setTicketWorkspaceError] = useState<string | null>(null);
+
+  const handleOpenTicketDetail = (ticketId: string) => {
+    setActiveTicketId(ticketId);
+    setIsTicketSheetOpen(true);
+  };
+
+  const handleCloseTicketDetail = () => {
+    setIsTicketSheetOpen(false);
+    setActiveTicketId(null);
+    setTicketWorkspaceData(null);
+    setTicketWorkspaceError(null);
+    void refreshTickets();
+  };
+
+  useEffect(() => {
+    if (!isTicketSheetOpen || !activeTicketId) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadTicketWorkspace = async () => {
+      setTicketWorkspaceLoading(true);
+      setTicketWorkspaceError(null);
+      setTicketWorkspaceData(null);
+
+      try {
+        const response = await fetch(`/api/tickets/${activeTicketId}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch ticket');
+        }
+
+        const emailData = await response.json();
+        const statuses = ticketStatuses.length ? ticketStatuses : DEFAULT_TICKET_STATUSES;
+        const priorities = ticketPriorities.length ? ticketPriorities : DEFAULT_TICKET_PRIORITIES;
+        const serializedTicket = mapEmailRecordToSerializable(emailData, statuses, priorities);
+
+        const customerSummary: CustomerSummary = {
+          name: emailData.senderEmail?.split('@')[0] || 'Customer',
+          email: emailData.senderEmail,
+          avatarInitials: emailData.senderEmail?.substring(0, 2).toUpperCase() || 'CU',
+          organization: null,
+          language: null,
+          localTime: null,
+          notes: null,
+        };
+
+        let stats: TicketStatistics = {
+          totalTickets: 1,
+          openTickets: emailData.isResolved ? 0 : 1,
+          resolvedTickets: emailData.isResolved ? 1 : 0,
+          satisfactionScore: null,
+        };
+
+        try {
+          const customerRes = await fetch(`/api/customers/${emailData.senderEmail}`, {
+            signal: controller.signal,
+          });
+
+          if (customerRes.ok) {
+            const customerData = await customerRes.json();
+            customerSummary.name = customerData.name || customerSummary.name;
+            stats = {
+              totalTickets: customerData.totalTickets || stats.totalTickets,
+              openTickets: customerData.openTickets ?? stats.openTickets,
+              resolvedTickets: customerData.resolvedTickets ?? stats.resolvedTickets,
+              satisfactionScore: customerData.satisfactionScore ?? stats.satisfactionScore,
+            };
+          }
+        } catch (customerError) {
+          console.warn('Failed to fetch customer data', customerError);
+        }
+
+        const timeline: TicketTimelineEntry[] = [
+          {
+            id: `${emailData.id}-received`,
+            type: 'milestone',
+            title: 'Email received',
+            description: `Ticket created from email`,
+            statusId: emailData.status,
+            timestamp: new Date(emailData.receivedAt || emailData.createdAt).toISOString(),
+          },
+        ];
+
+        if (emailData.firstReplyAt) {
+          timeline.push({
+            id: `${emailData.id}-replied`,
+            type: 'milestone',
+            title: 'First reply sent',
+            description: null,
+            statusId: null,
+            timestamp: new Date(emailData.firstReplyAt).toISOString(),
+          });
+        }
+
+        setTicketWorkspaceData({
+          ticket: serializedTicket,
+          customer: customerSummary,
+          stats,
+          timeline,
+        });
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setTicketWorkspaceError(error instanceof Error ? error.message : 'Failed to load ticket');
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setTicketWorkspaceLoading(false);
+        }
+      }
+    };
+
+    loadTicketWorkspace();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isTicketSheetOpen, activeTicketId, ticketStatuses, ticketPriorities]);
   
   // New states for email details and filters
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
@@ -258,6 +409,8 @@ export default function DashboardPage() {
     id: null,
     name: '',
   });
+  const [showLegacyDashboard, setShowLegacyDashboard] = useState(false);
+  const [showLegacyTickets, setShowLegacyTickets] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -275,7 +428,7 @@ export default function DashboardPage() {
         
         if (success === 'gmail_connected') {
           toast.success('Gmail connected successfully!');
-          setActiveSection('settings');
+          setActiveView('settings');
           // Fetch providers immediately after connection
           try {
             const response = await fetch("/api/email-providers", {
@@ -292,7 +445,7 @@ export default function DashboardPage() {
           window.history.replaceState({}, '', '/dashboard');
         } else if (success === 'outlook_connected') {
           toast.success('Outlook connected successfully!');
-          setActiveSection('settings');
+          setActiveView('settings');
           // Fetch providers immediately after connection
           try {
             const response = await fetch("/api/email-providers", {
@@ -356,15 +509,15 @@ export default function DashboardPage() {
 
   // Load team workload when team section is active
   useEffect(() => {
-    if (session?.user && activeSection === 'team') {
+    if (session?.user && activeView === 'agents') {
       fetchTeamWorkload();
     }
-  }, [session, activeSection]);
+  }, [session, activeView]);
 
   // Live Alerts via SSE when Alerts section is active
   useEffect(() => {
     let es: EventSource | null = null;
-    if (session?.user && activeSection === 'alerts') {
+    if (session?.user && activeView === 'alerts') {
       try {
         setAlertsLive(true);
         es = new EventSource('/api/alerts/live');
@@ -389,7 +542,7 @@ export default function DashboardPage() {
     return () => {
       if (es) es.close();
     };
-  }, [session, activeSection]);
+  }, [session, activeView]);
 
   const fetchDashboardData = async (showLoading = true) => {
     if (showLoading) {
@@ -496,21 +649,21 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (session?.user && activeSection === 'settings') {
+    if (session?.user && activeView === 'settings') {
       fetchEmailProviders();
       fetchSyncLogs();
     }
-  }, [session, activeSection]);
+  }, [session, activeView]);
 
   useEffect(() => {
-    if (session?.user && activeSection === 'team') {
+    if (session?.user && activeView === 'agents') {
       fetchTeamPerformance();
     }
-  }, [session, activeSection]);
+  }, [session, activeView]);
 
   // Auto-refresh for Analytics - LIVE updates every 30 seconds
   useEffect(() => {
-    if (activeSection === 'analytics' && session?.user) {
+    if (activeView === 'performance' && session?.user) {
       const interval = setInterval(() => {
         fetchDashboardData(false); // Refresh without showing loading spinner
         setLastUpdate(new Date());
@@ -518,14 +671,14 @@ export default function DashboardPage() {
 
       return () => clearInterval(interval);
     }
-  }, [activeSection, session]);
+  }, [activeView, session]);
 
   useEffect(() => {
-    if (session?.user && activeSection === 'settings') {
+    if (session?.user && activeView === 'settings') {
       fetchReplyTemplates();
       fetchPerformanceGoals();
     }
-  }, [session, activeSection, selectedChannel]);
+  }, [session, activeView, selectedChannel]);
 
   const fetchPerformanceGoals = async () => {
     try {
@@ -1307,11 +1460,11 @@ export default function DashboardPage() {
     toast.success('Customer tier removed!');
   };
 
-  const handleSectionClick = (section: 'dashboard' | 'tickets' | 'analytics' | 'alerts' | 'team' | 'settings') => {
-    setActiveSection(section);
+  const handleSectionClick = (section: DashboardView) => {
+    setActiveView(section);
     
     // Fetch webhooks when opening settings
-    if (section === 'settings') {
+    if (section === 'settings' || section === 'configuration') {
       fetchWebhooks();
     }
   };
@@ -1367,6 +1520,318 @@ export default function DashboardPage() {
     }
   };
 
+  const formatRelativeTime = (timestamp?: string | null) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMinutes = Math.round(diffMs / 60000);
+
+    if (diffMinutes < 1) return "justo ahora";
+    if (diffMinutes < 60) return `hace ${diffMinutes}m`;
+
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) return `hace ${diffHours}h`;
+
+    const diffDays = Math.round(diffHours / 24);
+    if (diffDays < 30) return `hace ${diffDays}d`;
+
+    return date.toLocaleDateString();
+  };
+
+  const diffInMinutes = (start?: string | null, end?: string | null) => {
+    if (!start || !end) return null;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return null;
+    }
+    const diffMs = endDate.getTime() - startDate.getTime();
+    if (diffMs < 0) return null;
+    return Math.round(diffMs / 60000);
+  };
+
+  const filteredEmails = useMemo(() => {
+    return emails.filter((email) => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        email.subject?.toLowerCase().includes(search) ||
+        email.senderEmail?.toLowerCase().includes(search) ||
+        email.recipientEmail?.toLowerCase().includes(search)
+      );
+    });
+  }, [emails, searchTerm]);
+
+  const firstReplyGoalMinutesTotal = useMemo(() => {
+    const hours = Number.parseInt(firstReplyGoalHours, 10) || 0;
+    const minutes = Number.parseInt(firstReplyGoalMinutes, 10) || 0;
+    return hours * 60 + minutes;
+  }, [firstReplyGoalHours, firstReplyGoalMinutes]);
+
+  const dashboardMetrics = useMemo<DashboardMetric[]>(() => {
+    if (!dashboardData) return [];
+
+    const recent = dashboardData.recentMetrics ?? [];
+    const latest = recent[recent.length - 1];
+    const previous = recent[recent.length - 2];
+
+    const firstReplyDelta =
+      latest && previous
+        ? previous.avgFirstReplyTimeMinutes - latest.avgFirstReplyTimeMinutes
+        : null;
+    const slaDelta =
+      latest && previous
+        ? latest.resolutionRate - previous.resolutionRate
+        : null;
+    const unreadAlerts = alerts.filter((alert) => !alert.isRead).length;
+
+    const metrics: DashboardMetric[] = [
+      {
+        id: "first-reply",
+        title: "Tiempo promedio primera respuesta",
+        value: formatTime(Math.round(dashboardData.avgReplyTimeMinutes ?? 0)),
+        subtitle: "Últimas 24 horas",
+        trend:
+          firstReplyDelta != null
+            ? {
+                value: `${Math.abs(firstReplyDelta).toFixed(1)}m ${
+                  firstReplyDelta > 0 ? "más rápido" : "más lento"
+                }`,
+                isPositive: firstReplyDelta > 0,
+              }
+            : undefined,
+        icon: <Clock className="w-8 h-8" />,
+      },
+      {
+        id: "pending-emails",
+        title: "Correos pendientes",
+        value: (dashboardData.pendingEmails ?? 0).toString(),
+        subtitle: `${dashboardData.unresolvedEmails ?? 0} sin resolver`,
+        icon: <Mail className="w-8 h-8" />,
+      },
+      {
+        id: "overdue-emails",
+        title: "Correos vencidos",
+        value: (dashboardData.overdueEmails ?? 0).toString(),
+        subtitle: "Requieren atención inmediata",
+        icon: <AlertCircle className="w-8 h-8" />,
+      },
+      {
+        id: "sla-compliance",
+        title: "Cumplimiento SLA",
+        value: `${Math.round(dashboardData.avgResolutionRate ?? 0)}%`,
+        subtitle: "Meta > 90%",
+        trend:
+          slaDelta != null
+            ? {
+                value: `${slaDelta > 0 ? "+" : ""}${slaDelta.toFixed(1)}%`,
+                isPositive: slaDelta >= 0,
+              }
+            : undefined,
+        icon: <TrendingUp className="w-8 h-8" />,
+      },
+      {
+        id: "resolved-emails",
+        title: "Correos respondidos",
+        value: (dashboardData.repliedEmails ?? 0).toString(),
+        subtitle: "Últimas 24 horas",
+        icon: <CheckCircle className="w-8 h-8" />,
+      },
+      {
+        id: "active-team",
+        title: "Equipo activo",
+        value: teamMembers.length.toString(),
+        subtitle: `${unreadAlerts} alertas sin leer`,
+        icon: <Users className="w-8 h-8" />,
+      },
+    ];
+
+    return metrics;
+  }, [alerts, dashboardData, teamMembers]);
+
+  const responseTrendData = useMemo<ResponseTrendDatum[]>(() => {
+    // Si hay datos reales, usarlos
+    if (dashboardData?.recentMetrics?.length) {
+      return dashboardData.recentMetrics.slice(-7).map((metric) => {
+        const date = new Date(metric.date);
+        const label = Number.isNaN(date.getTime())
+          ? metric.date
+          : date.toLocaleDateString("es-MX", { weekday: "short" });
+
+        return {
+          label,
+          firstReplyMinutes: Math.round(metric.avgFirstReplyTimeMinutes ?? 0),
+          resolutionRate: Math.round(metric.resolutionRate ?? 0),
+          targetMinutes: firstReplyGoalMinutesTotal || undefined,
+        };
+      });
+    }
+
+    // Datos de ejemplo si no hay datos reales
+    return [
+      { label: "Lun", firstReplyMinutes: 145, resolutionMinutes: 480, resolutionRate: 87, targetMinutes: 120 },
+      { label: "Mar", firstReplyMinutes: 132, resolutionMinutes: 425, resolutionRate: 89, targetMinutes: 120 },
+      { label: "Mié", firstReplyMinutes: 158, resolutionMinutes: 510, resolutionRate: 85, targetMinutes: 120 },
+      { label: "Jue", firstReplyMinutes: 125, resolutionMinutes: 390, resolutionRate: 91, targetMinutes: 120 },
+      { label: "Vie", firstReplyMinutes: 135, resolutionMinutes: 465, resolutionRate: 88, targetMinutes: 120 },
+      { label: "Sáb", firstReplyMinutes: 98, resolutionMinutes: 320, resolutionRate: 94, targetMinutes: 120 },
+      { label: "Dom", firstReplyMinutes: 105, resolutionMinutes: 340, resolutionRate: 93, targetMinutes: 120 },
+    ];
+  }, [dashboardData?.recentMetrics, firstReplyGoalMinutesTotal]);
+
+  const agentPerformanceData = useMemo<AgentPerformanceDatum[]>(() => {
+    // Si hay datos reales de equipo, usarlos
+    if (teamPerformance?.length) {
+      return teamPerformance.map((member) => {
+        const avgFirstReply = Math.round(
+          member.metrics.avgReplyTimeMinutes ?? dashboardData?.avgReplyTimeMinutes ?? 0
+        );
+        const resolutionMinutes = Math.max(
+          avgFirstReply,
+          Math.round(
+            (member.metrics.avgReplyTimeMinutes ?? 0) *
+              (100 / Math.max(member.metrics.resolutionRate || 50, 1))
+          )
+        );
+
+        return {
+          agent: member.name,
+          tickets: member.metrics.totalAssigned ?? 0,
+          avgFirstReplyMinutes: avgFirstReply,
+          avgResolutionMinutes: resolutionMinutes,
+          satisfactionPercentage: Math.round(member.metrics.resolutionRate ?? 0),
+        };
+      });
+    }
+
+    // Datos de ejemplo si no hay equipo configurado
+    return [
+      { agent: "Carlos R.", tickets: 45, avgFirstReplyMinutes: 125, avgResolutionMinutes: 380, satisfactionPercentage: 96 },
+      { agent: "Laura S.", tickets: 38, avgFirstReplyMinutes: 142, avgResolutionMinutes: 420, satisfactionPercentage: 94 },
+      { agent: "Ana M.", tickets: 32, avgFirstReplyMinutes: 158, avgResolutionMinutes: 495, satisfactionPercentage: 92 },
+      { agent: "Juan P.", tickets: 28, avgFirstReplyMinutes: 135, avgResolutionMinutes: 445, satisfactionPercentage: 95 },
+    ];
+  }, [teamPerformance, dashboardData?.avgReplyTimeMinutes]);
+
+  const slaComplianceData = useMemo<SlaComplianceDatum[]>(() => {
+    if (!dashboardData) return [];
+
+    const totalEmails = Math.max(dashboardData.totalEmails ?? 0, 1);
+    const withinSla = Math.max(
+      totalEmails - (dashboardData.overdueEmails ?? 0),
+      0
+    );
+    const compliance = Math.min(
+      100,
+      Math.round((withinSla / totalEmails) * 100)
+    );
+
+    const slaEntries = slaSettings.slice(0, 3);
+
+    if (!slaEntries.length) {
+      return [
+        {
+          category: "Primera respuesta",
+          met: compliance,
+          breached: 100 - compliance,
+        },
+        {
+          category: "Resolución",
+          met: Math.max(compliance - 8, 0),
+          breached: Math.min(100 - compliance + 8, 100),
+        },
+        {
+          category: "Actualización",
+          met: Math.max(compliance - 4, 0),
+          breached: Math.min(100 - compliance + 4, 100),
+        },
+      ];
+    }
+
+    return slaEntries.map((sla, index) => ({
+      category: sla.name || `SLA ${index + 1}`,
+      met: compliance,
+      breached: 100 - compliance,
+    }));
+  }, [dashboardData, slaSettings]);
+
+  const conversationsPerDay = useMemo(() => {
+    if (!dashboardData?.recentMetrics?.length) {
+      return emails.length / 7 || null;
+    }
+    const total = dashboardData.recentMetrics.reduce(
+      (acc, metric) => acc + (metric.avgFirstReplyTimeMinutes ? 1 : 0),
+      0
+    );
+    const avg = total / dashboardData.recentMetrics.length;
+    return Number.isFinite(avg) ? avg : null;
+  }, [dashboardData?.recentMetrics, emails.length]);
+
+  const statusLabels: Record<string, string> = {
+    new: "Nuevo",
+    pending: "Pendiente",
+    replied: "Respondido",
+    resolved: "Resuelto",
+    overdue: "Vencido",
+    closed: "Cerrado",
+  };
+
+  const priorityLabels: Record<string, string> = {
+    low: "Baja",
+    medium: "Media",
+    high: "Alta",
+    urgent: "Urgente",
+  };
+
+  const ticketRows = useMemo<TicketRow[]>(() => {
+    return filteredEmails.map((email) => {
+      const assignee =
+        teamMembers.find((member) => member.id === email.assignedTo)?.name ??
+        null;
+      const initials = assignee
+        ? assignee
+            .split(" ")
+            .filter(Boolean)
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase()
+        : null;
+
+      const firstReplyMinutes = diffInMinutes(
+        email.receivedAt,
+        email.firstReplyAt
+      );
+
+      return {
+        id: `TKT-${String(email.id).padStart(4, "0")}`,
+        subject: email.subject ?? "Sin asunto",
+        customerName: email.senderEmail?.split("@")[0] ?? "Cliente",
+        customerEmail: email.senderEmail ?? "—",
+        status: email.status ?? "pending",
+        statusLabel:
+          statusLabels[email.status as keyof typeof statusLabels] ??
+          email.status ??
+          "Pendiente",
+        priority: email.priority ?? "medium",
+        priorityLabel:
+          priorityLabels[email.priority as keyof typeof priorityLabels] ??
+          email.priority ??
+          "Media",
+        assigneeName: assignee,
+        assigneeInitials: initials,
+        firstResponse:
+          firstReplyMinutes != null ? formatTime(firstReplyMinutes) : null,
+        resolutionTime: null,
+        createdAtLabel: formatRelativeTime(email.receivedAt),
+        updatedAtLabel: formatRelativeTime(email.firstReplyAt),
+        category: email.category,
+        sentiment: email.sentiment,
+      };
+    });
+  }, [filteredEmails, teamMembers]);
+
   const handleEmailUpdate = () => {
     fetchDashboardData(false); // Silent refresh
   };
@@ -1395,486 +1860,409 @@ export default function DashboardPage() {
     return null;
   }
 
-  // Client-side filtering for search (no server reload)
-  const filteredEmails = emails.filter(email => {
-    if (!searchTerm) return true;
-    
-    const search = searchTerm.toLowerCase();
-    return (
-      email.subject?.toLowerCase().includes(search) ||
-      email.senderEmail?.toLowerCase().includes(search) ||
-      email.recipientEmail?.toLowerCase().includes(search)
-    );
-  });
-
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex">
-        {/* Left Navbar Vertical - Main Icons Only - STICKY */}
-        <nav className="w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center gap-4 py-8 fixed top-0 left-0 h-screen backdrop-blur-sm z-40 lg:flex hidden" role="navigation" aria-label="Main navigation">
-          <button
-            onClick={() => {
-              setActiveSection('dashboard');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
+      <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-[#070712] via-[#0a1324] to-[#05030d] text-white">
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-[#141414]/95 backdrop-blur">
+          <ZendeskHeader
+            userName={session.user.name}
+            userEmail={session.user.email}
+            onAddMailbox={() => {
+              setActiveConfigSection('email-providers');
+              handleSectionClick('configuration');
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'dashboard'
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Dashboard"
-            aria-label="Dashboard"
-            aria-current={activeSection === 'dashboard' ? 'page' : undefined}
-          >
-          <Home className="transition-colors" size={24} />
-          <span className="text-[10px] font-medium tracking-wide transition-colors">Home</span>
-        </button>
-
-        <button
-          onClick={() => {
-            handleSectionClick('tickets');
-            setIsConfigMenuOpen(false);
-            setIsSettingsMenuOpen(false);
-          }}
-          className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-            activeSection === 'tickets'
-              ? 'bg-primary/15 text-primary'
-              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-          }`}
-          title="Tickets"
-          aria-label="Tickets"
-          aria-current={activeSection === 'tickets' ? 'page' : undefined}
-        >
-          <Mail className="transition-colors" size={24} />
-          <span className="text-[10px] font-medium tracking-wide transition-colors">Tickets</span>
-        </button>
-
-        <button
-          onClick={() => {
-            handleSectionClick('analytics');
-            setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'analytics'
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Analytics"
-            aria-label="Analytics"
-            aria-current={activeSection === 'analytics' ? 'page' : undefined}
-          >
-            <BarChart3 className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Analytics</span>
-          </button>
-
-          <button
-            onClick={() => {
-              handleSectionClick('alerts');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'alerts'
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Alerts"
-            aria-label="Alerts"
-            aria-current={activeSection === 'alerts' ? 'page' : undefined}
-          >
-            <Bell className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Alerts</span>
-            {alerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold shadow-lg" aria-label={`${alerts.length} unread alerts`}>
-                {alerts.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => {
-              handleSectionClick('team');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'team'
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Team"
-            aria-label="Team"
-            aria-current={activeSection === 'team' ? 'page' : undefined}
-          >
-            <Users className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Team</span>
-          </button>
-
-          {/* Configuration with Submenu */}
-          <button
-            onClick={() => {
-              setIsConfigMenuOpen(!isConfigMenuOpen);
-              setIsSettingsMenuOpen(false);
-              if (!isConfigMenuOpen) {
-                setActiveSection('configuration');
+            onSignOut={handleSignOut}
+            onOpenBilling={() => handleSectionClick('settings')}
+            trialEndsAtLabel={null}
+            themeToggleSlot={<ThemeToggle />}
+            extraActions={<NotificationDropdown />}
+            onOpenMenu={() => {
+              const mobileMenu = document.getElementById('mobile-menu');
+              if (mobileMenu) {
+                mobileMenu.classList.toggle('hidden');
               }
             }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors relative focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'configuration'
-                ? 'bg-accent/40 text-foreground'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Configuration"
-            aria-label="Configuration"
-            aria-expanded={isConfigMenuOpen}
-            aria-current={activeSection === 'configuration' ? 'page' : undefined}
-          >
-            <Sliders className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Config</span>
-            <ChevronRight
-              className={`absolute -right-1 top-1/2 -translate-y-1/2 transition-transform ${
-                isConfigMenuOpen ? 'rotate-90' : ''
-              }`}
-              size={12}
-            />
-          </button>
+          />
+        </header>
+        <div className="flex flex-1 w-full overflow-hidden min-h-0">
+          <aside className="hidden lg:block w-72 border-r border-white/10 bg-[#080812]">
+            <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+              <ZendeskSidebar
+                activeView={activeView}
+                onViewChange={handleSectionClick}
+                userName={session.user.name}
+                userEmail={session.user.email}
+                showAlerts={alerts.length > 0}
+              />
+            </div>
+          </aside>
 
-          {/* Settings */}
-          <button
-            onClick={() => {
-              setActiveSection('settings');
-              setIsConfigMenuOpen(false);
-              setIsSettingsMenuOpen(false);
-            }}
-            className={`group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-              activeSection === 'settings'
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-            }`}
-            title="Settings"
-            aria-label="Settings"
-            aria-current={activeSection === 'settings' ? 'page' : undefined}
-          >
-            <Settings className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Settings</span>
-          </button>
-
-          <div className="flex-1"></div>
-
-          <button
-            onClick={handleSignOut}
-            className="group flex flex-col items-center gap-2 rounded-xl p-3 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-destructive"
-            title="Sign Out"
-            aria-label="Sign Out"
-          >
-            <LogOut className="transition-colors" size={24} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">Exit</span>
-          </button>
-        </nav>
-
-        {/* Configuration Submenu - STICKY */}
-        {isConfigMenuOpen && (
-          <nav className="w-64 bg-sidebar/90 backdrop-blur-md border-r border-sidebar-border fixed top-0 left-20 h-screen overflow-y-auto z-30 lg:block hidden" role="navigation" aria-label="Configuration submenu">
-            <div className="p-6">
-              <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground/90">
-                <Sliders size={20} className="text-primary" />
-                Configuration
-              </h2>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setActiveConfigSection('templates')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'templates'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Templates"
-                  aria-current={activeConfigSection === 'templates' ? 'page' : undefined}
-                >
-                  <FileText size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Templates</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('sla')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'sla'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="SLA Settings"
-                  aria-current={activeConfigSection === 'sla' ? 'page' : undefined}
-                >
-                  <Timer size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">SLA Settings</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('webhooks')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'webhooks'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Webhooks"
-                  aria-current={activeConfigSection === 'webhooks' ? 'page' : undefined}
-                >
-                  <Webhook size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Webhooks</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('business-hours')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'business-hours'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Business Hours"
-                  aria-current={activeConfigSection === 'business-hours' ? 'page' : undefined}
-                >
-                  <Calendar size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Business Hours</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('customer-tiers')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'customer-tiers'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Customer Tiers"
-                  aria-current={activeConfigSection === 'customer-tiers' ? 'page' : undefined}
-                >
-                  <Crown size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Customer Tiers</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('email-providers')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'email-providers'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Email Providers"
-                  aria-current={activeConfigSection === 'email-providers' ? 'page' : undefined}
-                >
-                  <Server size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Email Providers</span>
-                </button>
-                
-                <button
-                  onClick={() => setActiveConfigSection('performance-goals')}
-                  className={`flex w-full items-center gap-3 rounded-lg p-3 transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
-                    activeConfigSection === 'performance-goals'
-                      ? 'bg-accent/40 text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                  aria-label="Performance Goals"
-                  aria-current={activeConfigSection === 'performance-goals' ? 'page' : undefined}
-                >
-                  <Target size={18} className="transition-colors" />
-                  <span className="text-sm font-medium transition-colors">Performance Goals</span>
-                </button>
+          <div className="flex-1 flex flex-col min-h-0">
+            <div
+              id="mobile-menu"
+              className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-40 hidden bg-[#05040b]/95 backdrop-blur-sm"
+            >
+              <div className="h-full overflow-y-auto">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                  <h2 className="text-lg font-semibold text-white">Menú</h2>
+                  <button
+                    onClick={() => {
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className="p-2 rounded-lg text-gray-400 hover:text-white transition-colors"
+                    aria-label="Cerrar menú"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="px-4 py-4 space-y-2">
+                  <button
+                    onClick={() => {
+                      handleSectionClick('dashboard');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'dashboard'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <BarChart3 size={20} />
+                    <span className="font-medium">Dashboard</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('tickets');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'tickets'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Mail size={20} />
+                    <span className="font-medium">Tickets</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('performance');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'performance'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <BarChart3 size={20} />
+                    <span className="font-medium">Performance</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('sla');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'sla'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Clock size={20} />
+                    <span className="font-medium">SLA</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('alerts');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'alerts'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Bell size={20} />
+                    <span className="font-medium">Alerts</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('agents');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'agents'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Users size={20} />
+                    <span className="font-medium">Equipo</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('configuration');
+                      setActiveConfigSection('templates');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'configuration'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Settings size={20} />
+                    <span className="font-medium">Configuración</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSectionClick('settings');
+                      const mobileMenu = document.getElementById('mobile-menu');
+                      if (mobileMenu) {
+                        mobileMenu.classList.add('hidden');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
+                      activeView === 'settings'
+                        ? 'bg-violet-600/20 text-white'
+                        : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Settings size={20} />
+                    <span className="font-medium">Cuenta</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </nav>
-        )}
 
-
-        {/* Main Content - WITH DYNAMIC LEFT MARGIN FOR SIDEBAR */}
-        <div className={`flex-1 overflow-y-auto transition-all duration-300 ${isConfigMenuOpen ? 'lg:ml-84' : 'lg:ml-20'} ml-0`}>
-        {/* Mobile Navigation Bar */}
-        <div className="lg:hidden sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
-          <div className="px-4 py-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.toggle('hidden');
-                    }
-                  }}
-                  className="p-2 rounded-lg bg-primary/10 text-primary"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                <h1 className="text-lg font-semibold text-foreground">
-                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+            <main className="flex-1 w-full mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-10 overflow-y-auto min-h-0">
+              <div className="lg:hidden mb-6">
+                <p className="text-xs uppercase tracking-wide text-violet-300">Sección actual</p>
+                <h1 className="text-2xl font-semibold">
+                  {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
                 </h1>
               </div>
-              <div className="flex items-center gap-2">
-                <NotificationDropdown />
-                <ThemeToggle />
+          {activeView === 'dashboard' && (
+            <div className="space-y-8">
+              <ZendeskDashboardMetrics metrics={dashboardMetrics} />
+              <ZendeskResponseTimeAnalytics
+                trendData={responseTrendData}
+                agentPerformance={agentPerformanceData}
+                slaCompliance={slaComplianceData}
+              />
+              <div className="rounded-lg border border-white/10 bg-[#18181b] p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Herramientas avanzadas
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      Accede temporalmente a la vista anterior mientras completamos la migración.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLegacyDashboard((prev) => !prev)}
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    {showLegacyDashboard ? "Ocultar vista anterior" : "Mostrar vista anterior"}
+                  </Button>
+                </div>
+                {showLegacyDashboard && (
+                  <div className="mt-6 space-y-6">
+                    <OptimizedDashboard
+                      emails={emails}
+                      teamMembers={teamMembers}
+                      searchTerm={searchTerm}
+                      statusFilter={statusFilter}
+                      priorityFilter={priorityFilter}
+                      onSearchChange={setSearchTerm}
+                      onStatusChange={setStatusFilter}
+                      onPriorityChange={setPriorityFilter}
+                      onClearFilters={handleClearFilters}
+                      onApplyFilters={() => fetchDashboardData(true)}
+                      onViewEmail={handleViewEmail}
+                      onReplyEmail={handleOpenReply}
+                      onMarkResolved={handleMarkResolved}
+                      onAssignEmail={handleAssignEmail}
+                      onAutoAssign={handleAutoAssignEmail}
+                      onBulkAutoAssign={handleBulkAutoAssign}
+                      isAutoAssigning={isAutoAssigning}
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <div id="mobile-menu" className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm hidden">
-          <div className="fixed inset-y-0 left-0 w-64 bg-sidebar border-r border-sidebar-border overflow-y-auto">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-                <button
-                  onClick={() => {
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setActiveSection('dashboard');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeSection === 'dashboard'
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                >
-                  <Home size={20} />
-                  <span className="font-medium">Dashboard</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleSectionClick('analytics');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeSection === 'analytics'
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                >
-                  <BarChart3 size={20} />
-                  <span className="font-medium">Analytics</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleSectionClick('alerts');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeSection === 'alerts'
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                >
-                  <Bell size={20} />
-                  <span className="font-medium">Alerts</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleSectionClick('team');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeSection === 'team'
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                >
-                  <Users size={20} />
-                  <span className="font-medium">Team</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveSection('settings');
-                    const mobileMenu = document.getElementById('mobile-menu');
-                    if (mobileMenu) {
-                      mobileMenu.classList.add('hidden');
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                    activeSection === 'settings'
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
-                >
-                  <Settings size={20} />
-                  <span className="font-medium">Settings</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Header with welcome message - COMPACT */}
-        <div className="hidden lg:block sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-md shadow-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">
-                  {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-                </h1>
-                <p className="text-xs text-muted-foreground">Welcome back, {session.user.name || session.user.email}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <NotificationDropdown />
-                <ThemeToggle />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content based on active section - REDUCED PADDING */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {activeSection === 'dashboard' && (
-            <OptimizedDashboard
-              emails={emails}
-              teamMembers={teamMembers}
-              searchTerm={searchTerm}
-              statusFilter={statusFilter}
-              priorityFilter={priorityFilter}
-              onSearchChange={setSearchTerm}
-              onStatusChange={setStatusFilter}
-              onPriorityChange={setPriorityFilter}
-              onClearFilters={handleClearFilters}
-              onApplyFilters={() => fetchDashboardData(true)}
-              onViewEmail={handleViewEmail}
-              onReplyEmail={handleOpenReply}
-              onMarkResolved={handleMarkResolved}
-              onAssignEmail={handleAssignEmail}
-              onAutoAssign={handleAutoAssignEmail}
-              onBulkAutoAssign={handleBulkAutoAssign}
-              isAutoAssigning={isAutoAssigning}
-            />
           )}
 
-          {activeSection === 'tickets' && (
-            <TicketsSection showHeader={false} />
-          )}
-
-          {activeSection === 'analytics' && dashboardData && (
+          {activeView === 'sla' && (
             <div className="space-y-6">
+              <ZendeskSLASection
+                complianceData={slaComplianceData}
+                conversationsPerDay={conversationsPerDay ?? undefined}
+              />
+              <div className="rounded-lg border border-white/10 bg-[#18181b] p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Configuración de SLA</h3>
+                  <p className="text-sm text-gray-400">
+                    Ajusta tus objetivos y reglas de SLA para sincronizar esta vista con tu operación real.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setActiveConfigSection('sla');
+                    handleSectionClick('configuration');
+                  }}
+                  className="bg-violet-600 hover:bg-violet-700"
+                >
+                  Gestionar SLA
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {activeView === 'tickets' && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">Tickets</h2>
+                  <p className="text-sm text-gray-400">
+                    Mostrando {ticketRows.length} tickets activos
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Input
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="Buscar por asunto o correo"
+                      className="bg-[#18181b] border-white/10 text-white sm:w-60"
+                    />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="bg-[#18181b] border-white/10 text-white sm:w-44">
+                        <SelectValue placeholder="Estado" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#18181b] border-white/10 text-white">
+                        <SelectItem value="all">Todos los estados</SelectItem>
+                        <SelectItem value="pending">Pendientes</SelectItem>
+                        <SelectItem value="replied">Respondidos</SelectItem>
+                        <SelectItem value="overdue">Vencidos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                      <SelectTrigger className="bg-[#18181b] border-white/10 text-white sm:w-44">
+                        <SelectValue placeholder="Prioridad" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#18181b] border-white/10 text-white">
+                        <SelectItem value="all">Todas las prioridades</SelectItem>
+                        <SelectItem value="low">Baja</SelectItem>
+                        <SelectItem value="medium">Media</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="urgent">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleClearFilters}
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      Limpiar
+                    </Button>
+                    <Button onClick={() => fetchDashboardData(true)} className="bg-violet-600 hover:bg-violet-700">
+                      Actualizar datos
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <ZendeskTicketsTable
+                tickets={ticketRows}
+                onSelect={handleOpenTicketDetail}
+                emptyMessage="No se encontraron tickets con los filtros seleccionados."
+              />
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={handleBulkAutoAssign}
+                  disabled={isAutoAssigning}
+                  className="bg-violet-600 hover:bg-violet-700"
+                >
+                  {isAutoAssigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Autoasignar pendientes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleRebalanceWorkload}
+                  disabled={isRebalancing}
+                  className="border-white/20 text-white hover:bg-white/10 bg-transparent"
+                >
+                  {isRebalancing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Rebalancear carga
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-dashed border-white/10 bg-[#12111a] p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-200">
+                      Vista avanzada (temporal)
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Incluye todas las herramientas existentes mientras migramos al nuevo diseño.
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowLegacyTickets((prev) => !prev)}
+                    className="text-white hover:bg-white/10"
+                  >
+                    {showLegacyTickets ? "Ocultar herramientas" : "Mostrar herramientas"}
+                  </Button>
+                </div>
+                {showLegacyTickets && (
+                  <div className="mt-4">
+                    <TicketsSection showHeader={false} onTicketSelect={handleOpenTicketDetail} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeView === 'performance' && dashboardData && (
+            <div className="space-y-6">
+              <ZendeskResponseTimeAnalytics
+                trendData={responseTrendData}
+                agentPerformance={agentPerformanceData}
+                slaCompliance={slaComplianceData}
+              />
               {/* BI Tools Integration Section */}
               <div className="rounded-lg border border-primary/20 bg-background p-4">
                 
@@ -2174,7 +2562,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {activeSection === 'alerts' && (
+          {activeView === 'alerts' && (
             <div className="space-y-4">
               <AlertsList
                 alerts={alerts}
@@ -2184,7 +2572,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {activeSection === 'team' && (
+          {activeView === 'agents' && (
             <div className="space-y-6">
               {/* Progressive Team Overview - Clean Initial State */}
               <ProgressiveTeamOverview
@@ -2210,7 +2598,7 @@ export default function DashboardPage() {
           )}
 
           {/* Configuration Section */}
-          {activeSection === 'configuration' && (
+          {activeView === 'configuration' && (
             <div className="space-y-4">
 
               {/* Email Providers Section */}
@@ -3115,10 +3503,10 @@ export default function DashboardPage() {
           )}
 
           {/* Settings Section - Using SettingsContent component */}
-          {activeSection === 'settings' && (
+          {activeView === 'settings' && (
             <SettingsContent session={session} />
           )}
-        </div>
+        </main>
 
       {/* Email Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
@@ -3484,7 +3872,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       setShowOnboarding(false);
                       localStorage.setItem('onboarding_completed', 'true');
-                      setActiveSection('settings');
+                      setActiveView('settings');
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
@@ -3508,7 +3896,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       setShowOnboarding(false);
                       localStorage.setItem('onboarding_completed', 'true');
-                      setActiveSection('team');
+                      setActiveView('agents');
                     }}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -3532,7 +3920,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       setShowOnboarding(false);
                       localStorage.setItem('onboarding_completed', 'true');
-                      setActiveSection('settings');
+                      setActiveView('settings');
                     }}
                     className="bg-orange-600 hover:bg-orange-700 text-white"
                   >
@@ -3558,8 +3946,42 @@ export default function DashboardPage() {
           </DialogContent>
         </Dialog>
       )}
-        </div>
+      <Sheet
+        open={isTicketSheetOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseTicketDetail();
+          }
+        }}
+      >
+        <SheetContent side="right" className="w-full sm:max-w-4xl p-0">
+          {ticketWorkspaceLoading ? (
+            <div className="flex h-full items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : ticketWorkspaceError ? (
+            <div className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Unable to load ticket</h3>
+                <p className="text-sm text-muted-foreground">{ticketWorkspaceError}</p>
+              </div>
+              <Button onClick={handleCloseTicketDetail} variant="outline">
+                Close
+              </Button>
+            </div>
+          ) : ticketWorkspaceData ? (
+            <TicketWorkspaceZendesk
+              ticket={ticketWorkspaceData.ticket}
+              customer={ticketWorkspaceData.customer}
+              stats={ticketWorkspaceData.stats}
+              timeline={ticketWorkspaceData.timeline}
+            />
+          ) : null}
+        </SheetContent>
+      </Sheet>
       </div>
-    </TooltipProvider>
+    </div>
+  </div>
+</TooltipProvider>
   );
 }
