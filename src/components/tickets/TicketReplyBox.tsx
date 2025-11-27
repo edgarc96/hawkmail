@@ -78,20 +78,20 @@ export function TicketReplyBox({ ticket, onSent }: TicketReplyBoxProps) {
   };
 
   return (
-    <div className="border rounded-lg bg-white shadow-sm">
+    <div className="border border-white/10 rounded-lg bg-[#12111a] shadow-sm">
       {/* Reply Type Selector */}
-      <div className="border-b px-4 lg:px-6 py-3 lg:py-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+      <div className="border-b border-white/10 px-4 lg:px-6 py-3 lg:py-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-3 w-full lg:w-auto">
-          <Avatar className="w-9 h-9 lg:w-10 lg:h-10 shrink-0 border-2 zd-border-neutral-200">
+          <Avatar className="w-9 h-9 lg:w-10 lg:h-10 shrink-0 border-2 border-white/10">
             <AvatarImage src="" />
-            <AvatarFallback className="zd-bg-primary-light text-white">AG</AvatarFallback>
+            <AvatarFallback className="bg-violet-600 text-white">AG</AvatarFallback>
           </Avatar>
           
           <Select value={replyType} onValueChange={(value: "public" | "internal") => setReplyType(value)}>
-            <SelectTrigger className="w-full lg:w-[220px] focus:ring-2 focus:ring-primary/20">
+            <SelectTrigger className="w-full lg:w-[220px] bg-[#18181b] border-white/10 text-white focus:ring-violet-500/20">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#18181b] border-white/10 text-white">
               <SelectItem value="public">
                 <div className="flex items-center gap-2">
                   <Reply className="w-4 h-4" />
@@ -108,10 +108,10 @@ export function TicketReplyBox({ ticket, onSent }: TicketReplyBoxProps) {
           </Select>
         </div>
 
-        <div className="flex items-start gap-2 text-sm zd-text-neutral-600 w-full lg:w-auto">
+        <div className="flex items-start gap-2 text-sm text-gray-400 w-full lg:w-auto">
           <span className="shrink-0 font-medium mt-0.5">Para:</span>
           <div className="flex-1 min-w-0">
-            <span className="truncate font-medium zd-text-neutral-900">
+            <span className="truncate font-medium text-white">
               {ticket.customerId}
             </span>
           </div>
@@ -119,27 +119,27 @@ export function TicketReplyBox({ ticket, onSent }: TicketReplyBoxProps) {
       </div>
 
       {/* Text Editor Toolbar */}
-      <div className="border-b px-3 lg:px-4 py-2 flex items-center gap-1 overflow-x-auto scrollbar-hide">
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:zd-bg-neutral-100">
+      <div className="border-b border-white/10 px-3 lg:px-4 py-2 flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:bg-white/10 text-gray-400 hover:text-white">
           <Bold className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:bg-white/10 text-gray-400 hover:text-white">
           <Italic className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:bg-white/10 text-gray-400 hover:text-white">
           <Link className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:bg-white/10 text-gray-400 hover:text-white">
           <List className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hidden sm:flex hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hidden sm:flex hover:bg-white/10 text-gray-400 hover:text-white">
           <ImageIcon className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hidden sm:flex hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hidden sm:flex hover:bg-white/10 text-gray-400 hover:text-white">
           <Code className="w-4 h-4" />
         </Button>
         <div className="flex-1"></div>
-        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:zd-bg-neutral-100">
+        <Button variant="ghost" size="sm" className="shrink-0 h-9 w-9 p-0 hover:bg-white/10 text-gray-400 hover:text-white">
           <Paperclip className="w-4 h-4" />
         </Button>
       </div>
@@ -150,17 +150,17 @@ export function TicketReplyBox({ ticket, onSent }: TicketReplyBoxProps) {
           value={replyText}
           onChange={(e) => setReplyText(e.target.value)}
           placeholder="Escribir respuesta..."
-          className="min-h-[200px] lg:min-h-[250px] border-0 focus-visible:ring-0 resize-none text-base"
+          className="min-h-[200px] lg:min-h-[250px] border-0 focus-visible:ring-0 resize-none text-base bg-transparent text-white placeholder:text-gray-500"
           disabled={isSending}
         />
       </div>
 
       {/* Footer Actions */}
-      <div className="border-t px-4 lg:px-6 py-3 lg:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="border-t border-white/10 px-4 lg:px-6 py-3 lg:py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <Button 
           onClick={handleSendReply}
           disabled={isSending || !replyText.trim()}
-          className="zd-bg-primary-light hover:zd-bg-primary-hover text-white h-10 flex-1 sm:flex-initial"
+          className="bg-violet-600 hover:bg-violet-700 text-white h-10 flex-1 sm:flex-initial"
         >
           {isSending ? (
             <>
@@ -177,7 +177,7 @@ export function TicketReplyBox({ ticket, onSent }: TicketReplyBoxProps) {
           variant="outline"
           onClick={() => setReplyText("")}
           disabled={isSending}
-          className="h-10 hover:zd-bg-neutral-100"
+          className="h-10 hover:bg-white/10 border-white/10 bg-transparent text-white"
         >
           Cancelar
         </Button>

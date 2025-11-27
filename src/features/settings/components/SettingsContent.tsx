@@ -8,10 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { 
-  Bell, 
-  Mail, 
-  Users, 
+import {
+  Bell,
+  Mail,
+  Users,
   Zap,
   Save,
   ExternalLink,
@@ -260,7 +260,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-       
+
         {subscription && subscription.plan !== 'free' && (
           <Badge variant="default" className="text-sm bg-orange-600 hover:bg-orange-700">
             {subscription.plan === 'pro' ? 'Pro Plan' : 'Enterprise'}
@@ -272,18 +272,18 @@ export function SettingsContent({ session }: SettingsContentProps) {
         {/* Main Settings Column */}
         <div className="lg:col-span-2 space-y-4">
           {/* Notifications */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-lg">
-                <Bell className="w-5 h-5 mr-2" />
+          <div className="rounded-lg border border-white/10 bg-[#18181b] text-white">
+            <div className="p-6 pb-4">
+              <h3 className="flex items-center text-lg font-semibold text-white">
+                <Bell className="w-5 h-5 mr-2 text-gray-400" />
                 Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h3>
+            </div>
+            <div className="p-6 pt-0 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-gray-200">Email Notifications</Label>
+                  <p className="text-sm text-gray-400">
                     Receive email alerts for important events
                   </p>
                 </div>
@@ -293,12 +293,12 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-white/10" />
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Slack Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-gray-200">Slack Notifications</Label>
+                  <p className="text-sm text-gray-400">
                     Get notifications in your Slack workspace
                   </p>
                 </div>
@@ -308,12 +308,12 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-white/10" />
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base font-medium">SLA Alerts</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-gray-200">SLA Alerts</Label>
+                  <p className="text-sm text-gray-400">
                     Alert when emails are approaching SLA limits
                   </p>
                 </div>
@@ -323,12 +323,12 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-white/10" />
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Weekly Reports</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-gray-200">Weekly Reports</Label>
+                  <p className="text-sm text-gray-400">
                     Receive weekly performance summaries
                   </p>
                 </div>
@@ -337,22 +337,22 @@ export function SettingsContent({ session }: SettingsContentProps) {
                   onCheckedChange={(checked) => handleSettingChange('weeklyReports', checked)}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Email Management */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-lg">
-                <Mail className="w-5 h-5 mr-2" />
+          <div className="rounded-lg border border-white/10 bg-[#18181b] text-white">
+            <div className="p-6 pb-4">
+              <h3 className="flex items-center text-lg font-semibold text-white">
+                <Mail className="w-5 h-5 mr-2 text-gray-400" />
                 Email Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h3>
+            </div>
+            <div className="p-6 pt-0 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Auto-Assignment</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className="text-base font-medium text-gray-200">Auto-Assignment</Label>
+                  <p className="text-sm text-gray-400">
                     Automatically assign emails to team members
                   </p>
                 </div>
@@ -362,50 +362,50 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 />
               </div>
 
-              <Separator />
+              <Separator className="bg-white/10" />
 
               <div className="space-y-4">
-                <Label className="text-base font-medium">Connected Email Providers</Label>
-                
+                <Label className="text-base font-medium text-gray-200">Connected Email Providers</Label>
+
                 {emailProviders.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No email providers connected yet.</p>
+                  <p className="text-sm text-gray-400">No email providers connected yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {emailProviders.map((provider) => (
                       <div
                         key={provider.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border border-white/10 rounded-lg bg-white/5"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            provider.provider === 'gmail' ? 'bg-red-100' : 'bg-blue-100'
-                          }`}>
-                            <Mail className={`w-5 h-5 ${
-                              provider.provider === 'gmail' ? 'text-red-600' : 'text-blue-600'
-                            }`} />
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${provider.provider === 'gmail' ? 'bg-red-900/20' : 'bg-blue-900/20'
+                            }`}>
+                            <Mail className={`w-5 h-5 ${provider.provider === 'gmail' ? 'text-red-400' : 'text-blue-400'
+                              }`} />
                           </div>
                           <div>
-                            <p className="font-medium capitalize">{provider.provider}</p>
-                            <p className="text-sm text-muted-foreground">{provider.email}</p>
+                            <p className="font-medium capitalize text-white">{provider.provider}</p>
+                            <p className="text-sm text-gray-400">{provider.email}</p>
                             {provider.lastSyncAt && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-gray-500">
                                 Last sync: {new Date(provider.lastSyncAt).toLocaleString()}
                               </p>
                             )}
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleSyncProvider(provider.id, provider.provider)}
+                            className="border-white/10 bg-transparent text-white hover:bg-white/10"
                           >
                             Sync
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleDisconnectProvider(provider.id)}
+                            className="border-white/10 bg-transparent text-white hover:bg-white/10"
                           >
                             Disconnect
                           </Button>
@@ -420,7 +420,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => handleConnectProvider('gmail')}
-                    className="flex-1"
+                    className="flex-1 border-white/10 bg-transparent text-white hover:bg-white/10"
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     Connect Gmail
@@ -429,41 +429,41 @@ export function SettingsContent({ session }: SettingsContentProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => handleConnectProvider('outlook')}
-                    className="flex-1"
+                    className="flex-1 border-white/10 bg-transparent text-white hover:bg-white/10"
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     Connect Outlook
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar Column */}
         <div className="space-y-4">
           {/* Subscription */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-lg">
-                <CreditCard className="w-5 h-5 mr-2" />
+          <div className="rounded-lg border border-white/10 bg-[#18181b] text-white">
+            <div className="p-6 pb-4">
+              <h3 className="flex items-center text-lg font-semibold text-white">
+                <CreditCard className="w-5 h-5 mr-2 text-gray-400" />
                 Subscription
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              </h3>
+            </div>
+            <div className="p-6 pt-0 space-y-3">
               {subscription ? (
                 <>
                   <div className="space-y-2">
-                    <Badge variant="default" className="bg-orange-600 hover:bg-orange-700">
+                    <Badge variant="default" className="bg-orange-600 hover:bg-orange-700 text-white border-0">
                       {subscription.plan === 'pro' ? 'Pro Plan' : subscription.plan}
                     </Badge>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-400">
                       ${subscription.plan === 'pro' ? '40' : '0'}/month • Renews on {formatDate(subscription.currentPeriodEnd)}
                     </p>
                   </div>
                   <Button
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-white/10 bg-transparent text-white hover:bg-white/10"
                     onClick={handleManageSubscription}
                   >
                     Manage Subscription
@@ -472,33 +472,33 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-400">
                     No active subscription
                   </p>
                   <Button
                     variant="default"
-                    className="w-full"
+                    className="w-full bg-white text-black hover:bg-gray-200"
                     onClick={() => window.location.href = '/stripe/checkout'}
                   >
                     Upgrade to Pro
                   </Button>
                 </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Quick Actions */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-lg">
-                <Zap className="w-5 h-5 mr-2" />
+          <div className="rounded-lg border border-white/10 bg-[#18181b] text-white">
+            <div className="p-6 pb-4">
+              <h3 className="flex items-center text-lg font-semibold text-white">
+                <Zap className="w-5 h-5 mr-2 text-gray-400" />
                 Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+              </h3>
+            </div>
+            <div className="p-6 pt-0 space-y-2">
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start border-white/10 bg-transparent text-white hover:bg-white/10"
                 onClick={() => {
                   // Navigate to team section in dashboard
                   window.location.href = '/dashboard?section=team';
@@ -509,7 +509,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start border-white/10 bg-transparent text-white hover:bg-white/10"
                 onClick={() => {
                   // Navigate to configuration section
                   window.location.href = '/dashboard?section=configuration';
@@ -520,7 +520,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start border-white/10 bg-transparent text-white hover:bg-white/10"
                 onClick={() => {
                   // Navigate to alerts section
                   window.location.href = '/dashboard?section=alerts';
@@ -529,8 +529,8 @@ export function SettingsContent({ session }: SettingsContentProps) {
                 <History className="w-4 h-4 mr-2" />
                 View Alerts
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Save Button */}
           <Button

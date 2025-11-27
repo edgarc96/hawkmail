@@ -18,6 +18,8 @@ export interface Ticket {
   firstReplyAt?: Date;
   lastReplyAt?: Date;
   threadId: string;
+  category?: string | null;
+  sentiment?: string | null;
 }
 
 export interface Message {

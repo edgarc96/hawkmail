@@ -1,0 +1,683 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import DOMPurify from "dompurify";
+import { EmailMessageRenderer } from "@/components/emails/EmailMessageRenderer";
+import { TicketHTMLRenderer } from "@/components/tickets/TicketHTMLRenderer";
+import {
+  ArrowLeft,
+  Mail,
+  Clock,
+  Paperclip,
+  Send,
+  NotebookPen,
+  User,
+  Building2,
+  Globe,
+  Star,
+  Reply,
+  Forward,
+  Archive,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  Menu,
+  Filter,
+  Tag,
+  CheckCircle,
+  MoreVertical,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTicketStore } from "@/lib/stores/ticketStore";
+import { TicketList } from "@/components/tickets/TicketList";
+import { formatDate, formatRelativeTime } from "@/lib/utils/date";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  CustomerSummary,
+  TicketStatistics,
+  TicketTimelineEntry,
+  TicketWorkspaceData,
+} from "@/types/ticket-detail";
+
+interface TicketWorkspaceProps extends TicketWorkspaceData {
+  onBack?: () => void;
+}
+
+interface AttachmentPreview {
+  id: string;
+  src: string;
+  alt: string;
+}
+
+export function TicketWorkspace({ ticket, customer, stats, timeline, onBack }: TicketWorkspaceProps) {
+  const router = useRouter();
+  const [activeReplyTab, setActiveReplyTab] = useState<"public" | "internal">("public");
+  const [replyText, setReplyText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const sanitizedBody = useMemo(() => {
+    const html = ticket.bodyHtml || "";
+    return DOMPurify.sanitize(html, {
+      ADD_ATTR: ["style", "target", "rel"],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|data:image\/)/i,
+    });
+  }, [ticket.bodyHtml]);
+
+  const attachments: AttachmentPreview[] = [];
+
+  const getTicketSnippet = () => {
+    const text = ticket.ticket.description || "";
+    return text.substring(0, 150) + (text.length > 150 ? "..." : "");
+  };
+
+  const navigateBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/tickets");
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) {
+      toast.error("Por favor escribe un mensaje antes de enviar");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: replyText,
+          isInternal: activeReplyTab === "internal",
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("✅ Respuesta enviada exitosamente");
+        setReplyText("");
+      } else {
+        toast.error(`Error: ${data.error || "No se pudo enviar la respuesta"}`);
+      }
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      toast.error("Error al enviar la respuesta. Verifica tu conexión.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    try {
+      setIsArchiving(true);
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}/archive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Ticket archivado correctamente");
+        navigateBack();
+      } else {
+        toast.error(data.error || "Error al archivar el ticket");
+      }
+    } catch (error) {
+      toast.error("Error al archivar el ticket");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const response = await fetch(`/api/tickets/${ticket.ticket.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Ticket eliminado");
+        navigateBack();
+      } else {
+        toast.error(data.error || "Error al eliminar el ticket");
+      }
+    } catch (error) {
+      toast.error("Error al eliminar el ticket");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen flex flex-col bg-white overflow-hidden">
+      {/* Header superior con título y botones - ESTILO ZENDESK/GMAIL */}
+      <div className="shrink-0 bg-white border-b">
+        {/* Título y botones de acción */}
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={navigateBack}
+              className="h-9 w-9 shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Button>
+            <h1 className="text-xl font-normal text-gray-900 truncate">
+              {ticket.ticket.subject}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Filter className="w-5 h-5 text-gray-600" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Clock className="w-5 h-5 text-gray-600" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <MoreVertical className="w-5 h-5 text-gray-600" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Snippet/Preview line - ESTILO GMAIL */}
+        <div className="px-4 pb-3 border-b">
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {getTicketSnippet()}
+          </p>
+        </div>
+      </div>
+
+      {/* Contenido scrolleable - SCROLL INDEPENDIENTE */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-6">
+          {/* Card del mensaje - ESTILO ZENDESK */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {/* Header del mensaje con remitente */}
+            <div className="px-6 py-4 bg-gray-50 border-b flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Avatar className="w-10 h-10 shrink-0">
+                      <AvatarFallback className="zd-bg-primary-light text-white text-sm font-semibold">
+                        {customer.avatarInitials}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-base zd-text-neutral-900">
+                          {customer.name}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs zd-text-neutral-500">
+                          <span>•</span>
+                          <span>{formatRelativeTime(ticket.receivedAt)}</span>
+                        </span>
+                      </div>
+
+                      <div className="text-sm zd-text-neutral-600">
+                        <span className="font-medium">Para:</span> {ticket.recipientEmail}
+                      </div>
+
+                      <Button variant="ghost" className="h-auto p-0 zd-text-primary-light text-sm mt-1 hover:underline">
+                        Mostrar más
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Botones de acción */}
+                  <div className="flex items-center gap-1 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Responder"
+                    >
+                      <Reply className="w-4 h-4 zd-text-neutral-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Reenviar"
+                    >
+                      <Forward className="w-4 h-4 zd-text-neutral-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleArchive}
+                      disabled={isArchiving}
+                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      title="Archivar"
+                    >
+                      {isArchiving ? (
+                        <Loader2 className="w-4 h-4 animate-spin zd-text-neutral-600" />
+                      ) : (
+                        <Archive className="w-4 h-4 zd-text-neutral-600" />
+                      )}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:zd-bg-neutral-200">
+                          <MoreVertical className="w-4 h-4 zd-text-neutral-600" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="zd-text-danger">
+                          {isDeleting ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4 mr-2" />
+                          )}
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                {/* Contenido del mensaje */}
+                <div className="px-8 py-8 min-h-[500px]">
+                  {ticket.bodyHtml ? (
+                    <TicketHTMLRenderer html={ticket.bodyHtml} />
+                  ) : (
+                    <div className="text-sm zd-text-neutral-800 leading-relaxed email-content">
+                      <pre className="whitespace-pre-wrap font-sans">
+                        {ticket.ticket.description}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                {/* Attachments */}
+                {attachments.length > 0 && (
+                  <div className="px-6 pb-6">
+                    <div className="flex items-center gap-2 text-sm font-semibold zd-text-neutral-800 mb-3">
+                      <Paperclip className="h-4 w-4" />
+                      Adjuntos ({attachments.length})
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                      {attachments.map((attachment) => (
+                        <div
+                          key={attachment.id}
+                          className="overflow-hidden rounded-md border zd-border-neutral-200 zd-bg-neutral-50"
+                        >
+                          <img
+                            src={attachment.src}
+                            alt={attachment.alt}
+                            className="h-32 w-full object-cover"
+                          />
+                          <div className="px-3 py-2 text-xs zd-text-neutral-600 truncate">
+                            {attachment.alt}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Área de respuesta FIJA */}
+          <div className="shrink-0 border-t bg-white shadow-lg">
+            <div className="px-4 py-4">
+              <div className="mb-3 flex items-center justify-between">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1 text-sm font-medium hover:zd-bg-neutral-100 px-3 py-1.5 rounded">
+                      {activeReplyTab === "public" ? "Respuesta pública" : "Nota interna"}
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("public")}>
+                      <Reply className="w-4 h-4 mr-2" />
+                      Respuesta pública
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("internal")}>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Nota interna
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <span className="text-xs zd-text-neutral-600">
+                  Para: {customer.email}
+                </span>
+              </div>
+
+              <div className="bg-white mx-6 mb-6 rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200 px-4 py-2 bg-gray-50">
+                  <Tabs
+                    value={activeReplyTab}
+                    onValueChange={(value) => setActiveReplyTab(value as "public" | "internal")}
+                    className="w-full"
+                  >
+                    <TabsList className="bg-transparent border-0 h-auto p-0">
+                      <TabsTrigger 
+                        value="public" 
+                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-md border-b-2 data-[state=active]:border-orange-500"
+                      >
+                        <Send className="h-4 w-4" />
+                        Respuesta pública
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="internal" 
+                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-t-md border-b-2 data-[state=active]:border-orange-500"
+                      >
+                        <NotebookPen className="h-4 w-4" />
+                        Nota interna
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+                
+                <div className="px-4 py-4">
+                  <Textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={activeReplyTab === "public" ? "Escribir respuesta al cliente..." : "Agregar nota interna para el equipo..."}
+                    className="min-h-[150px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+                    disabled={isSending}
+                  />
+
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                        <Paperclip className="h-4 w-4 mr-1" />
+                        Adjuntar
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReplyText("")}
+                        className="hover:bg-gray-100"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleSendReply}
+                        disabled={isSending || !replyText.trim()}
+                        size="sm"
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        {isSending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Enviar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Sidebar derecha - INFO DEL CLIENTE */}
+        <aside className="hidden xl:block w-72 shrink-0 border-l bg-white overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="p-4 space-y-4">
+              <CustomerProfileCard customer={customer} />
+              <TicketStatisticsCard stats={stats} />
+              <TimelineCard events={timeline} />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+interface ReplyComposerProps {
+  activeTab: "public" | "internal";
+  onTabChange: (value: "public" | "internal") => void;
+  customer: CustomerSummary;
+}
+
+function ReplyComposer({ activeTab, onTabChange, customer }: ReplyComposerProps) {
+  return (
+    <Card className="border-zd-border-neutral-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+          Reply to {customer.name}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => onTabChange(value as "public" | "internal")}
+        >
+          <TabsList className="mb-4">
+            <TabsTrigger value="public" className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Public Reply
+            </TabsTrigger>
+            <TabsTrigger value="internal" className="flex items-center gap-2">
+              <NotebookPen className="h-4 w-4" />
+              Internal Note
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="public">
+            <ComposerTextarea placeholder="Write a reply to the customer..." />
+          </TabsContent>
+          <TabsContent value="internal">
+            <ComposerTextarea placeholder="Add an internal note for your team..." />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ComposerTextarea({ placeholder }: { placeholder: string }) {
+  return (
+    <div className="space-y-3">
+      <Textarea
+        rows={6}
+        placeholder={placeholder}
+        className="resize-none zd-bg-neutral-50 border-zd-border-neutral-200 focus-visible:ring-zd-primary/30"
+      />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm zd-text-neutral-500">
+          <Paperclip className="h-4 w-4" />
+          Attach files
+        </div>
+        <Button className="zd-bg-primary hover:zd-bg-primary-hover text-white">
+          Send Reply
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CustomerProfileCard({ customer }: { customer: CustomerSummary }) {
+  return (
+    <Card className="border-zd-border-neutral-200">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+          Customer Profile
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-start gap-3">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-zd-primary/10 text-sm font-semibold text-zd-primary">
+              {customer.avatarInitials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <div className="text-sm font-semibold zd-text-neutral-900">
+              {customer.name}
+            </div>
+            <div className="text-sm zd-text-neutral-600 break-all">
+              {customer.email}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3 text-sm zd-text-neutral-600">
+          {customer.organization && (
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 zd-text-neutral-400" />
+              {customer.organization}
+            </div>
+          )}
+          {customer.localTime && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 zd-text-neutral-400" />
+              Local time: {customer.localTime}
+            </div>
+          )}
+          {customer.language && (
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 zd-text-neutral-400" />
+              Language: {customer.language}
+            </div>
+          )}
+        </div>
+        {customer.notes && (
+          <div className="rounded-md bg-zd-border-neutral-100 p-3 text-sm zd-text-neutral-600">
+            {customer.notes}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TicketStatisticsCard({ stats }: { stats: TicketStatistics }) {
+  return (
+    <Card className="border-zd-border-neutral-200">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+          Ticket Statistics
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm zd-text-neutral-700">
+        <StatisticRow label="Total Tickets" value={stats.totalTickets} />
+        <StatisticRow label="Open Tickets" value={stats.openTickets} />
+        <StatisticRow label="Resolved Tickets" value={stats.resolvedTickets} />
+        <StatisticRow
+          label="Satisfaction Score"
+          value={
+            typeof stats.satisfactionScore === "number"
+              ? `${stats.satisfactionScore}%`
+              : "Not available"
+          }
+          icon={<Star className="h-4 w-4 text-amber-500" />}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatisticRow({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: React.ReactNode;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-dashed border-zd-border-neutral-200 px-3 py-2">
+      <span className="flex items-center gap-2 text-xs uppercase tracking-wide zd-text-neutral-500">
+        {icon}
+        {label}
+      </span>
+      <span className="font-semibold zd-text-neutral-800">{value}</span>
+    </div>
+  );
+}
+
+function TimelineCard({ events }: { events: TicketTimelineEntry[] }) {
+  const sortedEvents = [...events].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+
+  return (
+    <Card className="border-zd-border-neutral-200">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+          Timeline
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="relative space-y-6">
+          {sortedEvents.map((event, index) => (
+            <TimelineRow
+              key={event.id}
+              event={event}
+              isLast={index === sortedEvents.length - 1}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TimelineRow({
+  event,
+  isLast,
+}: {
+  event: TicketTimelineEntry;
+  isLast: boolean;
+}) {
+
+  return (
+    <div className="relative pl-6">
+      <span
+        className={cn(
+          "absolute left-0 top-1.5 h-3 w-3 rounded-full border-2 border-white",
+          event.statusId
+            ? "bg-zd-primary shadow-[0_0_0_4px_rgba(34,197,94,0.15)]"
+            : "bg-zd-border-neutral-300"
+        )}
+      />
+      {!isLast && (
+        <span className="absolute left-[5px] top-4 bottom-[-24px] w-px bg-zd-border-neutral-200" />
+      )}
+      <div className="space-y-1">
+        <div className="text-sm font-semibold zd-text-neutral-800">
+          {event.title}
+        </div>
+        {event.description && (
+          <div className="text-sm zd-text-neutral-600">{event.description}</div>
+        )}
+        <div className="text-xs uppercase tracking-wide zd-text-neutral-500">
+          {formatDate(event.timestamp, { includeTime: true })}
+        </div>
+      </div>
+    </div>
+  );
+}

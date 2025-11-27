@@ -9,6 +9,8 @@ export interface Email {
   firstReplyAt: string | null;
   status: string;
   priority: string;
+  category?: string | null;
+  sentiment?: string | null;
   isResolved: boolean;
   assignedTo: number | null;
 }

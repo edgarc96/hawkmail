@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Mail, 
-  Users, 
-  Settings, 
-  CheckCircle, 
-  ArrowRight, 
+import {
+  Mail,
+  Users,
+  Settings,
+  CheckCircle,
+  ArrowRight,
   ArrowLeft,
   Zap,
   Shield,
@@ -104,7 +104,7 @@ export default function OnboardingPage() {
 
   const completeOnboarding = async () => {
     setIsCompleting(true);
-    
+
     try {
       // Call API to save onboarding data
       const response = await fetch('/api/onboarding/complete', {
@@ -120,9 +120,9 @@ export default function OnboardingPage() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to complete onboarding');
       }
-      
+
       toast.success('Welcome to HawkMail! Your account is ready.');
-      
+
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error: any) {
@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                     onChange={(e) => updateOnboardingData('companyName', e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="teamSize">Team Size</Label>
                   <select
@@ -220,11 +220,10 @@ export default function OnboardingPage() {
                   ].map((provider) => (
                     <div
                       key={provider.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        onboardingData.emailProvider === provider.id
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${onboardingData.emailProvider === provider.id
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:bg-muted/50'
-                      }`}
+                        }`}
                       onClick={() => updateOnboardingData('emailProvider', provider.id)}
                     >
                       <div className="flex items-center justify-between">
@@ -241,12 +240,12 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
                   <Shield className="w-4 h-4 inline mr-1" />
                   Secure Connection
                 </h4>
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   We use OAuth 2.0 for secure authentication. Your credentials are never stored.
                 </p>
               </div>
@@ -325,12 +324,12 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-amber-900 mb-2">
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                <h4 className="font-semibold text-amber-900 dark:text-amber-200 mb-2">
                   <Zap className="w-4 h-4 inline mr-1" />
                   Pro Tip
                 </h4>
-                <p className="text-sm text-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-300">
                   Setting realistic SLA goals helps maintain team morale and customer satisfaction.
                 </p>
               </div>
@@ -353,21 +352,21 @@ export default function OnboardingPage() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 {[
-                  { 
-                    key: 'email', 
-                    label: 'Email Notifications', 
+                  {
+                    key: 'email',
+                    label: 'Email Notifications',
                     description: 'Get email alerts for urgent messages',
                     icon: Mail
                   },
-                  { 
-                    key: 'slack', 
-                    label: 'Slack Integration', 
+                  {
+                    key: 'slack',
+                    label: 'Slack Integration',
                     description: 'Receive notifications in your Slack workspace',
                     icon: BarChart3
                   },
-                  { 
-                    key: 'desktop', 
-                    label: 'Desktop Alerts', 
+                  {
+                    key: 'desktop',
+                    label: 'Desktop Alerts',
                     description: 'Browser notifications for real-time updates',
                     icon: Zap
                   }
@@ -404,8 +403,8 @@ export default function OnboardingPage() {
         return (
           <Card>
             <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <CardTitle>You're All Set!</CardTitle>
               <CardDescription>

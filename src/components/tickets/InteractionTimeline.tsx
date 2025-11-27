@@ -81,11 +81,11 @@ export function InteractionTimeline({ customerId, currentTicketId }: Interaction
 
   const getEventColor = (color: string) => {
     const colors: Record<string, string> = {
-      blue: 'bg-blue-100 text-blue-600 border-blue-300',
-      purple: 'bg-purple-100 text-purple-600 border-purple-300',
-      orange: 'bg-orange-100 text-orange-600 border-orange-300',
-      gray: 'bg-gray-100 text-gray-600 border-gray-300',
-      green: 'bg-green-100 text-green-600 border-green-300',
+      blue: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+      purple: 'bg-violet-500/10 text-violet-400 border-violet-500/30',
+      orange: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+      gray: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+      green: 'bg-green-500/10 text-green-400 border-green-500/30',
     };
     return colors[color] || colors.gray;
   };
@@ -94,9 +94,9 @@ export function InteractionTimeline({ customerId, currentTicketId }: Interaction
     return (
       <div className="p-4">
         <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
-          <div className="h-20 bg-gray-200 rounded" />
-          <div className="h-20 bg-gray-200 rounded" />
+          <div className="h-4 bg-white/10 rounded w-1/2" />
+          <div className="h-20 bg-white/10 rounded" />
+          <div className="h-20 bg-white/10 rounded" />
         </div>
       </div>
     );
@@ -104,9 +104,9 @@ export function InteractionTimeline({ customerId, currentTicketId }: Interaction
 
   return (
     <div className="p-4 space-y-4">
-      <Card>
+      <Card className="bg-[#18181b] border-white/10">
         <CardHeader>
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-white">
             <Clock size={16} />
             Activity Timeline
           </CardTitle>
@@ -120,7 +120,7 @@ export function InteractionTimeline({ customerId, currentTicketId }: Interaction
             ) : (
               <div className="relative">
                 {/* Timeline line */}
-                <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200" />
+                <div className="absolute left-4 top-0 bottom-0 w-px bg-white/10" />
 
                 {/* Events */}
                 <div className="space-y-6">
@@ -134,20 +134,20 @@ export function InteractionTimeline({ customerId, currentTicketId }: Interaction
                       </div>
 
                       {/* Event content */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="bg-[#12111a] border border-white/10 rounded-lg p-3 hover:bg-white/5 transition-colors">
                         <div className="flex items-start justify-between mb-1">
-                          <h4 className="text-sm font-semibold text-gray-900">{event.title}</h4>
+                          <h4 className="text-sm font-semibold text-white">{event.title}</h4>
                           <span className="text-xs text-gray-500">
                             {formatRelativeTime(event.timestamp.toISOString())}
                           </span>
                         </div>
                         {event.description && (
-                          <p className="text-sm text-gray-600">{event.description}</p>
+                          <p className="text-sm text-gray-400">{event.description}</p>
                         )}
                         {event.metadata && Object.keys(event.metadata).length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {Object.entries(event.metadata).map(([key, value]) => (
-                              <Badge key={key} variant="outline" className="text-xs">
+                              <Badge key={key} variant="outline" className="text-xs bg-white/5 border-white/10 text-gray-300">
                                 {key}: {String(value)}
                               </Badge>
                             ))}

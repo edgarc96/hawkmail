@@ -311,10 +311,14 @@ function SettingsContent() {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            provider.provider === 'gmail' ? 'bg-red-100' : 'bg-blue-100'
+                            provider.provider === 'gmail' 
+                              ? 'bg-red-100 dark:bg-red-900/20' 
+                              : 'bg-blue-100 dark:bg-blue-900/20'
                           }`}>
                             <Mail className={`w-5 h-5 ${
-                              provider.provider === 'gmail' ? 'text-red-600' : 'text-blue-600'
+                              provider.provider === 'gmail' 
+                                ? 'text-red-600 dark:text-red-400' 
+                                : 'text-blue-600 dark:text-blue-400'
                             }`} />
                           </div>
                           <div>

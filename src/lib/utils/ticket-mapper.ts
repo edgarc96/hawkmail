@@ -25,6 +25,8 @@ export interface EmailRecord {
   externalId: string | null;
   threadId: string | null;
   rawHeaders?: string | null;
+  category?: string | null;
+  sentiment?: string | null;
 }
 
 const normalizeDate = (value: string | Date | number | null | undefined): Date | undefined => {
@@ -97,6 +99,8 @@ export const mapEmailRecordToTicket = (
     firstReplyAt,
     lastReplyAt: firstReplyAt,
     threadId: email.threadId || email.id.toString(),
+    category: email.category,
+    sentiment: email.sentiment,
   };
 };
 

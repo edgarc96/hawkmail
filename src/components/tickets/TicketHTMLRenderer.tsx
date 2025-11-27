@@ -82,7 +82,7 @@ export function TicketHTMLRenderer({ html, className = "" }: TicketHTMLRendererP
         style={{
           fontSize: '14px',
           lineHeight: '1.6',
-          color: '#333',
+          color: '#e2e8f0',
           wordBreak: 'break-word',
           padding: '0',
         }}
@@ -94,7 +94,7 @@ export function TicketHTMLRenderer({ html, className = "" }: TicketHTMLRendererP
             variant="ghost"
             size="sm"
             onClick={() => setShowQuoted(!showQuoted)}
-            className="text-xs zd-text-neutral-600 hover:zd-text-primary"
+            className="text-xs text-gray-400 hover:text-violet-400 hover:bg-white/10"
           >
             {showQuoted ? (
               <>

@@ -43,7 +43,7 @@ export function TicketHeader({
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-[#12111a] border-b border-white/10 px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center gap-4">
@@ -51,12 +51,13 @@ export function TicketHeader({
             variant="ghost"
             size="sm"
             onClick={() => router.push('/tickets')}
+            className="text-gray-400 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft size={16} className="mr-2" />
             Back
           </Button>
           
-          <div className="h-8 w-px bg-gray-300" />
+          <div className="h-8 w-px bg-white/10" />
           
           <div>
             <div className="flex items-center gap-2">
@@ -65,17 +66,17 @@ export function TicketHeader({
                 return (
                   <>
                     {prefix === 're' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Re</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Re</span>
                     )}
                     {prefix === 'fwd' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Fwd</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fwd</span>
                     )}
-                    <h1 className="text-lg font-semibold text-gray-900">{clean}</h1>
+                    <h1 className="text-lg font-semibold text-white">{clean}</h1>
                   </>
                 );
               })()}
             </div>
-            <div className="text-sm text-gray-500 mt-0.5">A través de correo electrónico</div>
+            <div className="text-sm text-gray-400 mt-0.5">A través de correo electrónico</div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-gray-500">#{ticket.id.slice(-8)}</span>
               <Badge
@@ -83,6 +84,7 @@ export function TicketHeader({
                 style={{
                   borderColor: ticket.status.color,
                   color: ticket.status.color,
+                  backgroundColor: `${ticket.status.color}10`,
                 }}
               >
                 {ticket.status.name}
@@ -92,6 +94,7 @@ export function TicketHeader({
                 style={{
                   borderColor: ticket.priority.color,
                   color: ticket.priority.color,
+                  backgroundColor: `${ticket.priority.color}10`,
                 }}
               >
                 {ticket.priority.name}
@@ -104,10 +107,10 @@ export function TicketHeader({
         <div className="flex items-center gap-2">
           {/* Status Selector */}
           <Select value={ticket.status.id} onValueChange={onStatusChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[140px] bg-[#18181b] border-white/10 text-white focus:ring-violet-500/20">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#18181b] border-white/10 text-white">
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
@@ -118,10 +121,10 @@ export function TicketHeader({
 
           {/* Priority Selector */}
           <Select value={ticket.priority.id} onValueChange={onPriorityChange}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[120px] bg-[#18181b] border-white/10 text-white focus:ring-violet-500/20">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#18181b] border-white/10 text-white">
               <SelectItem value="low">Low</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="high">High</SelectItem>
@@ -129,7 +132,7 @@ export function TicketHeader({
             </SelectContent>
           </Select>
 
-          <div className="h-8 w-px bg-gray-300" />
+          <div className="h-8 w-px bg-white/10" />
 
           {/* Panel Toggles */}
           <Button
@@ -137,6 +140,7 @@ export function TicketHeader({
             size="sm"
             onClick={onToggleCustomerPanel}
             title="Toggle customer panel"
+            className="text-gray-400 hover:text-white hover:bg-white/10"
           >
             <PanelLeftClose size={16} />
           </Button>
@@ -146,6 +150,7 @@ export function TicketHeader({
             size="sm"
             onClick={onToggleTimelinePanel}
             title="Toggle timeline panel"
+            className="text-gray-400 hover:text-white hover:bg-white/10"
           >
             <PanelRightClose size={16} />
           </Button>

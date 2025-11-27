@@ -4,6 +4,7 @@ import { emailProviders, emailSyncLogs, emails, responseMetrics } from '@/db/sch
 import { eq, and, sql, gte } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { google } from 'googleapis';
+import { EmailClassifier } from '@/lib/services/email-classifier';
 
 // Robust MIME header decoder
 function decodeMimeHeader(text: string): string {
@@ -294,6 +295,9 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
         const slaDeadline = new Date(receivedAt);
         slaDeadline.setHours(slaDeadline.getHours() + 24);
 
+        // Run AI Classification (Local Heuristics)
+        const classification = EmailClassifier.classify(subject, bodyContent || '');
+
         // Prepare insert data with explicit typing for LibSQL/Turso compatibility
         const emailInsertData: any = {
           userId,
@@ -303,12 +307,18 @@ async function syncGmailEmails(provider: any, userId: string, syncLogId: number)
           receivedAt,
           slaDeadline,
           status: 'pending' as const,
-          priority: 'medium' as const,
+          priority: classification.priority, // Use AI priority
           isResolved: false,
           providerId: provider.id,
           externalId: message.id!,
           threadId: emailData.data.threadId || null,
           createdAt: new Date(),
+          
+          // New AI Fields
+          category: classification.category,
+          sentiment: classification.sentiment,
+          confidence: classification.confidence,
+          suggestedTags: JSON.stringify(classification.suggestedTags),
         };
         
         // Add bodyContent if it exists

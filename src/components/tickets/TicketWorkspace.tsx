@@ -157,20 +157,20 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-white overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-[#12111a] overflow-hidden">
       {/* Header superior - ESTILO ZENDESK/GMAIL */}
-      <div className="shrink-0 bg-white border-b">
+      <div className="shrink-0 bg-[#12111a] border-b border-white/10">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 hover:zd-bg-neutral-100"
+              className="h-9 w-9 shrink-0 hover:bg-white/10 text-gray-400 hover:text-white"
               onClick={() => router.push("/tickets")}
             >
-              <ArrowLeft className="w-5 h-5 zd-text-neutral-600" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-normal zd-text-neutral-900 truncate">
+            <h1 className="text-xl font-normal text-white truncate">
               {ticket.ticket.subject}
             </h1>
           </div>
@@ -198,21 +198,21 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
             >
               {ticket.ticket.priority.name}
             </Badge>
-            <Button variant="ghost" size="icon" className="h-9 w-9 ml-2 hover:zd-bg-neutral-100">
-              <Filter className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 ml-2 hover:bg-white/10 text-gray-400 hover:text-white">
+              <Filter className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
-              <Clock className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10 text-gray-400 hover:text-white">
+              <Clock className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
-              <MoreVertical className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10 text-gray-400 hover:text-white">
+              <MoreVertical className="w-5 h-5" />
             </Button>
           </div>
         </div>
 
         {/* Snippet/Preview line */}
-        <div className="px-4 pb-3 border-b">
-          <p className="text-sm zd-text-neutral-600 leading-relaxed">
+        <div className="px-4 pb-3 border-b border-white/10">
+          <p className="text-sm text-gray-400 leading-relaxed">
             {getTicketSnippet()}
           </p>
         </div>
@@ -221,45 +221,45 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
       {/* Layout de 3 columnas con scroll independiente */}
       <div className="flex-1 flex relative overflow-hidden">
         {/* Sidebar izquierda - LISTA DE TICKETS */}
-        <aside className="hidden lg:block w-80 xl:w-96 shrink-0 border-r bg-white overflow-hidden">
+        <aside className="hidden lg:block w-80 xl:w-96 shrink-0 border-r border-white/10 bg-[#12111a] overflow-hidden">
           <div className="h-full overflow-y-auto">
             <div className="p-2">
-              <h2 className="text-sm font-semibold zd-text-neutral-700 px-2 py-2">Tickets</h2>
+              <h2 className="text-sm font-semibold text-gray-400 px-2 py-2">Tickets</h2>
             </div>
           </div>
         </aside>
 
         {/* Área central - CONTENIDO DEL TICKET */}
-        <main className="flex-1 overflow-hidden flex flex-col">
+        <main className="flex-1 overflow-hidden flex flex-col bg-[#12111a]">
           {/* Contenido scrolleable */}
-          <div className="flex-1 overflow-y-auto bg-white">
+          <div className="flex-1 overflow-y-auto bg-[#12111a]">
             <div className="max-w-5xl mx-auto">
               {/* Card del mensaje principal */}
-              <div className="bg-white border-b zd-border-neutral-200 overflow-hidden">
-                <div className="px-6 py-4 bg-gray-50 border-b zd-border-neutral-200 flex items-start justify-between">
+              <div className="bg-[#12111a] border-b border-white/10 overflow-hidden">
+                <div className="px-6 py-4 bg-[#18181b] border-b border-white/10 flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
                     <Avatar className="w-10 h-10 shrink-0">
-                      <AvatarFallback className="zd-bg-primary-light text-white text-sm font-semibold">
+                      <AvatarFallback className="bg-violet-600 text-white text-sm font-semibold">
                         {customer.avatarInitials}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-base zd-text-neutral-900">
+                        <span className="font-semibold text-base text-white">
                           {customer.name}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-xs zd-text-neutral-500">
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                           <span>•</span>
                           <span>{formatRelativeTime(ticket.receivedAt)}</span>
                         </span>
                       </div>
 
-                      <div className="text-sm zd-text-neutral-600">
-                        <span className="font-medium">Para:</span> {ticket.recipientEmail}
+                      <div className="text-sm text-gray-400">
+                        <span className="font-medium text-gray-300">Para:</span> {ticket.recipientEmail}
                       </div>
 
-                      <Button variant="ghost" className="h-auto p-0 zd-text-primary-light text-sm mt-1 hover:underline">
+                      <Button variant="ghost" className="h-auto p-0 text-violet-400 text-sm mt-1 hover:underline hover:bg-transparent hover:text-violet-300">
                         Mostrar más
                       </Button>
                     </div>
@@ -270,41 +270,41 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      className="h-8 w-8 hover:bg-white/10 text-gray-400 hover:text-white"
                       title="Responder"
                     >
-                      <Reply className="w-4 h-4 zd-text-neutral-600" />
+                      <Reply className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      className="h-8 w-8 hover:bg-white/10 text-gray-400 hover:text-white"
                       title="Reenviar"
                     >
-                      <Forward className="w-4 h-4 zd-text-neutral-600" />
+                      <Forward className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleArchive}
                       disabled={isArchiving}
-                      className="h-8 w-8 hover:zd-bg-neutral-200"
+                      className="h-8 w-8 hover:bg-white/10 text-gray-400 hover:text-white"
                       title="Archivar"
                     >
                       {isArchiving ? (
-                        <Loader2 className="w-4 h-4 animate-spin zd-text-neutral-600" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Archive className="w-4 h-4 zd-text-neutral-600" />
+                        <Archive className="w-4 h-4" />
                       )}
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:zd-bg-neutral-200">
-                          <MoreVertical className="w-4 h-4 zd-text-neutral-600" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10 text-gray-400 hover:text-white">
+                          <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="zd-text-danger">
+                      <DropdownMenuContent align="end" className="bg-[#18181b] border-white/10 text-white">
+                        <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400">
                           {isDeleting ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           ) : (
@@ -322,7 +322,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                   {ticket.bodyHtml ? (
                     <TicketHTMLRenderer html={ticket.bodyHtml} />
                   ) : (
-                    <div className="text-sm zd-text-neutral-800 leading-relaxed email-content">
+                    <div className="text-sm text-gray-300 leading-relaxed email-content">
                       <pre className="whitespace-pre-wrap font-sans">
                         {ticket.ticket.description}
                       </pre>
@@ -333,7 +333,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                 {/* Attachments */}
                 {attachments.length > 0 && (
                   <div className="px-6 pb-6">
-                    <div className="flex items-center gap-2 text-sm font-semibold zd-text-neutral-800 mb-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
                       <Paperclip className="h-4 w-4" />
                       Adjuntos ({attachments.length})
                     </div>
@@ -341,14 +341,14 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                       {attachments.map((attachment) => (
                         <div
                           key={attachment.id}
-                          className="overflow-hidden rounded-md border zd-border-neutral-200 zd-bg-neutral-50"
+                          className="overflow-hidden rounded-md border border-white/10 bg-[#18181b]"
                         >
                           <img
                             src={attachment.src}
                             alt={attachment.alt}
                             className="h-32 w-full object-cover"
                           />
-                          <div className="px-3 py-2 text-xs zd-text-neutral-600 truncate">
+                          <div className="px-3 py-2 text-xs text-gray-400 truncate">
                             {attachment.alt}
                           </div>
                         </div>
@@ -361,29 +361,29 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
           </div>
 
           {/* Área de respuesta FIJA */}
-          <div className="shrink-0 border-t bg-white shadow-lg">
+          <div className="shrink-0 border-t border-white/10 bg-[#12111a]">
             <div className="px-4 py-4">
               <div className="mb-3 flex items-center justify-between">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1 text-sm font-medium hover:zd-bg-neutral-100 px-3 py-1.5 rounded">
+                    <button className="flex items-center gap-1 text-sm font-medium text-white hover:bg-white/10 px-3 py-1.5 rounded transition-colors">
                       {activeReplyTab === "public" ? "Respuesta pública" : "Nota interna"}
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setActiveReplyTab("public")}>
+                  <DropdownMenuContent className="bg-[#18181b] border-white/10 text-white">
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("public")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                       <Reply className="w-4 h-4 mr-2" />
                       Respuesta pública
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveReplyTab("internal")}>
+                    <DropdownMenuItem onClick={() => setActiveReplyTab("internal")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Nota interna
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <span className="text-xs zd-text-neutral-600">
+                <span className="text-xs text-gray-400">
                   Para: {customer.email}
                 </span>
               </div>
@@ -392,12 +392,12 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Escribir respuesta..."
-                className="min-h-[100px] mb-3 resize-none"
+                className="min-h-[100px] mb-3 resize-none bg-[#18181b] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
                 disabled={isSending}
               />
 
               <div className="flex justify-between items-center">
-                <div className="text-xs zd-text-neutral-500">
+                <div className="text-xs text-gray-500">
                   Ctrl+Enter para enviar
                 </div>
                 <div className="flex gap-2">
@@ -405,7 +405,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                     variant="outline"
                     size="sm"
                     onClick={() => setReplyText("")}
-                    className="hover:zd-bg-neutral-100"
+                    className="bg-transparent border-white/10 text-white hover:bg-white/10"
                   >
                     Cancelar
                   </Button>
@@ -413,7 +413,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
                     onClick={handleSendReply}
                     disabled={isSending || !replyText.trim()}
                     size="sm"
-                    className="zd-bg-primary-light hover:zd-bg-primary-hover text-white"
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
                   >
                     {isSending ? (
                       <>
@@ -431,7 +431,7 @@ export function TicketWorkspace({ ticket, customer, stats, timeline }: TicketWor
         </main>
 
         {/* Sidebar derecha - INFO DEL CLIENTE */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l bg-white overflow-hidden">
+        <aside className="hidden xl:block w-80 shrink-0 border-l border-white/10 bg-[#12111a] overflow-hidden">
           <div className="h-full overflow-y-auto">
             <div className="p-4 space-y-4">
               <CustomerProfileCard customer={customer} />
@@ -453,9 +453,9 @@ interface ReplyComposerProps {
 
 function ReplyComposer({ activeTab, onTabChange, customer }: ReplyComposerProps) {
   return (
-    <Card className="border-zd-border-neutral-200">
+    <Card className="border-white/10 bg-[#18181b]">
       <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+        <CardTitle className="text-base font-semibold text-white">
           Reply to {customer.name}
         </CardTitle>
       </CardHeader>
@@ -464,12 +464,12 @@ function ReplyComposer({ activeTab, onTabChange, customer }: ReplyComposerProps)
           value={activeTab}
           onValueChange={(value) => onTabChange(value as "public" | "internal")}
         >
-          <TabsList className="mb-4">
-            <TabsTrigger value="public" className="flex items-center gap-2">
+          <TabsList className="mb-4 bg-[#12111a] border border-white/10">
+            <TabsTrigger value="public" className="flex items-center gap-2 data-[state=active]:bg-violet-600 data-[state=active]:text-white">
               <Send className="h-4 w-4" />
               Public Reply
             </TabsTrigger>
-            <TabsTrigger value="internal" className="flex items-center gap-2">
+            <TabsTrigger value="internal" className="flex items-center gap-2 data-[state=active]:bg-violet-600 data-[state=active]:text-white">
               <NotebookPen className="h-4 w-4" />
               Internal Note
             </TabsTrigger>
@@ -492,14 +492,14 @@ function ComposerTextarea({ placeholder }: { placeholder: string }) {
       <Textarea
         rows={6}
         placeholder={placeholder}
-        className="resize-none zd-bg-neutral-50 border-zd-border-neutral-200 focus-visible:ring-zd-primary/30"
+        className="resize-none bg-[#12111a] border-white/10 focus-visible:ring-violet-500/30 text-white placeholder:text-gray-500"
       />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm zd-text-neutral-500">
+        <div className="flex items-center gap-2 text-sm text-gray-400">
           <Paperclip className="h-4 w-4" />
           Attach files
         </div>
-        <Button className="zd-bg-primary hover:zd-bg-primary-hover text-white">
+        <Button className="bg-violet-600 hover:bg-violet-700 text-white">
           Send Reply
         </Button>
       </div>
@@ -509,50 +509,50 @@ function ComposerTextarea({ placeholder }: { placeholder: string }) {
 
 function CustomerProfileCard({ customer }: { customer: CustomerSummary }) {
   return (
-    <Card className="border-zd-border-neutral-200">
+    <Card className="border-white/10 bg-[#18181b]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+        <CardTitle className="text-base font-semibold text-white">
           Customer Profile
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarFallback className="bg-zd-primary/10 text-sm font-semibold text-zd-primary">
+            <AvatarFallback className="bg-violet-600/20 text-sm font-semibold text-violet-400 border border-violet-500/20">
               {customer.avatarInitials}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
-            <div className="text-sm font-semibold zd-text-neutral-900">
+            <div className="text-sm font-semibold text-white">
               {customer.name}
             </div>
-            <div className="text-sm zd-text-neutral-600 break-all">
+            <div className="text-sm text-gray-400 break-all">
               {customer.email}
             </div>
           </div>
         </div>
-        <div className="space-y-3 text-sm zd-text-neutral-600">
+        <div className="space-y-3 text-sm text-gray-400">
           {customer.organization && (
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 zd-text-neutral-400" />
+              <Building2 className="h-4 w-4 text-gray-500" />
               {customer.organization}
             </div>
           )}
           {customer.localTime && (
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 zd-text-neutral-400" />
+              <Clock className="h-4 w-4 text-gray-500" />
               Local time: {customer.localTime}
             </div>
           )}
           {customer.language && (
             <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 zd-text-neutral-400" />
+              <Globe className="h-4 w-4 text-gray-500" />
               Language: {customer.language}
             </div>
           )}
         </div>
         {customer.notes && (
-          <div className="rounded-md bg-zd-border-neutral-100 p-3 text-sm zd-text-neutral-600">
+          <div className="rounded-md bg-white/5 border border-white/10 p-3 text-sm text-gray-300">
             {customer.notes}
           </div>
         )}
@@ -563,13 +563,13 @@ function CustomerProfileCard({ customer }: { customer: CustomerSummary }) {
 
 function TicketStatisticsCard({ stats }: { stats: TicketStatistics }) {
   return (
-    <Card className="border-zd-border-neutral-200">
+    <Card className="border-white/10 bg-[#18181b]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+        <CardTitle className="text-base font-semibold text-white">
           Ticket Statistics
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm zd-text-neutral-700">
+      <CardContent className="space-y-3 text-sm text-gray-300">
         <StatisticRow label="Total Tickets" value={stats.totalTickets} />
         <StatisticRow label="Open Tickets" value={stats.openTickets} />
         <StatisticRow label="Resolved Tickets" value={stats.resolvedTickets} />
@@ -580,7 +580,7 @@ function TicketStatisticsCard({ stats }: { stats: TicketStatistics }) {
               ? `${stats.satisfactionScore}%`
               : "Not available"
           }
-          icon={<Star className="h-4 w-4 text-amber-500" />}
+          icon={<Star className="h-4 w-4 text-yellow-500" />}
         />
       </CardContent>
     </Card>
@@ -597,12 +597,12 @@ function StatisticRow({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-dashed border-zd-border-neutral-200 px-3 py-2">
-      <span className="flex items-center gap-2 text-xs uppercase tracking-wide zd-text-neutral-500">
+    <div className="flex items-center justify-between rounded-md border border-dashed border-white/20 px-3 py-2 hover:bg-white/5 transition-colors">
+      <span className="flex items-center gap-2 text-xs uppercase tracking-wide text-gray-500">
         {icon}
         {label}
       </span>
-      <span className="font-semibold zd-text-neutral-800">{value}</span>
+      <span className="font-semibold text-white">{value}</span>
     </div>
   );
 }
@@ -613,9 +613,9 @@ function TimelineCard({ events }: { events: TicketTimelineEntry[] }) {
   );
 
   return (
-    <Card className="border-zd-border-neutral-200">
+    <Card className="border-white/10 bg-[#18181b]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold zd-text-neutral-800">
+        <CardTitle className="text-base font-semibold text-white">
           Timeline
         </CardTitle>
       </CardHeader>
@@ -646,23 +646,23 @@ function TimelineRow({
     <div className="relative pl-6">
       <span
         className={cn(
-          "absolute left-0 top-1.5 h-3 w-3 rounded-full border-2 border-white",
+          "absolute left-0 top-1.5 h-3 w-3 rounded-full border-2 border-[#18181b]",
           event.statusId
-            ? "bg-zd-primary shadow-[0_0_0_4px_rgba(34,197,94,0.15)]"
-            : "bg-zd-border-neutral-300"
+            ? "bg-violet-600 shadow-[0_0_0_4px_rgba(124,58,237,0.15)]"
+            : "bg-gray-600"
         )}
       />
       {!isLast && (
-        <span className="absolute left-[5px] top-4 bottom-[-24px] w-px bg-zd-border-neutral-200" />
+        <span className="absolute left-[5px] top-4 bottom-[-24px] w-px bg-white/10" />
       )}
       <div className="space-y-1">
-        <div className="text-sm font-semibold zd-text-neutral-800">
+        <div className="text-sm font-semibold text-white">
           {event.title}
         </div>
         {event.description && (
-          <div className="text-sm zd-text-neutral-600">{event.description}</div>
+          <div className="text-sm text-gray-400">{event.description}</div>
         )}
-        <div className="text-xs uppercase tracking-wide zd-text-neutral-500">
+        <div className="text-xs uppercase tracking-wide text-gray-500">
           {formatDate(event.timestamp, { includeTime: true })}
         </div>
       </div>

@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { TicketWorkspace } from '@/components/tickets/TicketWorkspace';
+import { TicketWorkspaceZendesk } from '@/components/tickets/TicketWorkspaceZendesk';
 import { Loader2 } from 'lucide-react';
 import { mapEmailRecordToSerializable } from '@/lib/utils/ticket-mapper';
 import { TicketWorkspaceData, CustomerSummary, TicketStatistics, TicketTimelineEntry } from '@/types/ticket-detail';
 import { useTicketStore } from '@/lib/stores/ticketStore';
-import { DashboardLayout } from '@/components/dashboard-layout';
 
 export default function TicketDetailPage() {
   const params = useParams();
@@ -112,44 +111,38 @@ export default function TicketDetailPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full py-24">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
-            <p className="mt-4 text-gray-600">Loading ticket...</p>
-          </div>
+      <div className="flex items-center justify-center h-screen w-screen">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-600" />
+          <p className="mt-4 text-gray-600">Loading ticket...</p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (error || !workspaceData) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full py-24">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900">Error Loading Ticket</h2>
-            <p className="mt-2 text-gray-600">{error || 'Ticket not found'}</p>
-            <button
-              onClick={() => router.push('/tickets')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Back to Tickets
-            </button>
-          </div>
+      <div className="flex items-center justify-center h-screen w-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900">Error Loading Ticket</h2>
+          <p className="mt-2 text-gray-600">{error || 'Ticket not found'}</p>
+          <button
+            onClick={() => router.push('/tickets')}
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+          >
+            Back to Tickets
+          </button>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <TicketWorkspace
-        ticket={workspaceData.ticket}
-        customer={workspaceData.customer}
-        stats={workspaceData.stats}
-        timeline={workspaceData.timeline}
-      />
-    </DashboardLayout>
+    <TicketWorkspaceZendesk
+      ticket={workspaceData.ticket}
+      customer={workspaceData.customer}
+      stats={workspaceData.stats}
+      timeline={workspaceData.timeline}
+    />
   );
 }

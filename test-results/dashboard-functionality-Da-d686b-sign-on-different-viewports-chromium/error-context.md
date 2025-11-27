@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "HAWKMAIL" [ref=e5] [cursor=pointer]:
+        - /url: /
+      - link "Back home" [ref=e6] [cursor=pointer]:
+        - /url: /
+    - main [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - heading "Create your account" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Start optimizing your email response times
+        - button "Continue with Google" [ref=e12]:
+          - img [ref=e13]
+          - text: Continue with Google
+        - generic [ref=e20]: or
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - text: Full Name
+            - textbox "Full Name" [ref=e24]:
+              - /placeholder: John Doe
+              - text: Dashboard Test User
+          - generic [ref=e25]:
+            - text: Email
+            - textbox "Email" [ref=e26]:
+              - /placeholder: you@example.com
+              - text: dashboard-1762116406981@example.com
+          - generic [ref=e27]:
+            - text: Password
+            - textbox "Password" [ref=e28]:
+              - /placeholder: At least 8 characters
+              - text: TestPassword123
+          - generic [ref=e29]:
+            - text: Confirm Password
+            - textbox "Confirm Password" [ref=e30]:
+              - /placeholder: Confirm your password
+              - text: TestPassword123
+          - button "Create Account" [ref=e31]
+        - paragraph [ref=e32]:
+          - text: Already have an account?
+          - link "Log in here" [ref=e33] [cursor=pointer]:
+            - /url: /login
+  - region "Notifications alt+T"
+```

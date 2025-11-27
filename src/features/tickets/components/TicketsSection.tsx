@@ -170,7 +170,7 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Open</span>
-                <span className="font-semibold text-primary">{openTickets}</span>
+                <span className="font-semibold text-violet-400">{openTickets}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Pending</span>
@@ -190,17 +190,17 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
       </div>
 
       <Dialog open={isCreateOpen} onOpenChange={handleDialogToggle}>
-        <DialogContent>
+        <DialogContent className="bg-[#12111a] border-white/10 text-white sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Create new ticket</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Create new ticket</DialogTitle>
+            <DialogDescription className="text-gray-400">
               Capture the customer request and we will add it to your queue immediately.
             </DialogDescription>
           </DialogHeader>
 
           <form className="space-y-6" onSubmit={handleTicketSubmit}>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground" htmlFor="subject">
+              <label className="text-sm font-medium text-gray-300" htmlFor="subject">
                 Subject
               </label>
               <Input
@@ -209,11 +209,12 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
                 value={form.subject}
                 onChange={(event) => handleInputChange("subject", event.target.value)}
                 disabled={isCreating}
+                className="bg-[#18181b] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground" htmlFor="customerEmail">
+              <label className="text-sm font-medium text-gray-300" htmlFor="customerEmail">
                 Customer email
               </label>
               <Input
@@ -223,21 +224,22 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
                 value={form.customerEmail}
                 onChange={(event) => handleInputChange("customerEmail", event.target.value)}
                 disabled={isCreating}
+                className="bg-[#18181b] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <label className="text-sm font-medium text-gray-300">Status</label>
                 <Select
                   value={form.status}
                   onValueChange={(value) => handleInputChange("status", value)}
                   disabled={isCreating}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-[#18181b] border-white/10 text-white focus:ring-violet-500/20">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#18181b] border-white/10 text-white">
                     <SelectItem value="open">Open</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="solved">Solved</SelectItem>
@@ -247,16 +249,16 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Priority</label>
+                <label className="text-sm font-medium text-gray-300">Priority</label>
                 <Select
                   value={form.priority}
                   onValueChange={(value) => handleInputChange("priority", value)}
                   disabled={isCreating}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-[#18181b] border-white/10 text-white focus:ring-violet-500/20">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#18181b] border-white/10 text-white">
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
@@ -267,7 +269,7 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground" htmlFor="body">
+              <label className="text-sm font-medium text-gray-300" htmlFor="body">
                 Message body
               </label>
               <Textarea
@@ -275,7 +277,7 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
                 placeholder="Describe the customer request"
                 value={form.body}
                 onChange={(event) => handleInputChange("body", event.target.value)}
-                className="min-h-[160px]"
+                className="min-h-[160px] bg-[#18181b] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
                 disabled={isCreating}
               />
             </div>
@@ -286,10 +288,11 @@ export function TicketsSection({ showHeader = true, onTicketSelect }: TicketsSec
                 variant="outline"
                 onClick={() => handleDialogToggle(false)}
                 disabled={isCreating}
+                className="border-white/10 bg-transparent text-white hover:bg-white/10"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isCreating}>
+              <Button type="submit" disabled={isCreating} className="bg-violet-600 hover:bg-violet-700 text-white">
                 {isCreating ? "Creating..." : "Create ticket"}
               </Button>
             </DialogFooter>

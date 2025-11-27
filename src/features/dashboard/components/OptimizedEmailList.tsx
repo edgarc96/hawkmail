@@ -5,7 +5,7 @@ import { Email, TeamMember } from "@/features/emails/types";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Eye, Reply, CheckCheck, Clock, Zap, ChevronDown } from "lucide-react";
-import { getPriorityColor, getStatusColor, getTimeRemaining } from "@/lib/utils/email-helpers";
+import { getPriorityColor, getStatusColor, getTimeRemaining, getCategoryColor, getSentimentColor } from "@/lib/utils/email-helpers";
 
 interface OptimizedEmailListProps {
   emails: Email[];
@@ -72,6 +72,20 @@ const EmailItem = memo(({
           >
             {email.priority}
           </span>
+          {email.category && (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${getCategoryColor(email.category)}`}
+            >
+              {email.category}
+            </span>
+          )}
+          {email.sentiment && (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${getSentimentColor(email.sentiment)}`}
+            >
+              {email.sentiment}
+            </span>
+          )}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusColor(email.status)}`}
           >

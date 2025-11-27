@@ -125,11 +125,11 @@ export function ProgressiveTeamOverview({
 
   // Get status color and text
   const getMemberStatus = useCallback((member: TeamPerformance) => {
-    if (!member.isActive) return { color: 'bg-gray-100 text-gray-600', text: 'Inactive' };
-    if (member.metrics.overdue > 0) return { color: 'bg-red-100 text-red-700', text: 'Needs Attention' };
-    if (member.metrics.pending > 10) return { color: 'bg-yellow-100 text-yellow-700', text: 'High Load' };
-    if (member.metrics.resolutionRate >= 90) return { color: 'bg-green-100 text-green-700', text: 'Excellent' };
-    return { color: 'bg-blue-100 text-blue-700', text: 'Active' };
+    if (!member.isActive) return { badgeClasses: 'bg-gray-500/10 text-gray-400 border border-gray-500/30', text: 'Inactive' };
+    if (member.metrics.overdue > 0) return { badgeClasses: 'bg-red-500/10 text-red-400 border border-red-500/30', text: 'Needs Attention' };
+    if (member.metrics.pending > 10) return { badgeClasses: 'bg-amber-500/10 text-amber-400 border border-amber-500/30', text: 'High Load' };
+    if (member.metrics.resolutionRate >= 90) return { badgeClasses: 'bg-green-500/10 text-green-400 border border-green-500/30', text: 'Excellent' };
+    return { badgeClasses: 'bg-blue-500/10 text-blue-400 border border-blue-500/30', text: 'Active' };
   }, []);
 
   // Format time display
@@ -159,43 +159,43 @@ export function ProgressiveTeamOverview({
   }, [teamPerformance]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-white">
       {/* Compact Team Stats Bar */}
-      <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+      <div className="flex items-center justify-between p-4 bg-[#18181b] rounded-lg border border-white/10">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
+            <Users className="w-4 h-4 text-gray-400" />
             <div>
-              <p className="text-xs text-muted-foreground">Team</p>
-              <p className="text-sm font-semibold">{teamStats.activeMembers}/{teamStats.totalMembers}</p>
+              <p className="text-xs text-gray-400">Team</p>
+              <p className="text-sm font-semibold text-white">{teamStats.activeMembers}/{teamStats.totalMembers}</p>
             </div>
           </div>
-          <div className="h-8 w-px bg-border" />
+          <div className="h-8 w-px bg-white/10" />
           <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 text-yellow-600" />
+            <Mail className="w-4 h-4 text-amber-400" />
             <div>
-              <p className="text-xs text-muted-foreground">Pending</p>
-              <p className="text-sm font-semibold text-yellow-600">{teamStats.totalPending}</p>
+              <p className="text-xs text-gray-400">Pending</p>
+              <p className="text-sm font-semibold text-amber-300">{teamStats.totalPending}</p>
             </div>
           </div>
           {teamStats.totalOverdue > 0 && (
             <>
-              <div className="h-8 w-px bg-border" />
+              <div className="h-8 w-px bg-white/10" />
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600" />
+                <AlertCircle className="w-4 h-4 text-red-400" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Overdue</p>
-                  <p className="text-sm font-semibold text-red-600">{teamStats.totalOverdue}</p>
+                  <p className="text-xs text-gray-400">Overdue</p>
+                  <p className="text-sm font-semibold text-red-300">{teamStats.totalOverdue}</p>
                 </div>
               </div>
             </>
           )}
-          <div className="h-8 w-px bg-border" />
+          <div className="h-8 w-px bg-white/10" />
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <TrendingUp className="w-4 h-4 text-green-400" />
             <div>
-              <p className="text-xs text-muted-foreground">Avg Resolution</p>
-              <p className="text-sm font-semibold text-green-600">{teamStats.avgResolution}%</p>
+              <p className="text-xs text-gray-400">Avg Resolution</p>
+              <p className="text-sm font-semibold text-green-300">{teamStats.avgResolution}%</p>
             </div>
           </div>
         </div>
@@ -204,9 +204,8 @@ export function ProgressiveTeamOverview({
           <Button
             onClick={onRebalanceWorkload}
             disabled={isRebalancing}
-            variant="outline"
             size="sm"
-            className="gap-2"
+            className="gap-2 border border-white/10 text-white bg-transparent hover:bg-white/10"
           >
             {isRebalancing ? (
               <>
@@ -228,15 +227,15 @@ export function ProgressiveTeamOverview({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <Input
                 placeholder="Search team members..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-80 bg-background border-border/50 focus:border-primary"
+                className="pl-10 w-80 bg-[#12111a] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
               />
             </div>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-white/10 text-gray-300 border border-white/10">
               {filteredAndSortedTeam.length} of {teamPerformance.length} members
             </Badge>
           </div>
@@ -246,7 +245,7 @@ export function ProgressiveTeamOverview({
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className={cn(showFilters && "bg-muted")}
+              className={cn("text-white hover:bg-white/10", showFilters && "bg-white/10")}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -255,11 +254,12 @@ export function ProgressiveTeamOverview({
               variant="ghost"
               size="sm"
               onClick={() => setViewMode(viewMode === 'overview' ? 'detailed' : 'overview')}
+              className="text-white/70 hover:text-white hover:bg-white/10"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               {viewMode === 'overview' ? 'Detailed' : 'Overview'}
             </Button>
-            <Button onClick={onAddTeamMember} size="sm">
+            <Button onClick={onAddTeamMember} size="sm" className="bg-violet-600 hover:bg-violet-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Member
             </Button>
@@ -275,7 +275,7 @@ export function ProgressiveTeamOverview({
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-4 p-4 bg-[#18181b] rounded-lg border border-white/10">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Sort by:</span>
                   <div className="flex gap-1">
@@ -290,7 +290,7 @@ export function ProgressiveTeamOverview({
                         variant={sortBy === option.value ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => setSortBy(option.value as SortField)}
-                        className="text-xs"
+                        className={cn("text-xs", sortBy === option.value ? "bg-violet-600 hover:bg-violet-700" : "text-white hover:bg-white/10")}
                       >
                         {option.label}
                       </Button>
@@ -311,7 +311,7 @@ export function ProgressiveTeamOverview({
                         variant={filterRole === option.value ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => setFilterRole(option.value as FilterRole)}
-                        className="text-xs"
+                        className={cn("text-xs", filterRole === option.value ? "bg-violet-600 hover:bg-violet-700" : "text-white hover:bg-white/10")}
                       >
                         {option.label}
                       </Button>
@@ -387,7 +387,7 @@ export function ProgressiveTeamOverview({
                         
                         {/* Quick Status */}
                         <div className="flex items-center gap-3 mt-2">
-                          <Badge className={cn("text-xs", status.color)}>
+                          <Badge className={cn("text-xs", status.badgeClasses)}>
                             {status.text}
                           </Badge>
                           {viewMode === 'overview' && (
@@ -543,27 +543,27 @@ export function ProgressiveTeamOverview({
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">Account Status</span>
-                                <Badge className={cn("text-xs", status.color)}>
+                                <Badge className={cn("text-xs", status.badgeClasses)}>
                                   {status.text}
                                 </Badge>
                               </div>
                               {member.metrics.overdue > 0 && (
-                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                  <p className="text-sm text-red-700 font-medium">
+                                <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10">
+                                  <p className="text-sm text-red-200 font-medium">
                                     ⚠️ {member.metrics.overdue} overdue emails
                                   </p>
                                 </div>
                               )}
                               {member.metrics.pending > 10 && (
-                                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                  <p className="text-sm text-yellow-700 font-medium">
+                                <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10">
+                                  <p className="text-sm text-amber-200 font-medium">
                                     📊 High workload: {member.metrics.pending} pending
                                   </p>
                                 </div>
                               )}
                               {member.metrics.resolutionRate >= 90 && member.metrics.overdue === 0 && (
-                                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                  <p className="text-sm text-green-700 font-medium">
+                                <div className="p-3 rounded-lg border border-green-500/30 bg-green-500/10">
+                                  <p className="text-sm text-green-200 font-medium">
                                     ✅ Excellent performance
                                   </p>
                                 </div>

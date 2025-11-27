@@ -1,0 +1,198 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - alert
+  - generic:
+    - navigation:
+      - button:
+        - img
+        - generic: Home
+      - button:
+        - img
+        - generic: Tickets
+      - button:
+        - img
+        - generic: Analytics
+      - button:
+        - img
+        - generic: Alerts
+      - button:
+        - img
+        - generic: Team
+      - button:
+        - img
+        - generic: Config
+        - img
+      - button:
+        - img
+        - generic: Settings
+      - button:
+        - img
+        - generic: Exit
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Analytics
+              - paragraph: Welcome back, Dashboard Test User
+            - generic:
+              - button:
+                - img
+              - button:
+                - img
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - button:
+                - generic:
+                  - img
+                  - generic: PowerBI
+                - text: Export for PowerBI
+              - button:
+                - generic:
+                  - img
+                  - generic: Tableau
+                - text: Export for Tableau
+              - button:
+                - generic:
+                  - img
+                  - generic: Looker
+                - text: Export for Looker
+              - button:
+                - generic:
+                  - img
+                  - generic: CSV / Excel
+                - text: Download CSV
+            - generic:
+              - generic:
+                - button:
+                  - img
+                  - text: Emails
+                - button:
+                  - img
+                  - text: Metrics
+                - button:
+                  - img
+                  - text: Team
+          - generic:
+            - generic:
+              - paragraph: Avg Reply Time
+              - paragraph: 0m
+            - generic:
+              - paragraph: Resolution Rate
+              - paragraph: 0.0%
+            - generic:
+              - paragraph: High Priority
+              - paragraph: "0"
+          - generic:
+            - generic:
+              - generic:
+                - img
+                - generic: Performance Goals
+                - generic:
+                  - generic: LIVE
+              - generic:
+                - paragraph: 12:46:53 PM
+            - generic:
+              - generic:
+                - paragraph: First Reply Time
+                - paragraph: 0m
+                - paragraph: "Goal: 1h 0m"
+              - generic:
+                - paragraph: Overall Reply Time
+                - paragraph: 0m
+                - paragraph: "Goal: 8h 0m"
+              - generic:
+                - paragraph: Time to Close
+                - paragraph: 0m
+                - paragraph: "Goal: 48h 0m"
+            - generic:
+              - heading [level=3]: Progress Tracking
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: First Reply
+                    - generic: 0m
+                  - generic:
+                    - generic: 0h
+                    - generic: "Goal: 1h 0m"
+                - generic:
+                  - generic:
+                    - generic: Overall Reply
+                    - generic: 0m
+                  - generic:
+                    - generic: 0h
+                    - generic: "Goal: 8h 0m"
+            - generic:
+              - generic:
+                - paragraph: First Reply Status
+                - paragraph: ✓ On Track
+              - generic:
+                - paragraph: Overall Reply Status
+                - paragraph: ✓ On Track
+              - generic:
+                - paragraph: Time to Close Status
+                - paragraph: ✓ On Track
+          - generic:
+            - generic:
+              - heading [level=2]: Reply Time Trend
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - list:
+                        - listitem:
+                          - img
+                          - text: Avg Reply Time (min)
+                    - application
+            - generic:
+              - heading [level=2]: Resolution Rate Trend
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - list:
+                        - listitem:
+                          - img
+                          - text: Resolution Rate (%)
+                    - application
+  - region "Notifications alt+T"
+  - dialog "Welcome to TimeToReply!" [ref=e2]:
+    - generic [ref=e3]:
+      - heading "Welcome to TimeToReply!" [level=2] [ref=e4]:
+        - img [ref=e5]
+        - text: Welcome to TimeToReply!
+      - paragraph [ref=e8]: Let's get you started in 3 simple steps
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: "1"
+        - generic [ref=e12]:
+          - heading "Connect Your Email" [level=3] [ref=e13]
+          - paragraph [ref=e14]: Connect Gmail or Outlook to start tracking your emails and response times.
+          - button "Connect Email Provider" [active] [ref=e15]:
+            - img [ref=e16]
+            - text: Connect Email Provider
+      - generic [ref=e19]:
+        - generic [ref=e20]: "2"
+        - generic [ref=e21]:
+          - heading "Add Your Team" [level=3] [ref=e22]
+          - paragraph [ref=e23]: Add team members to enable auto-assignment and workload distribution.
+          - button "Add Team Members" [ref=e24]:
+            - img [ref=e25]
+            - text: Add Team Members
+      - generic [ref=e30]:
+        - generic [ref=e31]: "3"
+        - generic [ref=e32]:
+          - heading "Configure SLA Goals" [level=3] [ref=e33]
+          - paragraph [ref=e34]: Set your response time targets and track performance against your goals.
+          - button "Configure SLA" [ref=e35]:
+            - img [ref=e36]
+            - text: Configure SLA
+    - button "Skip for Now" [ref=e40]
+    - button "Close" [ref=e41]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
+```

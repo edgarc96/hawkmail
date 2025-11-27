@@ -121,23 +121,23 @@ export function TicketList({ onTicketSelect, selectedTicketId }: TicketListProps
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 border-t-zd-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 border-t-violet-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="zd-bg-danger/10 border-zd-border-neutral-300">
+      <Card className="bg-red-500/10 border-red-500/20">
         <CardHeader>
-          <CardTitle className="zd-text-danger flex items-center gap-2">
+          <CardTitle className="text-red-500 flex items-center gap-2">
             <AlertCircle size={20} />
             Error Loading Tickets
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="zd-text-neutral-700">{error}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4 zd-bg-danger hover:zd-bg-danger-hover text-white">
+          <p className="text-gray-400">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4 bg-red-600 hover:bg-red-700 text-white">
             Try Again
           </Button>
         </CardContent>

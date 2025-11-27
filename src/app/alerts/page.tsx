@@ -104,7 +104,7 @@ function AlertsContent() {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -112,7 +112,7 @@ function AlertsContent() {
   };
 
   const markAsRead = (alertId: string) => {
-    setAlerts(prev => prev.map(alert => 
+    setAlerts(prev => prev.map(alert =>
       alert.id === alertId ? { ...alert, isRead: true } : alert
     ));
   };
@@ -145,7 +145,7 @@ function AlertsContent() {
         </div>
         <div className="flex items-center gap-2">
           {isLive && (
-            <Badge variant="secondary" className="text-sm bg-green-100 text-green-800">
+            <Badge variant="secondary" className="text-sm bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
               Live
             </Badge>
@@ -225,11 +225,10 @@ function AlertsContent() {
           </Card>
         ) : (
           alerts.map((alert) => (
-            <Card 
-              key={alert.id} 
-              className={`transition-all duration-200 ${
-                !alert.isRead ? 'border-l-4 border-l-primary bg-primary/5' : ''
-              }`}
+            <Card
+              key={alert.id}
+              className={`transition-all duration-200 ${!alert.isRead ? 'border-l-4 border-l-primary bg-primary/5' : ''
+                }`}
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -255,8 +254,8 @@ function AlertsContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     {!alert.isRead && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => markAsRead(alert.id)}
                       >

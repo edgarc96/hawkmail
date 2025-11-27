@@ -94,6 +94,17 @@ export const emails = sqliteTable('emails', {
   priority: text('priority').notNull().default('medium'), // high/medium/low
   slaDeadline: integer('sla_deadline', { mode: 'timestamp' }).notNull(),
   isResolved: integer('is_resolved', { mode: 'boolean' }).notNull().default(false),
+  
+  // AI Classification Fields
+  category: text('category'), // sales, support, billing, etc.
+  sentiment: text('sentiment'), // positive, neutral, negative, urgent
+  confidence: real('confidence'), // 0-100 score
+  suggestedTags: text('suggested_tags'), // JSON string of tags
+  
+  // Auto-assignment metadata
+  isAutoAssigned: integer('is_auto_assigned', { mode: 'boolean' }).default(false),
+  autoAssignReason: text('auto_assign_reason'),
+
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()).notNull(),
   providerId: integer('provider_id').references(() => emailProviders.id, { onDelete: 'set null' }),
   assignedTo: integer('assigned_to').references(() => teamMembers.id, { onDelete: 'set null' }),

@@ -39,7 +39,14 @@ class NotificationService {
   connect(userId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.isConnecting) {
-        reject(new Error('Connection already in progress'));
+        console.warn('Connection already in progress, skipping');
+        return;
+      }
+
+      // If already connected, resolve immediately
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        console.log('WebSocket already connected');
+        resolve();
         return;
       }
 
@@ -48,7 +55,7 @@ class NotificationService {
 
       try {
         // Close existing connection if any
-        if (this.ws) {
+        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
           this.ws.close();
         }
 

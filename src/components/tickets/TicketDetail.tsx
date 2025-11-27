@@ -139,16 +139,16 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-[#12111a]">
       {/* Header superior con título y botones - ESTILO ZENDESK/GMAIL */}
-      <div className="shrink-0 bg-white border-b">
+      <div className="shrink-0 bg-[#12111a] border-b border-white/10">
         {/* Título y botones de acción */}
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 hover:zd-bg-neutral-100">
-              <Menu className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 hover:bg-white/10">
+              <Menu className="w-5 h-5 text-gray-400" />
             </Button>
-            <h1 className="text-xl font-normal zd-text-neutral-900 truncate">
+            <h1 className="text-xl font-normal text-white truncate">
               {ticket.subject}
             </h1>
           </div>
@@ -176,21 +176,21 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
             >
               {ticket.priority.name}
             </Badge>
-            <Button variant="ghost" size="icon" className="h-9 w-9 ml-2 hover:zd-bg-neutral-100">
-              <Filter className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 ml-2 hover:bg-white/10">
+              <Filter className="w-5 h-5 text-gray-400" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
-              <Clock className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10">
+              <Clock className="w-5 h-5 text-gray-400" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 hover:zd-bg-neutral-100">
-              <MoreVertical className="w-5 h-5 zd-text-neutral-600" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10">
+              <MoreVertical className="w-5 h-5 text-gray-400" />
             </Button>
           </div>
         </div>
 
         {/* Snippet/Preview line - ESTILO GMAIL */}
-        <div className="px-4 pb-3 border-b">
-          <p className="text-sm zd-text-neutral-600 leading-relaxed">
+        <div className="px-4 pb-3 border-b border-white/10">
+          <p className="text-sm text-gray-400 leading-relaxed">
             {getTicketSnippet()}
           </p>
         </div>
@@ -200,37 +200,37 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-6">
           {/* Card del mensaje principal - ESTILO ZENDESK */}
-          <div className="bg-white rounded-lg border zd-border-neutral-200 overflow-hidden mb-4">
+          <div className="bg-[#12111a] rounded-lg border border-white/10 overflow-hidden mb-4">
             {/* Header del mensaje con remitente */}
-            <div className="px-6 py-4 zd-bg-neutral-100 border-b zd-border-neutral-200 flex items-start justify-between">
+            <div className="px-6 py-4 bg-[#18181b] border-b border-white/10 flex items-start justify-between">
               <div className="flex items-start gap-3 flex-1">
                 <Avatar className="w-10 h-10 shrink-0">
-                  <AvatarFallback className="zd-bg-primary-light text-white text-sm font-semibold">
+                  <AvatarFallback className="bg-violet-600 text-white text-sm font-semibold">
                     {ticket.customerId.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-base zd-text-neutral-900">
+                    <span className="font-semibold text-base text-white">
                       Customer {ticket.customerId.slice(-6)}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-xs zd-text-neutral-500">
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                       <span>•</span>
                       <span>{formatRelativeTime(typeof ticket.createdAt === 'string' ? ticket.createdAt : ticket.createdAt.toISOString())}</span>
                     </span>
                   </div>
                   
-                  <div className="text-sm zd-text-neutral-600">
+                  <div className="text-sm text-gray-400">
                     <span className="font-medium">Ticket ID:</span> #{ticket.id.slice(-8)}
                   </div>
 
                   {/* Tags */}
                   {ticket.tags && ticket.tags.length > 0 && (
                     <div className="flex items-center gap-1 mt-2">
-                      <Tag className="w-3 h-3 zd-text-neutral-500" />
+                      <Tag className="w-3 h-3 text-gray-500" />
                       {ticket.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
+                        <Badge key={tag} variant="secondary" className="text-xs bg-white/10 text-gray-300 hover:bg-white/20">
                           {tag}
                         </Badge>
                       ))}
@@ -244,41 +244,41 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8 hover:zd-bg-neutral-200"
+                  className="h-8 w-8 hover:bg-white/10"
                   title="Responder"
                 >
-                  <Reply className="w-4 h-4 zd-text-neutral-600" />
+                  <Reply className="w-4 h-4 text-gray-400" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="h-8 w-8 hover:zd-bg-neutral-200"
+                  className="h-8 w-8 hover:bg-white/10"
                   title="Reenviar"
                 >
-                  <Forward className="w-4 h-4 zd-text-neutral-600" />
+                  <Forward className="w-4 h-4 text-gray-400" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
                   onClick={handleArchive}
                   disabled={isArchiving}
-                  className="h-8 w-8 hover:zd-bg-neutral-200"
+                  className="h-8 w-8 hover:bg-white/10"
                   title="Archivar"
                 >
                   {isArchiving ? (
-                    <Loader2 className="w-4 h-4 animate-spin zd-text-neutral-600" />
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
                   ) : (
-                    <Archive className="w-4 h-4 zd-text-neutral-600" />
+                    <Archive className="w-4 h-4 text-gray-400" />
                   )}
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:zd-bg-neutral-200">
-                      <MoreVertical className="w-4 h-4 zd-text-neutral-600" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                      <MoreVertical className="w-4 h-4 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="zd-text-danger">
+                  <DropdownMenuContent align="end" className="bg-[#18181b] border-white/10 text-white">
+                    <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400">
                       {isDeleting ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       ) : (
@@ -294,13 +294,13 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
             {/* Contenido del mensaje */}
             <div className="px-6 py-6">
               {ticket.description ? (
-                <div className="text-sm zd-text-neutral-800 leading-relaxed email-content">
+                <div className="text-sm text-gray-300 leading-relaxed email-content">
                   <pre className="whitespace-pre-wrap font-sans">
                     {ticket.description}
                   </pre>
                 </div>
               ) : (
-                <div className="text-sm zd-text-neutral-500 italic">
+                <div className="text-sm text-gray-500 italic">
                   Sin descripción
                 </div>
               )}
@@ -309,12 +309,12 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
 
           {/* Mensajes adicionales (respuestas) */}
           {messages && messages.length > 0 && messages.map((message) => (
-            <div key={message.id} className="bg-white rounded-lg border zd-border-neutral-200 overflow-hidden mb-4">
-              <div className="px-6 py-4 zd-bg-neutral-100 border-b zd-border-neutral-200 flex items-start justify-between">
+            <div key={message.id} className="bg-[#12111a] rounded-lg border border-white/10 overflow-hidden mb-4">
+              <div className="px-6 py-4 bg-[#18181b] border-b border-white/10 flex items-start justify-between">
                 <div className="flex items-start gap-3 flex-1">
                   <Avatar className="w-10 h-10 shrink-0">
                     <AvatarFallback 
-                      className={message.sender.isAgent ? "zd-bg-primary text-white" : "zd-bg-secondary text-white"}
+                      className={message.sender.isAgent ? "bg-violet-600 text-white" : "bg-gray-600 text-white"}
                     >
                       {message.sender.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -322,26 +322,26 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-base zd-text-neutral-900">
+                      <span className="font-semibold text-base text-white">
                         {message.sender.name}
                       </span>
                       {message.sender.isAgent && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-white/10 text-gray-300">
                           Agente
                         </Badge>
                       )}
                       {message.isInternal && (
-                        <Badge variant="secondary" className="text-xs zd-bg-warning/10 zd-text-warning">
+                        <Badge variant="secondary" className="text-xs bg-yellow-500/10 text-yellow-500">
                           Nota interna
                         </Badge>
                       )}
-                      <span className="inline-flex items-center gap-1 text-xs zd-text-neutral-500">
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                         <span>•</span>
                         <span>{formatRelativeTime(typeof message.timestamp === 'string' ? message.timestamp : message.timestamp.toISOString())}</span>
                       </span>
                     </div>
                     
-                    <div className="text-sm zd-text-neutral-600">
+                    <div className="text-sm text-gray-400">
                       <span className="font-medium">Para:</span> {message.recipient}
                     </div>
                   </div>
@@ -350,9 +350,11 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
 
               <div className="px-6 py-6">
                 {message.bodyContent ? (
-                  <TicketHTMLRenderer html={message.bodyContent} />
+                  <div className="prose prose-invert max-w-none">
+                    <TicketHTMLRenderer html={message.bodyContent} />
+                  </div>
                 ) : (
-                  <div className="text-sm zd-text-neutral-800 leading-relaxed email-content">
+                  <div className="text-sm text-gray-300 leading-relaxed email-content">
                     <pre className="whitespace-pre-wrap font-sans">
                       {message.content}
                     </pre>
@@ -365,29 +367,29 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
       </div>
 
       {/* Área de respuesta FIJA - SIEMPRE VISIBLE */}
-      <div className="shrink-0 border-t bg-white shadow-lg">
+      <div className="shrink-0 border-t border-white/10 bg-[#12111a]">
         <div className="px-4 py-4">
           <div className="mb-3 flex items-center justify-between">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-sm font-medium hover:zd-bg-neutral-100 px-3 py-1.5 rounded">
+                <button className="flex items-center gap-1 text-sm font-medium text-white hover:bg-white/10 px-3 py-1.5 rounded transition-colors">
                   {replyType === "public" ? "Respuesta pública" : "Nota interna"}
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setReplyType("public")}>
+              <DropdownMenuContent className="bg-[#18181b] border-white/10 text-white">
+                <DropdownMenuItem onClick={() => setReplyType("public")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   <Reply className="w-4 h-4 mr-2" />
                   Respuesta pública
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setReplyType("internal")}>
+                <DropdownMenuItem onClick={() => setReplyType("internal")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Nota interna
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <span className="text-xs zd-text-neutral-600">
+            <span className="text-xs text-gray-400">
               Para: Customer {ticket.customerId.slice(-6)}
             </span>
           </div>
@@ -396,12 +398,12 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             placeholder="Escribir respuesta..."
-            className="min-h-[100px] mb-3 resize-none"
+            className="min-h-[100px] mb-3 resize-none bg-[#18181b] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500 focus:ring-violet-500/20"
             disabled={isSending}
           />
 
           <div className="flex justify-between items-center">
-            <div className="text-xs zd-text-neutral-500">
+            <div className="text-xs text-gray-500">
               Ctrl+Enter para enviar
             </div>
             <div className="flex gap-2">
@@ -409,7 +411,7 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
                 variant="outline" 
                 size="sm"
                 onClick={() => setReplyText("")}
-                className="hover:zd-bg-neutral-100"
+                className="bg-transparent border-white/10 text-white hover:bg-white/10"
               >
                 Cancelar
               </Button>
@@ -417,7 +419,7 @@ export function TicketDetail({ ticket, messages = [], onTicketUpdated, onRefresh
                 onClick={handleSendReply}
                 disabled={isSending || !replyText.trim()}
                 size="sm"
-                className="zd-bg-primary-light hover:zd-bg-primary-hover text-white"
+                className="bg-violet-600 hover:bg-violet-700 text-white"
               >
                 {isSending ? (
                   <>

@@ -19,13 +19,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Load theme from localStorage on mount
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('theme') as Theme;
-    if (stored) {
-      setThemeState(stored);
+    // Force light theme for landing/public pages, dark for dashboard
+    const isPublicPage = window.location.pathname === '/' || 
+                         window.location.pathname === '/login' || 
+                         window.location.pathname === '/register';
+    
+    if (isPublicPage) {
+      // Always use light theme on public pages (orange/cream)
+      setThemeState('light');
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(prefersDark ? 'dark' : 'light');
+      // Always use dark theme on dashboard pages (purple/violet)
+      setThemeState('dark');
     }
   }, []);
 
