@@ -55,7 +55,7 @@
   --font-size: 14px;
   --radius: 0.5rem;
 
-  /* HawkMail Landing Page Theme - Beige/Cream/Orange */
+  /* Light Theme (Default - Landing Page) */
   --background: #FAF7F5;
   --foreground: #2C1810;
 
@@ -128,7 +128,7 @@
   --font-body: "Inter", sans-serif;
 }
 
-.dark {
+html.dark {
   --font-size: 14px;
   --background: #0a0a0f;
   --foreground: #e4e4e7;
