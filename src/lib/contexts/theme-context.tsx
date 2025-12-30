@@ -20,23 +20,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMounted(true);
     // Force light theme for landing/public pages, dark for dashboard
-    const isPublicPage = window.location.pathname === '/' || 
-                         window.location.pathname === '/login' || 
-                         window.location.pathname === '/register';
-    
+    const isPublicPage = window.location.pathname === '/' ||
+      window.location.pathname === '/login' ||
+      window.location.pathname === '/register';
+
     if (isPublicPage) {
       // Always use light theme on public pages (orange/cream)
       setThemeState('light');
     } else {
-      // Always use dark theme on dashboard pages (purple/violet)
-      setThemeState('dark');
+      // Use light theme (hybrid cream/dark) on dashboard pages by default
+      setThemeState('light');
     }
   }, []);
 
   // Apply theme to document
   useEffect(() => {
     if (!mounted) return;
-    
+
     const root = document.documentElement;
     root.classList.remove('dark', 'light');
     root.classList.add(theme);

@@ -14,28 +14,28 @@ export const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="text-2xl font-bold text-primary">HawkMail</div>
+            <div className="text-2xl font-bold" style={{ color: '#C84B00' }}>HawkMail</div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link href="#features" className="text-foreground hover:text-primary transition-colors">
               Features
             </Link>
-            <Link href="#analytics" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link href="#analytics" className="text-foreground hover:text-primary transition-colors">
               Analytics
             </Link>
-            <Link href="#pricing" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link href="#pricing" className="text-foreground hover:text-primary transition-colors">
               Pricing
             </Link>
-            <Link href="#contact" className="text-foreground/80 hover:text-foreground transition-colors">
+            <Link href="#contact" className="text-foreground hover:text-primary transition-colors">
               Contact
             </Link>
           </div>
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login" className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+            <Link href="/login" className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:text-primary h-10 px-4 py-2 text-foreground">
               Sign In
             </Link>
             <Link href="/register" className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">

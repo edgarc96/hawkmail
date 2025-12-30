@@ -35,8 +35,12 @@ export async function middleware(request: NextRequest) {
   // Verificar autenticación para rutas protegidas
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
     // Verificar si hay una cookie de sesión de Better Auth
-    const sessionToken = request.cookies.get('better-auth.session_token');
-    
+    // Better Auth puede usar diferentes nombres de cookie dependiendo de la configuración
+    const sessionToken = request.cookies.get('better-auth.session-token') ||
+      request.cookies.get('better-auth.session_token') ||
+      request.cookies.get('session-token') ||
+      request.cookies.get('session_token');
+
     if (!sessionToken) {
       // Redirigir a login si no hay cookie de sesión
       const loginUrl = new URL('/login', request.url);

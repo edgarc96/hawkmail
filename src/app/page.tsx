@@ -8,14 +8,15 @@ export default function Page() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      
+
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            <span className="gradient-text">Master Your Email</span>
-            <span className="block mt-4">
-              <span className="text-geometric gradient-text">Response Times</span>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-brand-dark">
+            <span>Master Your Email</span>
+            <span className="block mt-2">
+              <span className="text-primary mr-2">◆</span>
+              <span className="gradient-text">Response Times</span>
             </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
@@ -34,7 +35,7 @@ export default function Page() {
               </Button>
             </Link>
           </div>
-          
+
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-20 max-w-4xl mx-auto">
             <div>
@@ -62,7 +63,7 @@ export default function Page() {
             </h2>
             <p className="text-xl text-muted-foreground">Everything you need to track and improve email performance</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-card p-8 rounded-lg border border-border">
               <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
@@ -175,7 +176,7 @@ export default function Page() {
                   <h3 className="text-lg font-semibold">Analytics Overview</h3>
                   <div className="text-sm text-muted-foreground">Last 7 days</div>
                 </div>
-                
+
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-primary/5 p-4 rounded-lg">
@@ -199,17 +200,17 @@ export default function Page() {
                     <div className="text-xs text-green-500 mt-1">↑ 0.5 vs last week</div>
                   </div>
                 </div>
-                
+
                 {/* Chart Placeholder */}
                 <div className="bg-muted/30 rounded-lg p-6 h-32 flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 flex items-end justify-around px-4 pb-4 gap-2">
-                    <div className="bg-primary/30 w-full rounded-t-sm" style={{height: '40%'}}></div>
-                    <div className="bg-primary/50 w-full rounded-t-sm" style={{height: '65%'}}></div>
-                    <div className="bg-primary/40 w-full rounded-t-sm" style={{height: '50%'}}></div>
-                    <div className="bg-primary/70 w-full rounded-t-sm" style={{height: '85%'}}></div>
-                    <div className="bg-primary/60 w-full rounded-t-sm" style={{height: '70%'}}></div>
-                    <div className="bg-primary w-full rounded-t-sm" style={{height: '95%'}}></div>
-                    <div className="bg-primary/80 w-full rounded-t-sm" style={{height: '88%'}}></div>
+                    <div className="bg-primary/30 w-full rounded-t-sm" style={{ height: '40%' }}></div>
+                    <div className="bg-primary/50 w-full rounded-t-sm" style={{ height: '65%' }}></div>
+                    <div className="bg-primary/40 w-full rounded-t-sm" style={{ height: '50%' }}></div>
+                    <div className="bg-primary/70 w-full rounded-t-sm" style={{ height: '85%' }}></div>
+                    <div className="bg-primary/60 w-full rounded-t-sm" style={{ height: '70%' }}></div>
+                    <div className="bg-primary w-full rounded-t-sm" style={{ height: '95%' }}></div>
+                    <div className="bg-primary/80 w-full rounded-t-sm" style={{ height: '88%' }}></div>
                   </div>
                 </div>
                 <div className="text-xs text-center text-muted-foreground">Response Time Trends</div>
