@@ -260,6 +260,33 @@
     --sidebar-ring: var(--color-sidebar-ring);
   }
 
+  .dark {
+    --background: #0a0a0f;
+    --foreground: #e4e4e7;
+    --card: #18181b;
+    --card-foreground: #e4e4e7;
+    --popover: #18181b;
+    --popover-foreground: #e4e4e7;
+    --primary: #8b5cf6;
+    --primary-foreground: #ffffff;
+    --secondary: #27272a;
+    --secondary-foreground: #e4e4e7;
+    --muted: #27272a;
+    --muted-foreground: #71717a;
+    --accent: #7c3aed;
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.05);
+    --ring: #8b5cf6;
+    --chart-1: #8b5cf6;
+    --chart-2: #3b82f6;
+    --chart-3: #10b981;
+    --chart-4: #f59e0b;
+    --chart-5: #ef4444;
+  }
+
   html {
     font-size: var(--font-size);
     scroll-behavior: auto;
@@ -267,8 +294,8 @@
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-body);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
