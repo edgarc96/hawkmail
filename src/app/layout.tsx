@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} dark`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -30,7 +30,9 @@ export default function RootLayout({
                 const isPublicPage = window.location.pathname === '/' ||
                   window.location.pathname === '/login' ||
                   window.location.pathname === '/register';
-                document.documentElement.classList.add(isPublicPage ? 'light' : 'dark');
+                const root = document.documentElement;
+                root.classList.remove('dark', 'light');
+                root.classList.add(isPublicPage ? 'light' : 'dark');
               })();
             `,
           }}
