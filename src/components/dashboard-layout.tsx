@@ -62,8 +62,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Mostrar loading mientras verifica la sesión
   if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted to-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     );
   }
@@ -75,7 +75,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex">
+      <div className="min-h-screen bg-[#0a0a0f] text-[#e4e4e7] flex">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
