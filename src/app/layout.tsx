@@ -22,6 +22,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const isPublicPage = window.location.pathname === '/' ||
+                  window.location.pathname === '/login' ||
+                  window.location.pathname === '/register';
+                document.documentElement.classList.add(isPublicPage ? 'light' : 'dark');
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
           <ErrorReporter />
