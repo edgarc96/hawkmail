@@ -95,21 +95,14 @@ export function ZendeskTicketsTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  className={
-                    statusClassMap[ticket.status] ??
-                    statusClassMap[ticket.status.toLowerCase()] ??
-                    "bg-gray-200 text-gray-700"
-                  }
+                  className={getStatusColor(ticket.status)}
                 >
                   {ticket.statusLabel}
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge
-                  className={
-                    priorityClassMap[ticket.priority.toLowerCase()] ??
-                    "bg-gray-200 text-gray-700"
-                  }
+                  className={getPriorityColor(ticket.priority)}
                 >
                   {ticket.priorityLabel}
                 </Badge>
