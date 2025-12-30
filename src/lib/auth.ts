@@ -26,6 +26,30 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false, // Disable for development
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          console.log('Creating user with data:', JSON.stringify(user, null, 2));
+          return { data: user };
+        },
+        after: async (user) => {
+          console.log('User created in DB:', user.id);
+        },
+      },
+    },
+    account: {
+      create: {
+        before: async (account) => {
+          console.log('Creating account with data:', JSON.stringify(account, null, 2));
+          return { data: account };
+        },
+        after: async (account) => {
+          console.log('Account created in DB:', account.id);
+        },
+      },
+    },
+  },
   socialProviders: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
