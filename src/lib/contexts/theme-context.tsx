@@ -12,36 +12,45 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Determine initial theme based on pathname
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark';
+  
+  const isPublicPage = window.location.pathname === '/' ||
+    window.location.pathname === '/login' ||
+    window.location.pathname === '/register';
+
+  return isPublicPage ? 'light' : 'dark';
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme());
   const [mounted, setMounted] = useState(false);
 
-  // Load theme from localStorage on mount
+  // Apply theme immediately on mount
   useEffect(() => {
     setMounted(true);
-    // Force light theme for landing/public pages, dark for dashboard
-    const isPublicPage = window.location.pathname === '/' ||
-      window.location.pathname === '/login' ||
-      window.location.pathname === '/register';
-
-    if (isPublicPage) {
-      // Always use light theme on public pages (orange/cream)
-      setThemeState('light');
-    } else {
-      // Use dark theme on dashboard pages
-      setThemeState('dark');
-    }
-  }, []);
-
-  // Apply theme to document
-  useEffect(() => {
-    if (!mounted) return;
-
     const root = document.documentElement;
     root.classList.remove('dark', 'light');
     root.classList.add(theme);
     localStorage.setItem('theme', theme);
-  }, [theme, mounted]);
+  }, [theme]);
+
+  // Sync theme on route changes
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const isPublicPage = window.location.pathname === '/' ||
+        window.location.pathname === '/login' ||
+        window.location.pathname === '/register';
+      
+      const newTheme = isPublicPage ? 'light' : 'dark';
+      setThemeState(newTheme);
+    };
+
+    // Listen for popstate (back/forward navigation)
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
 
   const toggleTheme = () => {
     setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
