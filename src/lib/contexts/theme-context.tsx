@@ -28,8 +28,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Always use light theme on public pages (orange/cream)
       setThemeState('light');
     } else {
-      // Use light theme (hybrid cream/dark) on dashboard pages by default
-      setThemeState('light');
+      // Use dark theme on dashboard pages
+      setThemeState('dark');
     }
   }, []);
 
